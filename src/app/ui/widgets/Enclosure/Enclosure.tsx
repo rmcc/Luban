@@ -8,13 +8,16 @@ import { controller } from '../../../communication/socket-communication';
 import i18n from '../../../lib/i18n';
 import log from '../../../lib/log';
 import Switch from '../../components/Switch';
+import TipTrigger from '../../components/TipTrigger';
 import { SnapmakerJ1Machine } from '../../../machines';
 
 const Enclosure: React.FC = () => {
     const { isConnected } = useSelector((state: RootState) => state.workspace);
 
     const {
+        connectionType,
         enclosureLight,
+        headType,
         enclosureFan,
         isDoorEnabled: doorEnabled,
         machineIdentifier
@@ -22,6 +25,7 @@ const Enclosure: React.FC = () => {
 
     const [isLedReady, setIsLedReady] = useState(true);
     const [isFanReady, setIsFanReady] = useState(true);
+    const [isDoorEnabledReady, setIsDoorEnabledReady] = useState(true);
     const [isDoorEnabled, setIsDoorEnabled] = useState(isUndefined(doorEnabled) ? true : doorEnabled);
 
     const actions = {
@@ -40,6 +44,7 @@ const Enclosure: React.FC = () => {
             });
         },
         onHandleDoorEnabled: () => {
+            setIsDoorEnabledReady(false);
             controller
                 .emitEvent(SocketEvent.SetEnclosureDoorDetection, {
                     enable: !isDoorEnabled
@@ -51,6 +56,7 @@ const Enclosure: React.FC = () => {
                     }
                     if (data) {
                         setIsDoorEnabled(data.isDoorEnabled);
+                        setIsDoorEnabledReady(true);
                     }
                 });
         }
@@ -66,6 +72,7 @@ const Enclosure: React.FC = () => {
 
     useEffect(() => {
         setIsDoorEnabled(isUndefined(doorEnabled) ? true : doorEnabled);
+        setIsDoorEnabledReady(true);
     }, [doorEnabled]);
 
     return (
@@ -90,14 +97,12 @@ const Enclosure: React.FC = () => {
                         />
                     </div>
                 )}
-                {/* Disable adjustment for door detection
                 {(isConnected && connectionType === 'wifi' && headType !== '3dp') && (
                     <TipTrigger
                         title={i18n._('key-Workspace/Enclosure-Door Detection')}
                         content={(
                             <div>
-                                <p>{i18n._('key-Workspace/Enclosure-If you disable the Door Detection feature,
- your job will not pause when one of both of the enclosure panels is/are opened.')}</p>
+                                <p>{i18n._('key-Workspace/Enclosure-If you disable the Door Detection feature,\r\nyour job will not pause when one of both of the enclosure panels is/are opened.')}</p>
                             </div>
                         )}
                     >
@@ -111,7 +116,6 @@ const Enclosure: React.FC = () => {
                         </div>
                     </TipTrigger>
                 )}
-                */}
             </div>
         </div>
     );

@@ -1149,7 +1149,7 @@ M3`;
             const success = await (this.channel as EnclosureChannelInterface).setEnclosureDoorDetection(options.enable);
             socket.emit(SocketEvent.SetEnclosureDoorDetection, { err: !success });
         } else if (includes([NetworkProtocol.HTTP], this.protocol)) {
-            this.channel.setDoorDetection(options.enable);
+            this.channel.setDoorDetection(options);
         } else {
             // unsupported
         }
