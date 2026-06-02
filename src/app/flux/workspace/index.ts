@@ -248,7 +248,7 @@ export const actions = {
             'Marlin:settings': (options) => {
                 log.warn('REFACTOR Marlin:settings', options);
                 const {
-                    enclosureDoorDetection,
+                    enclosureDoorDetection = true,
                     enclosureOnline,
                     enclosureFan = 0,
                     enclosureLight = 0,
@@ -424,7 +424,7 @@ export const actions = {
                 compareAndSet(data, currentState, 'enclosureFan', fanLevel);
 
 
-                compareAndSet(data, currentState, 'isDoorEnabled', isDoorEnable);
+                compareAndSet(data, currentState, 'enclosureDoorDetection', isDoorEnable);
                 compareAndSet(data, currentState, 'gcodeFileName', fileName);
                 compareAndSet(data, currentState, 'workflowStatus', status);
                 compareAndSet(data, currentState, 'gcodePrintingInfo', gcodePrintingInfo);

@@ -19,7 +19,7 @@ const Enclosure: React.FC = () => {
         enclosureLight,
         headType,
         enclosureFan,
-        isDoorEnabled: doorEnabled,
+        enclosureDoorDetection: doorEnabled,
         machineIdentifier
     } = useSelector((state: RootState) => state.workspace, shallowEqual);
 
