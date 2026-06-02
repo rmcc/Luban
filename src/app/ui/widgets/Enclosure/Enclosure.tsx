@@ -1,4 +1,3 @@
-import { isUndefined } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { shallowEqual, useSelector } from 'react-redux';
 
@@ -6,7 +5,6 @@ import SocketEvent from '../../../communication/socket-events';
 import { RootState } from '../../../flux/index.def';
 import { controller } from '../../../communication/socket-communication';
 import i18n from '../../../lib/i18n';
-import log from '../../../lib/log';
 import Switch from '../../components/Switch';
 import TipTrigger from '../../components/TipTrigger';
 import { SnapmakerJ1Machine } from '../../../machines';
@@ -19,14 +17,13 @@ const Enclosure: React.FC = () => {
         enclosureLight,
         headType,
         enclosureFan,
-        enclosureDoorDetection: doorEnabled,
+        enclosureDoorDetection,
         machineIdentifier
     } = useSelector((state: RootState) => state.workspace, shallowEqual);
 
     const [isLedReady, setIsLedReady] = useState(true);
     const [isFanReady, setIsFanReady] = useState(true);
     const [isDoorEnabledReady, setIsDoorEnabledReady] = useState(true);
-    const [isDoorEnabled, setIsDoorEnabled] = useState(isUndefined(doorEnabled) ? true : doorEnabled);
 
     const actions = {
         onHandleLed: async () => {
@@ -45,20 +42,9 @@ const Enclosure: React.FC = () => {
         },
         onHandleDoorEnabled: () => {
             setIsDoorEnabledReady(false);
-            controller
-                .emitEvent(SocketEvent.SetEnclosureDoorDetection, {
-                    enable: !isDoorEnabled
-                })
-                .once(SocketEvent.SetEnclosureDoorDetection, ({ msg, data }) => {
-                    if (msg) {
-                        log.error(msg);
-                        return;
-                    }
-                    if (data) {
-                        setIsDoorEnabled(data.isDoorEnabled);
-                        setIsDoorEnabledReady(true);
-                    }
-                });
+            controller.emitEvent(SocketEvent.SetEnclosureDoorDetection, {
+                enable: !enclosureDoorDetection
+            });
         }
     };
 
@@ -71,9 +57,8 @@ const Enclosure: React.FC = () => {
     }, [enclosureFan]);
 
     useEffect(() => {
-        setIsDoorEnabled(isUndefined(doorEnabled) ? true : doorEnabled);
         setIsDoorEnabledReady(true);
-    }, [doorEnabled]);
+    }, [enclosureDoorDetection]);
 
     return (
         <div>
@@ -110,7 +95,7 @@ const Enclosure: React.FC = () => {
                             <span>{i18n._('key-Workspace/Enclosure-Door Detection')}</span>
                             <Switch
                                 onClick={actions.onHandleDoorEnabled}
-                                checked={isDoorEnabled}
+                                checked={Boolean(enclosureDoorDetection)}
                                 disabled={(!isDoorEnabledReady) || !isConnected}
                             />
                         </div>
