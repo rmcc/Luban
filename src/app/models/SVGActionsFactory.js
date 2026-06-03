@@ -126,7 +126,8 @@ function genModelConfig(elem, size, materials = {}) {
             text: elem.getAttribute('textContent'),
             alignment: 'left',
             'font-size': elem.getAttribute('font-size'),
-            'font-family': elem.getAttribute('font-family')
+            'font-family': elem.getAttribute('font-family'),
+            'line-height': elem.getAttribute('line-height')
         }
     };
 
@@ -1442,6 +1443,7 @@ class SVGActionsFactory {
                 y: this.size.y + position.y,
                 'font-size': 24,
                 'font-family': 'Arial Black',
+                'line-height': 1.5,
                 style: 'Regular',
                 alignment: 'left',
                 textContent: content
@@ -1485,6 +1487,10 @@ class SVGActionsFactory {
 
         if (options.fontSize !== undefined) {
             newConfig['font-size'] = options.fontSize;
+        }
+
+        if (options.lineHeight !== undefined) {
+            newConfig['line-height'] = options.lineHeight;
         }
         if (options.style !== undefined) {
             newConfig.style = options.style;

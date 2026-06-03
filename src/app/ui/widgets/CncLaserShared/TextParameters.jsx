@@ -18,7 +18,7 @@ const TextParameters = ({ headType, modifyText, disabled }) => {
         value: font.fontFamily,
         style: font.style
     }));
-    const { text, 'font-size': fontSize, 'font-family': fontFamily, alignment } = config;
+    const { text, 'font-size': fontSize, 'font-family': fontFamily, alignment, 'line-height': lineHeight } = config;
     const [expanded, setExpanded] = useState(true);
 
     const fileInput = useRef();
@@ -46,6 +46,9 @@ const TextParameters = ({ headType, modifyText, disabled }) => {
         },
         onChangeSize: (newSize) => {
             modifyText(null, { fontSize: `${newSize}` });
+        },
+        onChangeLineHeight: (newSize) => {
+            modifyText(null, { lineHeight: `${newSize}` });
         },
         onChangeAlignment: (newAlignment) => {
             modifyText(null, { alignment: newAlignment });
@@ -112,6 +115,22 @@ const TextParameters = ({ headType, modifyText, disabled }) => {
                                 className="sm-flex-width align-r"
                                 value={parseInt(fontSize, 10)}
                                 onChange={actions.onChangeSize}
+                            />
+                        </div>
+                    </TipTrigger>
+                    <TipTrigger
+                        title={i18n._('key-CncLaser/TextSection-Line Height')}
+                        content={i18n._('key-CncLaser/TextSection-Select the line height for text.')}
+                    >
+                        <div className="sm-flex height-32 margin-vertical-8">
+                            <span className="sm-flex-auto sm-flex-order-negative width-72">{i18n._('key-CncLaser/TextSection-Line Height')}</span>
+                            <Input
+                                suffix=""
+                                disabled={disabled}
+                                max={100}
+                                className="sm-flex-width align-r"
+                                value={parseFloat(lineHeight, 10)}
+                                onChange={actions.onChangeLineHeight}
                             />
                         </div>
                     </TipTrigger>
