@@ -3,6 +3,17 @@
 // ==========================================================================
 @import './global-var.styl';
 
+/* automatic color inversion for dark mode */
+@media (prefers-color-scheme: dark) {
+  html {
+    filter: invert(1) hue-rotate(180deg);
+  }
+
+  img, video, iframe, .dont-invert {
+    filter: invert(1) hue-rotate(180deg);
+  }
+}
+
 body {
     margin: 0;
     font-size: 13px;
