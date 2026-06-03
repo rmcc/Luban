@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import get from 'lodash/get';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import FacebookLoading from 'react-facebook-loading';
@@ -16,6 +16,9 @@ import UniApi from '../../../../../lib/uni-api';
 import { actions as machineActions } from '../../../../../flux/machine';
 import SubMenuitemWrapper from './SubMenuItemWrapper';
 
+// We use ipc directly to store the theme at a location that can be
+// read by main.js (before internal data structures are loaded)
+const { ipcRenderer } = window.require('electron');
 
 // const About = () => {
 //     return (
@@ -79,6 +82,27 @@ const languageOptions = [
         label: '中文 (简体)'
     }
 ];
+const themeOptions = [
+    {
+        value: 'system',
+        label: 'System'
+    }, {
+        value: 'light',
+        label: 'Light'
+    }, {
+        value: 'dark',
+        label: 'Dark'
+    }
+];
+
+async function getCurrentTheme() {
+    const currentTheme = await ipcRenderer.invoke('theme:get');
+    return currentTheme;
+}
+
+async function setCurrentTheme(chosenTheme) {
+    await ipcRenderer.invoke('theme:set', chosenTheme);
+}
 
 function General({ state: generalState, actions }) {
     const isDownloading = useSelector(state => state?.machine?.isDownloading, shallowEqual);
@@ -94,10 +118,22 @@ function General({ state: generalState, actions }) {
     const updateShouldHideConsole = (bool) => dispatch(machineActions.updateShouldHideConsole(bool));
     const updatePromptDamageModel = (bool) => dispatch(machineActions.updatePromptDamageModel(bool));
     const updateEnable3dpLivePreview = (bool) => dispatch(machineActions.updateEnable3dpLivePreview(bool));
+    const [theme, setTheme] = useState('light');
+
+    useEffect(() => {
+        getCurrentTheme().then((themeString) => {
+            setTheme(themeString);
+        });
+    }, []);
 
     const handlers = {
         changeLanguage: (option) => {
             actions.changeLanguage(option?.value);
+        },
+        changeTheme: (option) => {
+            if (option?.value !== theme) {
+                setCurrentTheme(option?.value);
+            }
         },
         cancel: () => {
             actions.restoreSettings();
@@ -238,6 +274,20 @@ function General({ state: generalState, actions }) {
                         <span className="margin-left-4">
                             {i18n._('key-App/Settings/Enable 3D Printing Live Preview')}
                         </span>
+                    </SubMenuitemWrapper>
+                    <SubMenuitemWrapper title="Appearance">
+                        <span className="margin-left-4">
+                            Theme
+                        </span>
+                        <Select
+                            className={classNames(
+                                'margin-top-16'
+                            )}
+                            size="200px"
+                            value={theme}
+                            onChange={handlers.changeTheme}
+                            options={themeOptions}
+                        />
                     </SubMenuitemWrapper>
                 </div>
             </form>

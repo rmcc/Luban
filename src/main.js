@@ -5,7 +5,7 @@ import 'core-js';
 // import 'regenerator-runtime/runtime';
 
 import { enable as electronEnable, initialize as electronRemoteMainInitialize } from '@electron/remote/main';
-import { app, BrowserWindow, dialog, ipcMain, Menu, powerSaveBlocker, protocol, screen, session, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, powerSaveBlocker, protocol, screen, session, shell, nativeTheme } from 'electron';
 import Store from 'electron-store';
 import { autoUpdater } from 'electron-updater';
 import fs from 'fs';
@@ -53,6 +53,8 @@ const loadingMenu = [{
     id: 'file',
     label: '',
 }];
+
+const themeConfigPath = path.join(userDataDir, 'theme-selection.json');
 
 const childProcess = require('child_process');
 
@@ -132,6 +134,18 @@ function getBrowserWindowOptions() {
     }
 
     return Object.assign({}, defaultOptions, windowOptions);
+}
+
+function readThemeFromFile() {
+    try {
+        if (fs.existsSync(themeConfigPath)) {
+            const data = JSON.parse(fs.readFileSync(themeConfigPath, 'utf-8'));
+            return data.theme || 'light';
+        }
+    } catch (error) {
+        console.log('Failed to read theme file:', error);
+    }
+    return 'light'; // Default fallback
 }
 
 function sendUpdateMessage(text) {
@@ -347,6 +361,7 @@ const startToBegin = (data) => {
 let serverProcess;
 const showMainWindow = async () => {
     const windowOptions = getBrowserWindowOptions();
+    nativeTheme.themeSource = readThemeFromFile();
     const window = new BrowserWindow(windowOptions);
     mainWindow = window;
     // Monitor policy links, do not allow redirection
@@ -653,6 +668,19 @@ const showMainWindow = async () => {
     });
     ipcMain.on('clear-files', (_, removePaths) => {
         removePaths.forEach(removePath => clearPath(removePath));
+    });
+
+    ipcMain.handle('theme:get', () => {
+        return readThemeFromFile();
+    });
+    ipcMain.handle('theme:set', (_, chosenTheme) => {
+        try {
+            nativeTheme.themeSource = chosenTheme;
+            fs.writeFileSync(themeConfigPath, JSON.stringify({ theme: chosenTheme }, null, 2));
+        } catch (error) {
+            console.log('Failed to save theme file:', error);
+        }
+        return true;
     });
 };
 
