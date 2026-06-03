@@ -16,12 +16,14 @@ import {
  * @returns {{width: number, height: number}}
  */
 export const computeTransformationSizeForTextVector = (text, fontSize, lineHeight, size) => {
-    const numberOfLines = text.split('\n').length;
-    // const newHeight = size / 72 * 25.4 * numberOfLines;
-    // const newWidth = newHeight * whRatio;
-    // Assume that limitSize.x === limitSize.y
-    const estimatedHeight = fontSize / 72 * 25.4;
-    let height = estimatedHeight + estimatedHeight * lineHeight * (numberOfLines - 1);
+    // convertTextToSvg calculates sizes by converting the size in points to mm...
+    // multiplied by 10. Bring it back down to mm by dividing again and use that value
+    // directly instead of using fontSize-based math AGAIN. We have all we need in the size object,
+    // don't even need to calculate the multiple lines... if it wasn't for that multiplier, this
+    // transformation wouldn't be needed at all.
+    // See svg-convert.js for the origin of the "magic 10":
+    // const estimatedFontSize = (fontSize / 72 * 25.4 * 10) * (realUnitsPerEm) / unitsPerEm;
+    let height = size.height / 10;
     let width = height / size.height * size.width;
 
     if (!width) {
