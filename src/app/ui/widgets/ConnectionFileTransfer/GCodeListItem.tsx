@@ -49,7 +49,14 @@ const GcodePreviewItem: React.FC<GcodePreviewItemProps> = (props) => {
     }
 
     const lastModified = new Date(gcodeFile.lastModified);
-    let date = `${lastModified.getFullYear()}.${lastModified.getMonth() + 1}.${lastModified.getDate()}   ${lastModified.getHours()}:${lastModified.getMinutes()}`;
+
+    // getISOString always returns UTC, so force the TZ offset to get wall clock time
+    const date = new Date(lastModified.getTime() - (lastModified.getTimezoneOffset() * 60000))
+        .toISOString()
+        .replace(/-/g, '.')
+        .replace('T', ' ')
+        .slice(0, 16);
+
     if (!gcodeFile.lastModified) {
         date = '';
     }
