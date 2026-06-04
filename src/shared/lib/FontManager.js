@@ -1,4 +1,5 @@
-import libFontManager from 'font-scanner';
+import getSystemFonts from 'get-system-fonts';
+import fontkit from 'fontkit';
 import fs from 'fs';
 import includes from 'lodash/includes';
 import log from 'loglevel';
@@ -50,14 +51,90 @@ class FontManager {
         // preload fonts config
         this.systemFonts = [];
         this.loadDefaultFont();
-        libFontManager.getAvailableFontsSync()
-            .forEach((font) => {
-                if (path.extname(font.path)
-                    .toLocaleLowerCase() !== '.ttc'
-                    && this.systemFonts.findIndex(i => i.family === font.family) < 0) {
-                    this.systemFonts.push(font);
+        this.initSystemFonts();
+    }
+
+    async initSystemFonts() {
+        try {
+            const fontPaths = await getSystemFonts();
+
+            for (const filePath of fontPaths) {
+                try {
+                    const ext = path.extname(filePath).toLowerCase();
+
+                    if (ext === '.ttc') {
+                        // fontkit reads .ttc files natively as multi-font arrays.
+                        // Since we index by path, it'll select *one* of them, which
+                        // isn't ideal. let's skip them all for now :-(
+                        /*const collection = fontkit.openSync(filePath);
+                        if (collection && collection.fonts) {
+                            /*collection.fonts.forEach((font) => {
+                                this.processAndPushFont(font, filePath);
+                            });
+                        }*/
+                        continue;
+                    } else {
+                        const font = fontkit.openSync(filePath);
+                        this.processAndPushFont(font, filePath);
+                    }
+                } catch (fontFileErr) {
+                    continue;
                 }
-            });
+            }
+
+            console.log(`Successfully mapped ${this.systemFonts.length} font objects onto original structure.`);
+        } catch (err) {
+            console.error('Failed to parse system fonts without native modules:', err);
+        }
+    }
+
+    processAndPushFont(font, filePath) {
+        const family = font.familyName;
+
+        let style = font.subFamilyName ||
+                font.name?.records?.fontSubfamily?.en ||
+                font.name?.records?.postscriptName?.en?.split('-')[1] ||
+                'Regular';
+
+        // Capitalize first letter to match font-scanner styling formats
+        if (typeof style === 'string') {
+            style = style.trim();
+            style = style.charAt(0).toUpperCase() + style.slice(1);
+        }
+
+        if (!family) return;
+
+        // We need this info for text-to-SVG sizing
+        const os2Table = font.OS2 || font['OS/2'];
+        const hheaTable = font.hhea;
+        const postTable = font.post;
+
+        const isDuplicate = this.systemFonts.findIndex(i => i.family === family /*&& i.style === style*/) >= 0;
+        if (isDuplicate) return;
+
+        // Create an array in the same format font-scanner used
+        this.systemFonts.push({
+            family: family,
+            style: style,
+            path: filePath,
+            postscriptName: font.postscriptName || family.replace(/\s+/g, '-'),
+
+            tables: {
+                os2: {
+                    ascender: os2Table?.sTypoAscender ?? hheaTable?.ascent ?? 0,
+                    descender: os2Table?.sTypoDescender ?? hheaTable?.descent ?? 0,
+                    lineGap: os2Table?.sTypoLineGap ?? hheaTable?.lineGap ?? 0,
+                    weightClass: os2Table?.usWeightClass ?? 400,
+                    capHeight: os2Table?.sCapHeight ?? font.capHeight ?? 0,
+                    xHeight: os2Table?.sxHeight ?? font.xHeight ?? 0
+                },
+                post: {
+                    underlinePosition: postTable?.underlinePosition ?? 0,
+                    underlineThickness: postTable?.underlineThickness ?? 0,
+                    isFixedPitch: postTable?.isFixedPitch ?? 0
+                }
+            }
+        });
     }
 
     async loadDefaultFont() {
