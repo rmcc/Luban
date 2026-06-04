@@ -26,8 +26,11 @@ npm install --omit=dev
 npm dedupe
 popd
 
-echo "Rebuild native modules using electron ${electron_version}"
+#echo "Rebuild native modules using electron ${electron_version}"
 
-npm run electron-rebuild -- --version=${electron_version:1} --module-dir=dist/Luban --which-module=serialport
+# No more need to rebuild natives. font-scanner has been replaced, and serialport has NAPI prebuilts
+# If you really want to rebuild, uncomment the line below and remove the -c.npmRebuild=false argument from electron-builder
+#
+# npm run electron-rebuild -- --version=${electron_version:1} --module-dir=dist/Luban --which-module=serialport
 
-cross-env USE_HARD_LINKS=false npm run electron-builder -- "$@"
+cross-env USE_HARD_LINKS=false npm run electron-builder -- -c.npmRebuild=false -c.buildDependenciesFromSource=false -c.afterPack=./build/fix-serialport.js "$@"
