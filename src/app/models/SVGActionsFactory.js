@@ -127,6 +127,7 @@ function genModelConfig(elem, size, materials = {}) {
             alignment: 'left',
             'font-size': elem.getAttribute('font-size'),
             'font-family': elem.getAttribute('font-family'),
+            'font-style': elem.getAttribute('font-style'),
             'line-height': elem.getAttribute('line-height')
         }
     };
@@ -555,6 +556,9 @@ class SVGActionsFactory {
                 res = await api.convertTextToSvg(newConfig);
                 if (res.body.family !== elemConfig['font-family']) {
                     elemConfig['font-family'] = res.body.family;
+                }
+                if (res.body.style !== elemConfig['font-style']) {
+                    elemConfig['font-style'] = res.body.style;
                 }
                 textSize = computeTransformationSizeForTextVector(newConfig.text, newConfig['font-size'], newConfig['line-height'], {
                     width: res.body?.sourceWidth,
@@ -1443,6 +1447,7 @@ class SVGActionsFactory {
                 y: this.size.y + position.y,
                 'font-size': 24,
                 'font-family': 'Arial Black',
+                'font-style': 'Regular',
                 'line-height': 1.5,
                 style: 'Regular',
                 alignment: 'left',
@@ -1492,8 +1497,9 @@ class SVGActionsFactory {
         if (options.lineHeight !== undefined) {
             newConfig['line-height'] = options.lineHeight;
         }
-        if (options.style !== undefined) {
-            newConfig.style = options.style;
+
+        if (options.fontStyle !== undefined) {
+            newConfig['font-style'] = options.fontStyle;
         }
 
         api.convertTextToSvg(newConfig)

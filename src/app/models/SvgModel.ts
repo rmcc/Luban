@@ -706,7 +706,8 @@ class SvgModel extends BaseModel {
                 svgNodeName: elem.nodeName,
                 text: elem.getAttribute('textContent'),
                 'font-size': elem.getAttribute('font-size'),
-                'font-family': elem.getAttribute('font-family')
+                'font-family': elem.getAttribute('font-family'),
+                'font-style': elem.getAttribute('font-style')
             }
         };
 

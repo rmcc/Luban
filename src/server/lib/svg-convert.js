@@ -86,7 +86,7 @@ const convertRasterToSvg = (options) => {
 };
 
 const convertTextToSvg = async (options) => {
-    const { text, 'font-size': fontSize, 'line-height': lineHeight, 'font-family': fontFamily, style, name, alignment } = options;
+    const { text, 'font-size': fontSize, 'line-height': lineHeight, 'font-family': fontFamily, 'font-style': style, name, alignment } = options;
     const uploadName = pathWithRandomSuffix(name).replace(/\.svg$/i, 'parsed.svg');
 
     const fontObj = await fontManager.getFont(fontFamily, null, style);

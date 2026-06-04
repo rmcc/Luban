@@ -15,10 +15,10 @@ const TextParameters = ({ headType, modifyText, disabled }) => {
     const fonts = useSelector(state => state?.text?.fonts);
     const fontOptions = fonts.map((font) => ({
         label: `${font.displayName}-${font.style}`,
-        value: font.fontFamily,
+        value: `${font.fontFamily}#${font.style}`,
         style: font.style
     }));
-    const { text, 'font-size': fontSize, 'font-family': fontFamily, alignment, 'line-height': lineHeight } = config;
+    const { text, 'font-size': fontSize, 'font-family': fontFamily, alignment, 'line-height': lineHeight, 'font-style': fontStyle } = config;
     const [expanded, setExpanded] = useState(true);
 
     const fileInput = useRef();
@@ -40,9 +40,11 @@ const TextParameters = ({ headType, modifyText, disabled }) => {
                 actions.onClickUpload();
                 return;
             }
-
-            const newFont = option.value;
-            modifyText(null, { fontFamily: newFont, style: option.style });
+            const rawFont = option.value;
+            const sep = rawFont.lastIndexOf('#');
+            const [newFont, newStyle] = sep === -1
+                ? [rawFont, ''] : [rawFont.slice(0, sep), rawFont.slice(sep + 1)];
+            modifyText(null, { fontFamily: newFont, fontStyle: newStyle });
         },
         onChangeSize: (newSize) => {
             modifyText(null, { fontSize: `${newSize}` });
@@ -97,7 +99,7 @@ const TextParameters = ({ headType, modifyText, disabled }) => {
                                 size="super-large"
                                 options={fontOptions}
                                 placeholder={i18n._('key-CncLaser/TextSection-Choose font')}
-                                value={fontFamily}
+                                value={`${fontFamily}#${fontStyle || 'Regular'}`}
                                 onChange={actions.onChangeFont}
                             />
                         </div>

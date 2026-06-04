@@ -768,6 +768,7 @@ class SVGCanvas extends React.PureComponent<SVGCanvasProps> {
                         'stroke-width': 1,
                         'font-size': 20,
                         'font-family': '',
+                        'font-style': '',
                         'text-anchor': 'middle',
                         'xml:space': 'preserve',
                         opacity: opacity / 2

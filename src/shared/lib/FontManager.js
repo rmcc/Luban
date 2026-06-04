@@ -109,7 +109,7 @@ class FontManager {
         const hheaTable = font.hhea;
         const postTable = font.post;
 
-        const isDuplicate = this.systemFonts.findIndex(i => i.family === family /*&& i.style === style*/) >= 0;
+        const isDuplicate = this.systemFonts.findIndex(i => i.family === family && i.style === style) >= 0;
         if (isDuplicate) return;
 
         // Create an array in the same format font-scanner used
@@ -284,7 +284,7 @@ class FontManager {
     }
 
     getFont(family, subfamily = null, style) {
-        const localFont = this.searchLocalFont(family, subfamily);
+        const localFont = this.searchLocalFont(family, style);
         if (localFont) {
             return Promise.resolve(localFont);
         }
@@ -306,7 +306,7 @@ class FontManager {
             }
         }
 
-        return this.loadLocalFont(fontConfig.path, family) // subfamily is not supported (for now)
+        return this.loadLocalFont(fontConfig.path, `${family}#${subfamily}#${style}`)
             .then((font) => {
                 log.debug(`Font <${family}> loadded`);
                 if (this.fonts) {
