@@ -73,7 +73,6 @@ export async function processLaserGreyscale(modelInfo, onProgress) {
     onProgress && onProgress(0.4);
     const img = await Jimp.read(`${process.env.Tmpdir}/${uploadName}`);
     onProgress && onProgress(0.6);
-    img.alphaToWhite();
     if (invert) {
         img.invert();
     }
@@ -90,8 +89,7 @@ export async function processLaserGreyscale(modelInfo, onProgress) {
         img.rotate(-rotationZ * 180 / Math.PI); // Rotating zero degrees will result in white edges
     }
     img
-        .threshold({ max: whiteClip })
-        .alphaToWhite(); // apply this after rotate AND invert, to avoid black gcode area
+        .threshold({ max: whiteClip });
     // serpentine path
     onProgress && onProgress(0.8);
 
@@ -196,13 +194,11 @@ export async function processBW(modelInfo, onProgress) {
         .rotate(-rotationZ * 180 / Math.PI); // rotate: unit is degree and clockwise
 
     onProgress && onProgress(0.8);
-    img.alphaToWhite();
     if (invert) {
         img.invert();
     }
     img.bw(bwThreshold)
-        .background(0xffffffff)
-        .alphaToWhite();
+        .background(0xffffffff);
 
     onProgress && onProgress(1);
     return new Promise(resolve => {
