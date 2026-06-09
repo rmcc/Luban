@@ -21,9 +21,23 @@ fi
 pushd "$__dirname/../dist/Luban"
 echo "Cleaning up \"`pwd`/node_modules\""
 rm -rf node_modules
+
+echo 'Syncing modified modules for distribution install...'
+# Make sure we pull the Windows modules if cross-building, otherwise
+# "npm install" will use natives
+if [[ " $* " =~ " --win " ]]; then
+    echo "Windows build detected! Forcing Windows environment variables..."
+    export npm_config_platform=win32
+    export npm_config_arch=x64
+fi
+# Copy the folder from the project root to the dist folder
+cp -r ../../modified-modules ./
+
 echo "Installing packages..."
 npm install --omit=dev
 npm dedupe
+# Clean them up so they don't end in the packaged file
+rm -rf modified-modules
 popd
 
 #echo "Rebuild native modules using electron ${electron_version}"

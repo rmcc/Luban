@@ -154,6 +154,13 @@ export const DEFAULT_PARAMS_FAST = {
                 'value': 'normal',
                 'label': 'key-Luban/Preset/Support Type-Normal'
             },
+            'Tree': {
+                'affect': {
+                    'support_generate_type': 'tree',
+                },
+                'value': 'tree',
+                'label': 'Tree'
+            },
             'None': {
                 'affect': {
                     'support_generate_type': 'none'
@@ -318,6 +325,13 @@ export const DEFAULT_PARAMS_MEDIUM = {
                 },
                 'value': 'normal',
                 'label': 'key-Luban/Preset/Support Type-Normal'
+            },
+            'Tree': {
+                'affect': {
+                    'support_generate_type': 'tree',
+                },
+                'value': 'tree',
+                'label': 'Tree'
             },
             'None': {
                 'affect': {
@@ -486,6 +500,13 @@ export const DEFAULE_PARAMS_FOR_OTHERS = {
                 'value': 'normal',
                 'label': 'key-Luban/Preset/Support Type-Normal'
             },
+            'Tree': {
+                'affect': {
+                    'support_generate_type': 'tree',
+                },
+                'value': 'tree',
+                'label': 'Tree'
+            },
             'None': {
                 'affect': {
                     'support_generate_type': 'none'
@@ -653,6 +674,13 @@ export const DEFAULE_PARAMS_FOR_TPU = {
                 'value': 'normal',
                 'label': 'key-Luban/Preset/Support Type-Normal'
             },
+            'Tree': {
+                'affect': {
+                    'support_generate_type': 'tree',
+                },
+                'value': 'tree',
+                'label': 'Tree'
+            },
             'none': {
                 'affect': {
                     'support_generate_type': 'none'
@@ -785,6 +813,13 @@ export function getQualityPresetAdjustmentsCalculated({ nozzleSize = 0.4 }) {
                     },
                     'value': 'normal',
                     'label': 'key-Luban/Preset/Support Type-Normal'
+                },
+                'Tree': {
+                    'affect': {
+                        'support_generate_type': 'tree',
+                    },
+                    'value': 'tree',
+                    'label': 'Tree'
                 },
                 'None': {
                     'affect': {
