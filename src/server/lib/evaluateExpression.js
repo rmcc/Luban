@@ -1,5 +1,5 @@
 import get from 'lodash/get';
-import { parse } from 'esprima';
+import { parse } from 'esprima-next';
 import evaluate from 'static-eval';
 import logger from './logger';
 
