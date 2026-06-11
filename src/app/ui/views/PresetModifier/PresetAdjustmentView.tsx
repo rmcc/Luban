@@ -18,7 +18,7 @@ const ALL_ICON_NAMES = {
     'layer_height': ['LayerHeightFine', 'LayerHeightMedium', 'LayerHeightRough'],
     'speed_print': ['SpeedSlow', 'SpeedMedium', 'SpeedFast'],
     'infill_sparse_density': ['ModelStructureThin', 'ModelStructureMedium', 'ModelStructureHard', 'ModelStructureVase'],
-    'support_generate_type': ['SupportLine', 'SupportNone'],
+    'support_generate_type': ['SupportLine', 'SupportLine', 'SupportNone'],
     'adhesion_type': ['AdhesionSkirt', 'AdhesionBrim', 'AdhesionRaft']
 };
 
@@ -134,6 +134,10 @@ function getDescription(paramName, displayName) {
                         <p className="font-weight-bold">{i18n._('key-Luban/Preset/Support Type-Normal')}</p>
                         <p className="margin-vertical-8">
                             {i18n._('key-Luban/Preset/A vertical column generated directly below the overhanging parts of the model. It applies to most models.')}
+                        </p>
+                        <p className="font-weight-bold">Tree</p>
+                        <p className="margin-vertical-8">
+                            {i18n._('key-Luban/Preset/A branching tree generated directly below the overhanging parts of the model. It applies to most models.')}
                         </p>
                         <p className="font-weight-bold">{i18n._('key-Luban/Preset/Support Type-None')}</p>
                         <p className="margin-vertical-8">
