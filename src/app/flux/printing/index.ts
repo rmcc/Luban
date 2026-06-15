@@ -1443,7 +1443,13 @@ export const actions = {
 
             const keys = Object.keys(defaultPresetModel.settings);
             for (const key of keys) {
-                presetModel.settings[key].default_value = defaultPresetModel.settings[key].default_value;
+                try {
+                    presetModel.settings[key].default_value = defaultPresetModel.settings[key].default_value;
+                } catch (e) {
+                    // Discontinued keys no longer have default definitions, but are still present in the
+                    // quality and machine profiles until they get cleaned out. Don't error out when a
+                    // reset tries to place definition values in a setting that no longer exists.
+                }
             }
             definitionManager.updateDefinition(presetModel);
 
