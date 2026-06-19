@@ -187,8 +187,10 @@ function getContext(definition, contextKey = '') {
     // Create a new context
     const ctx = {
         resolveOrValue: (input) => (input),
-        // extruderValue: (ignore, input) => input,
-        // extruderValues: (input) => [input],
+        extruderValue: (ignore, input) => input,
+        extruderValues: (input) => [input],
+        min: ([input]) => Math.min([input]),
+        max: ([input]) => Math.max([input]),
         defaultExtruderPosition: () => 0,
     };
 
