@@ -26,7 +26,7 @@ asarUnpack: []
 #
 publish:
     - provider: github
-      repo: https://github.com/Snapmaker/Luban
+      repo: https://github.com/rmcc/Luban
 
 #
 # platforms and targets
@@ -74,7 +74,7 @@ nsis:
 linux:
     artifactName: Snapmaker-luban-${version}-linux-${arch}.${ext}
     category: Utility
-    maintainer: parachute <ryan@snapmaker.com>
+    maintainer: Ricardo Cerqueira <snapmaker@cerqueira.org>
     target:
         - deb
         - rpm
