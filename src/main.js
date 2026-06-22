@@ -304,11 +304,6 @@ const startToBegin = (data) => {
             const p = pathname === '/' ? 'index.html' : pathname.substr(1);
             const filePath = path.normalize(`${__dirname}/app/${p}`);
             callback(fs.createReadStream(filePath));
-        },
-        (error) => {
-            if (error) {
-                console.error('error', error);
-            }
         }
     );
 
@@ -690,13 +685,6 @@ if (process.arch === 'x64') {
 }
 
 app.commandLine.appendSwitch('ignore-gpu-blacklist');
-
-if (process.platform === 'linux') {
-    // https://github.com/electron/electron/issues/18265
-    // TODO: Maybe we can only disable --disable-setuid-sandbox
-    //   reference changes: https://github.com/microsoft/vscode/pull/122909/files
-    app.commandLine.appendSwitch('--no-sandbox');
-}
 
 /**
  * On macOS, re-create a window when dock icon clicked.

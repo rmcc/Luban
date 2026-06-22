@@ -4,7 +4,9 @@ import { cloneDeep, isNil, isUndefined } from 'lodash';
 import log from '../../lib/log';
 
 // We put with statement into an ES5 module
-import ParameterContext from './parameter-context.es5';
+import * as ParameterContextModule from './parameter-context.es5';
+
+(globalThis as any).ParameterContext = ParameterContextModule.default || ParameterContextModule;
 
 declare type ModifyParameterItem = [string, number | string | boolean];
 
@@ -194,7 +196,7 @@ function getContext(definition, contextKey = '') {
         defaultExtruderPosition: () => 0,
     };
 
-    const newContext = new ParameterContext();
+    const newContext = new (globalThis as any).ParameterContext();
 
     // @ts-ignore
     newContext.setContext(ctx);

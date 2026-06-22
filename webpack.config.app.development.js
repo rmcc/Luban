@@ -34,12 +34,19 @@ const devServer = {
     devMiddleware: {
         index: true,
         writeToDisk: true,
+    },
+    client: {
+        overlay: {
+            errors: true,
+            warnings: false
+        }
     }
 };
 
 module.exports = {
     mode: 'development',
-    target: 'web',
+    target: 'electron-renderer',
+    // stats: { children: true }, // use this to see errors hidden in worker threads
     // devtool: 'eval',
     devtool: 'eval-cheap-source-map',
     context: path.resolve(__dirname, 'src/app'),
@@ -51,6 +58,12 @@ module.exports = {
             'node_modules',
         ],
         extensions: ['.js', '.json', '.jsx', '.styl', '.ts', '.tsx'],
+        fallback: {
+            "fs": false,
+            "net": false,
+            "tls": false
+        },
+        exportsFields: [],
     },
     entry: {
         app: path.resolve(__dirname, 'src/app/index.jsx'),
@@ -68,16 +81,20 @@ module.exports = {
         minimize: false,
         splitChunks: {
             chunks: 'all',
-            name: true,
+            name: false,
             cacheGroups: {
                 vendors: {
                     test: /[\\/]node_modules[\\/]/,
                     priority: -10
                 }
             },
-        }
+        },
     },
     plugins: [
+        new webpack.DefinePlugin({
+            'process.env': JSON.stringify(process.env || {}),
+            'global.process.env': JSON.stringify(process.env || {})
+        }),
         new webpack.LoaderOptionsPlugin({
             debug: true
         }),
@@ -107,6 +124,14 @@ module.exports = {
     ],
     module: {
         rules: [
+            // Backwards compatibility with old module inclusion spec
+            {
+                test: /\.m?js$/,
+                type: 'javascript/auto',
+                resolve: {
+                    fullySpecified: false
+                }
+            },
             // ESLint
             {
                 enforce: 'pre',
@@ -226,13 +251,6 @@ module.exports = {
                 loader: 'file-loader'
             },
         ]
-    },
-    // Some libraries import Node modules but don't use them in the browser.
-    // Tell Webpack to provide empty mocks for them so importing them works.
-    node: {
-        fs: 'empty',
-        net: 'empty',
-        tls: 'empty',
     },
     devServer: devServer,
 };
