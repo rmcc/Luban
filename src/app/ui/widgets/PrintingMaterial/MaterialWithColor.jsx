@@ -9,7 +9,7 @@ export const MaterialWithColor = ({ name, color }) => {
         <div className="sm-flex align-center">
             {color && (
                 <div
-                    className="width-16 height-16 margin-right-4"
+                    className="width-16 height-16 margin-right-4 dont-invert"
                     style={{
                         backgroundColor: color,
                         border: '1px solid #B9BCBF',

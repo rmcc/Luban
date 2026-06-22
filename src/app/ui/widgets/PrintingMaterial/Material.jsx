@@ -267,7 +267,7 @@ function Material({ widgetActions }) {
                             )
                             : i18n._('key-Laser/ToolpathParameters-Material')}
                     </span>
-                    <div>
+                    <div className="dont-invert">
                         <Select
                             clearable={false}
                             size="160px"
@@ -295,7 +295,7 @@ function Material({ widgetActions }) {
                                 'key-Printing/PrintingConfigurations-Extruder R'
                             )}
                         </span>
-                        <div>
+                        <div className="dont-invert">
                             <Select
                                 clearable={false}
                                 size="160px"

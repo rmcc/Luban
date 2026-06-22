@@ -5,12 +5,20 @@
 
 /* automatic color inversion for dark mode */
 @media (prefers-color-scheme: dark) {
+  // Invert everything
   html {
-    filter: invert(1) hue-rotate(180deg);
+    filter: invert(1) url(#lossless-hue-rotate);
   }
 
-  img, video, iframe, .dont-invert {
-    filter: invert(1) hue-rotate(180deg);
+  // Un-invert these
+  img, video, iframe, canvas, .dont-invert {
+    filter: url(#lossless-hue-rotate) invert(1);
+  }
+
+  // These are exceptions to the above - we do want them inverted by the
+  // main html{} filter
+  div[class*="link-bar-item"] img { // The function icons in the home menu
+    filter: none
   }
 }
 

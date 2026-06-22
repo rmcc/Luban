@@ -360,7 +360,7 @@ const MaterialSettings = ({ toolMap, loading }) => {
                             )
                         }
                         <div className="sm-flex align-center margin-top-8">
-                            <div className="height-16 width-16 border-default-grey-1 " style={{ background: `${leftMaterialDefinition?.settings?.color?.default_value}` }} />
+                            <div className="height-16 width-16 border-default-grey-1 dont-invert " style={{ background: `${leftMaterialDefinition?.settings?.color?.default_value}` }} />
                             <span className="margin-left-8">{i18n._(leftMaterialDefinition?.i18nName || leftMaterialDefinition?.name)}</span>
                         </div>
                     </Anchor>
@@ -369,7 +369,7 @@ const MaterialSettings = ({ toolMap, loading }) => {
                             <Anchor onClick={() => setActiveNozzle(RIGHT)} className={`padding-horizontal-16 padding-vertical-8 border-radius-12 width-264 height-68 ${activeNozzle === RIGHT ? 'background-color-white' : ''}`}>
                                 <div className="heading-3">{i18n._('key-setting/Right-Nozzle')}</div>
                                 <div className="sm-flex align-center margin-top-8">
-                                    <div className="height-16 width-16 border-default-grey-1" style={{ background: `${rightMaterialDefinition?.settings?.color?.default_value}` }} />
+                                    <div className="height-16 width-16 border-default-grey-1 dont-invert" style={{ background: `${rightMaterialDefinition?.settings?.color?.default_value}` }} />
                                     <span className="margin-left-8">{i18n._(rightMaterialDefinition?.i18nName || rightMaterialDefinition?.name)}</span>
                                 </div>
                             </Anchor>
@@ -424,7 +424,7 @@ const MaterialSettings = ({ toolMap, loading }) => {
                                                 onDoubleClick={onShowPrintingManager}
                                             >
                                                 <div className="sm-flex align-center width-percent-100">
-                                                    <div className="width-16 height-16 border-default-grey-1 margin-right-8 border-radius-4" style={{ background: `${definition?.settings?.color?.default_value}` }} />
+                                                    <div className="width-16 height-16 border-default-grey-1 margin-right-8 border-radius-4 dont-invert" style={{ background: `${definition?.settings?.color?.default_value}` }} />
                                                     <span className="display-inline width-all-minus-45 text-overflow-ellipsis">{i18n._(definition.i18nName || definition.name)}</span>
                                                 </div>
                                                 <div className={classNames(styles['material-more-action'])}>

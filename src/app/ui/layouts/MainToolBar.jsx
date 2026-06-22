@@ -131,7 +131,7 @@ class MainToolBar extends React.PureComponent {
                                         headType === HEAD_PRINTING && (
                                             <div className="width-192 sm-flex sm-flex-direction-c">
                                                 <div className="sm-flex">
-                                                    <div className="position-re">
+                                                    <div className="position-re dont-invert">
                                                         <SvgIcon
                                                             name="Extruder"
                                                             size={24}
@@ -147,7 +147,7 @@ class MainToolBar extends React.PureComponent {
                                                 {
                                                     materialInfo?.rightExtruder && (
                                                         <div className="sm-flex">
-                                                            <div className="position-re">
+                                                            <div className="position-re dont-invert">
                                                                 <SvgIcon
                                                                     name="Extruder"
                                                                     size={24}
