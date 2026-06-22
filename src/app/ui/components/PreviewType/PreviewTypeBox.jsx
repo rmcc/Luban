@@ -99,7 +99,7 @@ class PreviewTypeBox extends PureComponent {
                     </div>
                     {fatherColor && (
                         <div>
-                            <span className="display-inline width-16 height-16 v-align-m border-radius-4" style={{ backgroundColor: fatherColor }} />
+                            <span className="display-inline width-16 height-16 v-align-m border-radius-4 dont-invert" style={{ backgroundColor: fatherColor }} />
                         </div>
                     )}
                 </div>
@@ -120,7 +120,7 @@ class PreviewTypeBox extends PureComponent {
                             </div>
                             {color && (
                                 <div>
-                                    <span className="display-inline width-16 height-16 v-align-m border-radius-4" style={{ backgroundColor: color }} />
+                                    <span className="display-inline width-16 height-16 v-align-m border-radius-4 dont-invert" style={{ backgroundColor: color }} />
                                 </div>
                             )}
                         </div>

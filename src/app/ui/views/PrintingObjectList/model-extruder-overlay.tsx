@@ -26,16 +26,18 @@ export const getExtruderConfigOverlay = ({ key, selectedExtruder, colorL, colorR
             >
                 <div className="sm-flex justify-space-between">
                     <span className="display-inline width-96 text-overflow-ellipsis">{i18n._('key-Printing/LeftBar-Extruder L')}</span>
-                    {colorL !== whiteHex ? (
-                        <SvgIcon
-                            name="Extruder"
-                            size={24}
-                            color={colorL}
-                            type={['static']}
-                        />
-                    ) : (
-                        <img src="/resources/images/24x24/icon_extruder_white_24x24.svg" alt="" />
-                    )}
+                    <div className="dont-invert">
+                        {colorL !== whiteHex ? (
+                            <SvgIcon
+                                name="Extruder"
+                                size={24}
+                                color={colorL}
+                                type={['static']}
+                            />
+                        ) : (
+                            <img src="/resources/images/24x24/icon_extruder_white_24x24.svg" alt="" />
+                        )}
+                    </div>
                 </div>
             </Menu.Item>
             <Menu.Item
@@ -44,16 +46,18 @@ export const getExtruderConfigOverlay = ({ key, selectedExtruder, colorL, colorR
             >
                 <div className="sm-flex justify-space-between">
                     <span className="display-inline width-96 text-overflow-ellipsis">{i18n._('key-Printing/LeftBar-Extruder R')}</span>
-                    {colorR !== whiteHex ? (
-                        <SvgIcon
-                            name="Extruder"
-                            size={24}
-                            color={colorR}
-                            type={['static']}
-                        />
-                    ) : (
-                        <img src="/resources/images/24x24/icon_extruder_white_24x24.svg" alt="" />
-                    )}
+                    <div className="dont-invert">
+                        {colorR !== whiteHex ? (
+                            <SvgIcon
+                                name="Extruder"
+                                size={24}
+                                color={colorR}
+                                type={['static']}
+                            />
+                        ) : (
+                            <img src="/resources/images/24x24/icon_extruder_white_24x24.svg" alt="" />
+                        )}
+                    </div>
                 </div>
             </Menu.Item>
         </Menu>
@@ -83,11 +87,13 @@ function generateMenuItemGroup(
             >
                 <div className="sm-flex justify-space-between">
                     <span className="display-inline width-96 text-overflow-ellipsis">{i18n._('key-Printing/LeftBar-Extruder L')}</span>
-                    {colorL !== whiteHex ? (
-                        <SvgIcon name="Extruder" size={24} color={colorL} type={['static']} />
-                    ) : (
-                        <img src="/resources/images/24x24/icon_extruder_white_24x24.svg" alt="" />
-                    )}
+                    <span className="dont-invert">
+                        {colorL !== whiteHex ? (
+                            <SvgIcon name="Extruder" size={24} color={colorL} type={['static']} />
+                        ) : (
+                            <img src="/resources/images/24x24/icon_extruder_white_24x24.svg" alt="" />
+                        )}
+                    </span>
                 </div>
             </Menu.Item>
             <Menu.Item
@@ -96,11 +102,13 @@ function generateMenuItemGroup(
             >
                 <div className="sm-flex justify-space-between">
                     <span className="display-inline width-96 text-overflow-ellipsis">{i18n._('key-Printing/LeftBar-Extruder R')}</span>
-                    {colorR !== whiteHex ? (
-                        <SvgIcon name="Extruder" size={24} color={colorR} type={['static']} />
-                    ) : (
-                        <img src="/resources/images/24x24/icon_extruder_white_24x24.svg" alt="" />
-                    )}
+                    <span className="dont-invert">
+                        {colorR !== whiteHex ? (
+                            <SvgIcon name="Extruder" size={24} color={colorR} type={['static']} />
+                        ) : (
+                            <img src="/resources/images/24x24/icon_extruder_white_24x24.svg" alt="" />
+                        )}
+                    </span>
                 </div>
             </Menu.Item>
             {
@@ -111,7 +119,7 @@ function generateMenuItemGroup(
                     >
                         <div className="sm-flex justify-space-between">
                             <span className="display-inline width-96 text-overflow-ellipsis">{i18n._('key-Printing/LeftBar-Extruder Both')}</span>
-                            <div className="position-re">
+                            <div className="position-re dont-invert">
                                 {colorL !== whiteHex ? (
                                     <SvgIcon className="position-absolute right-1" name="ExtruderLeft" size={24} color={colorL} type={['static']} />
                                 ) : (

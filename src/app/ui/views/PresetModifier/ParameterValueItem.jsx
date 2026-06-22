@@ -275,7 +275,7 @@ function SettingItem(
                         }}
                     >
                         <span
-                            className="sm-flex-width align-r height-percent-100 width-96 display-inline border-radius-8 border-default-black-5"
+                            className="sm-flex-width align-r height-percent-100 width-96 display-inline border-radius-8 border-default-black-5 dont-invert"
                             style={{
                                 background: settingDefaultValue,
                                 height: 32,

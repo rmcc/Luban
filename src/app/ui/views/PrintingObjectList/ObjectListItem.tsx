@@ -54,7 +54,7 @@ export const renderExtruderIcon = (extrudersUsed: string[], colorsUsed: string[]
     return (
         <div className={classNames('height-24', styles['extruder-icon'])}>
             <div className={classNames('width-24 height-24 display-inline')}>
-                <div className="position-re">
+                <div className="position-re dont-invert">
                     {leftExtruderColor !== whiteHex ? (
                         <SvgIcon
                             color={leftExtruderColor}
