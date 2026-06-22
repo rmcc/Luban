@@ -214,6 +214,7 @@ const whiteColor = new Color(1, 1, 1);
 
 const _raycaster = new Raycaster();
 _raycaster.params.Line.threshold = 0.5;
+_raycaster.layers.enable(1);
 
 export default class MeshColoringControl extends Control {
     private modelGroup: ModelGroup;

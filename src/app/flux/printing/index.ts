@@ -1334,6 +1334,7 @@ export const actions = {
                         ...gcodeEntity,
                         extruderColors,
                     });
+                    object3D.name = 'Sliced GCode Mesh';
                     gcodeLineGroup.add(object3D);
 
                     object3D.position.copy(new THREE.Vector3());
@@ -4089,6 +4090,7 @@ export const actions = {
 
         const { gcodeLineGroup, modelGroup } = getState().printing;
         modelGroup.setDisplayType('gcode');
+        gcodeLineGroup.name = 'GCode Sliced Group Container';
         gcodeLineGroup.visible = true;
         dispatch(
             actions.updateState({
