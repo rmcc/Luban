@@ -114,7 +114,7 @@ class WebGLRendererWrapper {
                 || (obj.name && obj.name.indexOf('GCode') !== -1);
 
             // Temporarily print anything that isn't already grouped on the protected layer
-            /*if (!isProtected && obj.name && !obj.layers.test(this.PROTECTED_LAYER)) {
+            /* if (!isProtected && obj.name && !obj.layers.test(this.PROTECTED_LAYER)) {
                 console.log('Active Canvas Object Name:', obj.name, 'Type:', obj.type);
             }*/
 

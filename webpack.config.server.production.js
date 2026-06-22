@@ -81,12 +81,8 @@ module.exports = {
         modules: [NODE_MODULES]
     },
     node: {
-        console: true,
         global: true,
-        process: true,
-        Buffer: true,
         __filename: true, // Use relative path
         __dirname: true, // Use relative path
-        setImmediate: true
     }
 };

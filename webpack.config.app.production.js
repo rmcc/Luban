@@ -28,7 +28,7 @@ const timestamp = new Date().getTime();
 
 module.exports = {
     mode: 'production',
-    target: 'web',
+    target: 'electron-renderer',
     cache: true,
     // devtool: 'source-map', // used in pre-production, comment this on production
     context: path.resolve(__dirname, 'src/app'),
@@ -39,7 +39,13 @@ module.exports = {
             path.resolve(__dirname, 'src/app'),
             'node_modules'
         ],
-        extensions: ['.js', '.json', '.jsx', '.styl', '.ts', '.tsx']
+        extensions: ['.js', '.json', '.jsx', '.styl', '.ts', '.tsx'],
+        fallback: {
+            "fs": false,
+            "net": false,
+            "tls": false
+        },
+        exportsFields: [],
     },
     entry: {
         polyfill: path.resolve(__dirname, 'src/app/polyfill/index.js'),
@@ -61,6 +67,10 @@ module.exports = {
         minimizer: [new TerserPlugin()],
     },
     plugins: [
+        new webpack.DefinePlugin({
+            'process.env': JSON.stringify(process.env || {}),
+            'global.process.env': JSON.stringify(process.env || {})
+        }),
         new stylusLoader.OptionsPlugin({
             default: {
                 // nib - CSS3 extensions for Stylus
@@ -88,6 +98,14 @@ module.exports = {
     ],
     module: {
         rules: [
+            // Backwards compatibility with old module inclusion spec
+            {
+                test: /\.m?js$/,
+                type: 'javascript/auto',
+                resolve: {
+                    fullySpecified: false
+                }
+            },
             // ESLint
             {
                 enforce: 'pre',
@@ -206,12 +224,5 @@ module.exports = {
                 loader: 'file-loader'
             }
         ]
-    },
-    // Some libraries import Node modules but don't use them in the browser.
-    // Tell Webpack to provide empty mocks for them so importing them works.
-    node: {
-        fs: 'empty',
-        net: 'empty',
-        tls: 'empty',
     }
 };
