@@ -109,6 +109,12 @@ function genModelConfig(elem, size, materials = {}) {
         vheight = -vheight;
     }
     // Todo: need to optimize
+    let elemStyle = 'mix-blend-mode: difference;';
+    // Text arrives as a black image. It needs to be inverted for blending.
+    if (elem.getAttribute('textContent') !== null) {
+        elemStyle = 'mix-blend-mode: difference; filter: invert(1);';
+    }
+
     const content = `<svg x="0" y="0" width="${vwidth}mm" height="${vheight}mm" `
         + `viewBox="${vx} ${vy} ${vwidth} ${vheight}" `
         + `xmlns="http://www.w3.org/2000/svg">${modelContent}</svg>`;
@@ -128,7 +134,8 @@ function genModelConfig(elem, size, materials = {}) {
             'font-size': elem.getAttribute('font-size'),
             'font-family': elem.getAttribute('font-family'),
             'font-style': elem.getAttribute('font-style'),
-            'line-height': elem.getAttribute('line-height')
+            'line-height': elem.getAttribute('line-height'),
+            style: elemStyle
         }
     };
 
