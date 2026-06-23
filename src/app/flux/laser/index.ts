@@ -530,11 +530,47 @@ export const actions = {
             // if textureSource is canvas
             texture = new THREE.CanvasTexture(textureSource);
         }
-        const material = new THREE.MeshBasicMaterial({
+        /*
+         * Camera images are a special case for the canvas. They're background elements,
+         * which are usually inverted in dark theme by the renderer. But for photos we
+         * want the original color, so invert the image before sending it for rendering
+         * (where it'll get inverted back to normal along with the rest of the scene)
+         */
+        const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const material = !isDarkMode ? new THREE.MeshBasicMaterial({
             color: 0xffffff,
             transparent: true,
             opacity: 1,
             map: texture
+        }) : new THREE.ShaderMaterial({
+            transparent: true,
+            // Native Three.js property so it knows how to handle the alpha blend mode
+            opacity: 1.0,
+            uniforms: {
+                uTexture: { value: texture }
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D uTexture;
+                varying vec2 vUv;
+                void main() {
+                    vec4 texel = texture2D(uTexture, vUv);
+                    vec3 raw = texel.rgb;
+
+                    float r = 1.0 - (-0.574 * raw.r + 1.430 * raw.g + 0.144 * raw.b);
+                    float g = 1.0 - (0.426 * raw.r + 0.430 * raw.g + 0.144 * raw.b);
+                    float b = 1.0 - (0.426 * raw.r + 1.430 * raw.g - 0.856 * raw.b);
+
+                    // Revert strictly to using the texture's native alpha channel
+                    gl_FragColor = vec4(clamp(vec3(r, g, b), 0.0, 1.0), texel.a);
+                }
+            `
         });
         const geometry = new THREE.PlaneGeometry(width, height);
         const mesh = new THREE.Mesh(geometry, material);
@@ -542,7 +578,9 @@ export const actions = {
         const y = dy + height / 2;
 
         mesh.position.set(x, y, -0.5);
+        mesh.name = 'Camera Capture Background Mesh';
         const { group } = state.background;
+        group.name = 'Camera Capture Background';
         group.remove(...group.children);
         group.add(mesh);
         logToolBarOperation(HEAD_LASER, 'camera_capture_add_backgroup');

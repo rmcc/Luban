@@ -68,7 +68,10 @@ class WebGLRendererWrapper {
 
         this.currentWidth = width;
         this.currentHeight = height;
-        this.renderTarget = new WebGLRenderTarget(width, height);
+        this.renderTarget = new WebGLRenderTarget(width, height, {
+            depthBuffer: true,
+            stencilBuffer: true
+        });
 
         this.quadMaterial = new ShaderMaterial({
             uniforms: {

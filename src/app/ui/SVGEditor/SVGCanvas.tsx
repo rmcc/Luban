@@ -153,7 +153,7 @@ class SVGCanvas extends React.PureComponent<SVGCanvasProps> {
     public currentProperties = {
         // fill: '#00B7E9',
         fill: DEFAULT_FILL_COLOR,
-        stroke: '#000000',
+        stroke: '#FFFFFF',
         strokeWidth: 1 / this.scale,
         opacity: 1
     };
@@ -703,6 +703,7 @@ class SVGCanvas extends React.PureComponent<SVGCanvasProps> {
                         stroke,
                         fill: 'none',
                         'stroke-width': strokeWidth,
+                        style: 'mix-blend-mode: difference;',
                         opacity: opacity / 2
                     }
                 });
@@ -721,6 +722,7 @@ class SVGCanvas extends React.PureComponent<SVGCanvasProps> {
                         height: 0,
                         stroke,
                         'stroke-width': strokeWidth,
+                        style: 'mix-blend-mode: difference;',
                         opacity: opacity / 2
                     }
                 });
@@ -736,6 +738,7 @@ class SVGCanvas extends React.PureComponent<SVGCanvasProps> {
                         r: 0,
                         stroke,
                         'stroke-width': strokeWidth,
+                        style: 'mix-blend-mode: difference;',
                         opacity: opacity / 2
                     }
                 });
@@ -752,6 +755,7 @@ class SVGCanvas extends React.PureComponent<SVGCanvasProps> {
                         ry: 0,
                         stroke,
                         'stroke-width': strokeWidth,
+                        style: 'mix-blend-mode: difference;',
                         opacity: opacity / 2
                     }
                 });
@@ -771,6 +775,7 @@ class SVGCanvas extends React.PureComponent<SVGCanvasProps> {
                         'font-style': '',
                         'text-anchor': 'middle',
                         'xml:space': 'preserve',
+                        style: 'mix-blend-mode: difference;',
                         opacity: opacity / 2
                     }
                 });
@@ -794,6 +799,7 @@ class SVGCanvas extends React.PureComponent<SVGCanvasProps> {
                         d: d,
                         opacity: opacity / 2,
                         stroke,
+                        style: 'mix-blend-mode: difference;',
                         'stroke-width': 1
                     }
                 });
@@ -825,7 +831,7 @@ class SVGCanvas extends React.PureComponent<SVGCanvasProps> {
                         stroke,
                         'stroke-linecap': 'round',
                         'stroke-width': strokeWidth,
-                        style: 'pointer-events:none',
+                        style: 'pointer-events:none; mix-blend-mode: difference;',
                         opacity: opacity / 2
                     }
                 });
