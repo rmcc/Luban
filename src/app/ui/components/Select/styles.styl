@@ -94,9 +94,23 @@
 }
 
 :global(div.ant-tree-select-dropdown) {
-    width auto !important;
-    max-width: 200px;
+    // Rips the tracking framework out of any layout-isolated row blocks
+    position: fixed !important;
+    z-index: 999999 !important;
+
+    // Smooths out scroll ticks and stops Chromium 142 rendering bugs
+    will-change: transform, opacity !important;
+    transform: translateZ(0) !important;
+
+    // Expansion configuration bounds
+    width: auto !important;
+    min-width: 260px !important;
+    max-width: 340px !important;
     padding: 4px 0 !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.25) !important;
+    border: 1px solid #B9BCBF !important;
+    border-radius: 8px !important;
 
     :global(.ant-select-tree-switcher_open)::before, :global(.ant-select-tree-switcher_close)::before {
         content: '';
@@ -148,7 +162,7 @@
             width 85%
 
             :global(.ant-select-tree-title) {
-                max-width 278px;
+                max-width 310px;
                 display: inline-block;
                 overflow: hidden;
                 white-space: nowrap;

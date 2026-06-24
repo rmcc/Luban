@@ -180,6 +180,9 @@ class ChangedReactSelect extends PureComponent {
                         treeData={treeData}
                         onChange={(option) => this.actions.handleTreeChange(option)}
                         bordered={bordered}
+                        getPopupContainer={() => document.body}
+                        dropdownMatchSelectWidth={false}
+                        popupMatchSelectWidth={false}
                     />
                 </div>
             );
@@ -210,6 +213,9 @@ class ChangedReactSelect extends PureComponent {
                         onChange={this.actions.handleChange}
                         bordered={bordered}
                         placement={this.props.placement}
+                        getPopupContainer={() => document.body}
+                        dropdownMatchSelectWidth={false}
+                        popupMatchSelectWidth={false}
                     >
                         {(options.map((option) => {
                             return (<Option key={option.value + option.label} value={option.value}>{i18n._(option.label)}</Option>);

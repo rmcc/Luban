@@ -22,6 +22,39 @@
   }
 }
 
+/* Force old hardwired values into the new antd "hovering stuff" constraints. */
+:global(.ant-tooltip)
+    will-change: transform, opacity !important
+    transform: translateZ(0) !important
+    pointer-events: none !important
+    max-width: 270px !important // Pinches the floating column width back to normal bounds which were hardwired in old antd and assumed by Luban in large tooltips
+
+:global(.ant-tooltip-inner)
+    white-space: normal !important
+    word-break: break-word !important
+    word-wrap: break-word !important
+
+:global(.ant-popover)
+    position: fixed !important // Rips it out of your row overflow:hidden boundaries
+    will-change: transform, opacity !important
+    transform: translateZ(0) !important
+    pointer-events: auto !important // Ensures links/buttons inside popovers stay clickable
+    min-width: 220px !important // FORCES the 0px collapsed horizontal frame window open
+    max-width: 320px !important
+    z-index: 999999 !important
+
+:global(.ant-popover-inner)
+    background-color: #ffffff !important // Solid white card layer canvas
+    box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.25) !important
+    border-radius: 8px !important
+
+:global(.ant-popover-inner-content)
+    white-space: normal !important
+    word-break: break-word !important
+    word-wrap: break-word !important
+    padding: 12px 16px !important // Restores padding margins around descriptions
+    color: #1f1f1f !important // Explicit dark text color visibility
+
 body {
     margin: 0;
     font-size: 13px;

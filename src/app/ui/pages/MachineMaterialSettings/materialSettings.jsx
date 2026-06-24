@@ -431,6 +431,7 @@ const MaterialSettings = ({ toolMap, loading }) => {
                                                     <Dropdown
                                                         overlay={renderMaterialMore(definition)}
                                                         placement="bottomRight"
+                                                        getPopupContainer={() => document.body}
                                                     >
                                                         <SvgIcon
                                                             name="More"

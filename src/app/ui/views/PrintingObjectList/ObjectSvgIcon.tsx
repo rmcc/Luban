@@ -26,6 +26,7 @@ const ObjectSvgIcon: React.FC<ObjectSvgIconProps> = (props) => {
         return (
             <Tooltip
                 placement="topLeft"
+                getPopupContainer={() => document.body}
                 title={(
                     <Trans i18nKey="key-PrintingCncLaser/ObjectList-This is a deficient model. Select it and click Repair.">
                         This is a deficient model. Select it and click <b>Repair</b>.

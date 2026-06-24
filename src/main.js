@@ -5,7 +5,7 @@ import 'core-js';
 // import 'regenerator-runtime/runtime';
 
 import { enable as electronEnable, initialize as electronRemoteMainInitialize } from '@electron/remote/main';
-import { app, BrowserWindow, dialog, ipcMain, Menu, powerSaveBlocker, protocol, screen, session, shell, nativeTheme } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, powerSaveBlocker, protocol, screen, session, shell, nativeTheme, net } from 'electron';
 import Store from 'electron-store';
 import { autoUpdater } from 'electron-updater';
 import fs from 'fs';
@@ -278,22 +278,26 @@ const startToBegin = (data) => {
     loadUrl = `http://${address}:${port}`;
 
     // register file protocol
-    protocol.registerFileProtocol(
-        'luban',
-        (request, callback) => {
-            console.log('file protocol URL:', request.url);
-            const { pathname } = url.parse(request.url);
-            const p = pathname === '/' ? 'index.html' : pathname.substr(1);
-            const filePath = path.normalize(`${__dirname}/app/${p}`);
-            callback(fs.createReadStream(filePath));
-        }
-    );
+    protocol.handle('luban', (request) => {
+        console.log('file protocol URL:', request.url);
+        const reqURL = new URL(request.url);
+        const pathname = reqURL.pathname;
+        const p = pathname === '/' ? 'index.html' : pathname.substring(1);
+        const filePath = path.normalize(path.join(__dirname, 'app', p));
+        return net.fetch(url.pathToFileURL(filePath).toString());
+    });
 
     // https://github.com/electron/electron/issues/23393
-    protocol.registerFileProtocol('atom', (request, cb) => {
-        const pathname = decodeURI(request.url.replace('atom://', ''));
-        cb(pathname);
+    protocol.handle('atom', (request) => {
+        const reqURL = new URL(request.url);
+        const decodedPath = decodeURIComponent(reqURL.pathname);
+        // Strips any leading slash on Windows platforms if needed for absolute paths
+        const filePath = process.platform === 'win32' && decodedPath.startsWith('/')
+            ? decodedPath.slice(1)
+            : decodedPath;
+        return net.fetch(url.pathToFileURL(filePath).toString());
     });
+
     // https://github.com/electron/electron/issues/21675
     // If needed, resolve CORS. https://stackoverflow.com/questions/51254618/how-do-you-handle-cors-in-an-electron-app
 

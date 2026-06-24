@@ -103,7 +103,10 @@ series([
     document.body.appendChild(container);
 
     ReactDOM.render(
-        <ConfigProvider autoInsertSpaceInButton={false}>
+        <ConfigProvider
+            autoInsertSpaceInButton={false}
+            getPopupContainer={(triggerNode) => (triggerNode ? triggerNode.parentElement : document.body)}
+        >
             <Provider store={reduxStore}>
                 <App />
             </Provider>
