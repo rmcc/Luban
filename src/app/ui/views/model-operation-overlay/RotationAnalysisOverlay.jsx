@@ -8,8 +8,6 @@ import { actions as printingActions } from '../../../flux/printing';
 import { actions as menuActions } from '../../../flux/appbar-menu';
 import i18n from '../../../lib/i18n';
 import styles from './styles.styl';
-import { HEAD_PRINTING } from '../../../constants';
-import { logTransformOperation } from '../../../lib/gaEvent';
 
 function normalizeNum(num) {
     if (typeof num === 'number') {
@@ -179,7 +177,6 @@ function RotationAnalysisOverlay({ onClose }) {
     const actions = {
         finish: () => {
             dispatch(printingActions.finishAnalyzeRotation());
-            logTransformOperation(HEAD_PRINTING, 'roate', 'analyze_out');
             onClose();
         },
         onRowSelect: (row, scrollIntoView = false) => {

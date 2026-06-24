@@ -15,7 +15,6 @@ import {
 } from '../../constants';
 import CompoundOperation from '../../core/CompoundOperation';
 import { controller } from '../../communication/socket-communication';
-import { logToolBarOperation } from '../../lib/gaEvent';
 import log from '../../lib/log';
 import { PROCESS_STAGE, STEP_STAGE } from '../../lib/manager/ProgressManager';
 import ModelGroup, { BrushType } from '../../models/ModelGroup';
@@ -806,8 +805,6 @@ const duplicateSelectedModel = () => {
 
 const groupSelectedModels = () => {
     return (dispatch, getState) => {
-        logToolBarOperation(HEAD_PRINTING, 'group');
-
         const { modelGroup } = getState().printing;
         const selectedModels = modelGroup.getSelectedModelArray().slice(0);
 
@@ -838,8 +835,6 @@ const groupSelectedModels = () => {
  */
 const alignGroupSelectedModels = () => {
     return (dispatch, getState) => {
-        logToolBarOperation(HEAD_PRINTING, 'align');
-
         const { modelGroup } = getState().printing;
 
         const selectedModels = modelGroup.getSelectedModelArray().slice(0);
@@ -924,7 +919,6 @@ const ungroupSelectedModels = () => {
             )
         );
         dispatch(baseActions.updateState(modelState));
-        logToolBarOperation(HEAD_PRINTING, 'ungroup');
     };
 };
 
@@ -933,8 +927,6 @@ const ungroupSelectedModels = () => {
  */
 const splitSelectedModel = () => {
     return async (dispatch, getState) => {
-        logToolBarOperation(HEAD_PRINTING, 'split');
-
         const { progressStatesManager } = getState().printing;
         progressStatesManager.startProgress(PROCESS_STAGE.PRINTING_SPLIT_MODEL);
 

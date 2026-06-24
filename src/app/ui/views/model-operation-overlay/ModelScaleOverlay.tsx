@@ -3,10 +3,8 @@ import { isUndefined, throttle } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
-import { HEAD_PRINTING } from '../../../constants';
 import { RootState } from '../../../flux/index.def';
 import { actions as printingActions } from '../../../flux/printing';
-import { logTransformOperation } from '../../../lib/gaEvent';
 import i18n from '../../../lib/i18n';
 import { Button } from '../../components/Buttons';
 import Checkbox from '../../components/Checkbox';
@@ -149,8 +147,6 @@ const ModelScaleOverlay: React.FC<ModelScaleOverlayProps> = React.memo((props) =
         });
 
         dispatch(printingActions.updateSelectedModelTransformation(newTransformation, isReset ? _isPrimeTowerSelected : undefined));
-
-        !isReset && logTransformOperation(HEAD_PRINTING, 'scale', 'input_%');
     };
 
     /**
@@ -193,13 +189,10 @@ const ModelScaleOverlay: React.FC<ModelScaleOverlayProps> = React.memo((props) =
             'uniformScalingState': !_isPrimeTowerSelected
         }, true);
 
-        logTransformOperation(HEAD_PRINTING, 'scale', 'reset');
-
         onModelAfterTransform();
     };
 
     const scaleToFitSelectedModel = () => {
-        logTransformOperation(HEAD_PRINTING, 'scale', 'to_fit');
         dispatch(printingActions.scaleToFitSelectedModelWithRotate());
     };
 

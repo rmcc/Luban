@@ -13,7 +13,6 @@ import { actions as editorActions } from '../../../flux/editor';
 import { RootState } from '../../../flux/index.def';
 import { actions as projectActions } from '../../../flux/project';
 import gcodeActions from '../../../flux/workspace/actions-gcode';
-import { logGcodeExport } from '../../../lib/gaEvent';
 import i18n from '../../../lib/i18n';
 import modal from '../../../lib/modal';
 import UniApi from '../../../lib/uni-api';
@@ -83,7 +82,6 @@ const Output: React.FC<OutputViewProps> = (props) => {
             if (gcodeFile === null) {
                 return;
             }
-            logGcodeExport(headType, 'local', materials.isRotate);
             dispatch(projectActions.exportFile(gcodeFile.uploadName, gcodeFile.renderGcodeFileName));
         },
         onProcess: () => {
@@ -121,8 +119,6 @@ const Output: React.FC<OutputViewProps> = (props) => {
         if (gcodeFile === null) {
             return;
         }
-
-        logGcodeExport(headType, 'workspace', materials.isRotate);
 
         // workspace render G-code
         await dispatch(gcodeActions.renderGcodeFile(gcodeFile, true, loadGcodeOptions?.renderImmediately || false));

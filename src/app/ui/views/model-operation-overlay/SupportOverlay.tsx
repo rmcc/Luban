@@ -3,11 +3,9 @@ import { noop } from 'lodash';
 import React, { useCallback, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
-import { HEAD_PRINTING } from '../../../constants';
 import type { RootState } from '../../../flux/index.def';
 import { actions as printingActions } from '../../../flux/printing';
 import sceneActions from '../../../flux/printing/actions-scene';
-import { logTransformOperation } from '../../../lib/gaEvent';
 import i18n from '../../../lib/i18n';
 import log from '../../../lib/log';
 import { Button } from '../../components/Buttons';
@@ -37,7 +35,6 @@ const SupportOverlay: React.FC<SupportOverlayProps> = (props) => {
 
         dispatch(sceneActions.computeAutoSupports(angle));
         setWillOverrideSupport(false);
-        logTransformOperation(HEAD_PRINTING, 'support', 'auto');
     }, [dispatch]);
 
     const actions = {
@@ -53,7 +50,6 @@ const SupportOverlay: React.FC<SupportOverlayProps> = (props) => {
         },
         clearAllManualSupport() {
             dispatch(printingActions.clearAllManualSupport());
-            logTransformOperation(HEAD_PRINTING, 'support', 'clear');
         },
     };
 

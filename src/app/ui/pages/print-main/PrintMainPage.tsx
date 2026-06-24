@@ -20,7 +20,7 @@ import { machineStore } from '../../../store/local-storage';
 import Dropzone from '../../components/Dropzone';
 import MainToolBar from '../../layouts/MainToolBar';
 import ProjectLayout from '../../layouts/ProjectLayout';
-import { logPageView, renderPopup, useUnsavedTitle } from '../../utils';
+import { renderPopup, useUnsavedTitle } from '../../utils';
 import PrintingManager from '../../views/PrintingManager';
 import PrintingConfigurationsWidget, { PresetInitialization } from '../../widgets/PrintingConfigurationWidget';
 import PrintingOutputWidget from '../../widgets/PrintingOutput';
@@ -92,9 +92,6 @@ function useRenderMainToolBar(pageMode, setPageMode, profileInitialized = false)
     function renderHomepage() {
         const onClose = () => {
             setShowHomePage(false);
-            logPageView({
-                pathname: '/printing'
-            });
         };
         return showHomePage && renderPopup({
             onClose,
@@ -106,9 +103,6 @@ function useRenderMainToolBar(pageMode, setPageMode, profileInitialized = false)
     function renderWorkspace() {
         const onClose = () => {
             setShowWorkspace(false);
-            logPageView({
-                pathname: '/printing'
-            });
         };
         return showWorkspace && renderPopup({
             onClose,
@@ -478,10 +472,6 @@ const Printing: React.FC<PrintMainPageProps> = ({ location }) => {
             await dispatch(printingActions.initSocketEvent());
         }, 50);
         dispatch(printingActions.checkNewUser());
-
-        logPageView({
-            pathname: '/printing'
-        });
     }, []);
 
     useEffect(() => {

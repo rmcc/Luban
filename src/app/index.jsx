@@ -11,7 +11,6 @@ import { Provider } from 'react-redux';
 
 import settings from './config/settings';
 import { controller } from './communication/socket-communication';
-import { initialize } from './lib/gaEvent';
 import log from './lib/log';
 import user from './lib/user';
 import reduxStore from './store';
@@ -102,8 +101,6 @@ series([
 
     const container = document.createElement('div');
     document.body.appendChild(container);
-    const userId = machineStore.get('userId');
-    initialize(userId);
 
     ReactDOM.render(
         <ConfigProvider autoInsertSpaceInButton={false}>

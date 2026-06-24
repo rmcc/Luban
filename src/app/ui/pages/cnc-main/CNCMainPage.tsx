@@ -28,7 +28,7 @@ import Space from '../../components/Space';
 import Steps from '../../components/Steps';
 import SvgIcon from '../../components/SvgIcon';
 import ProjectLayout from '../../layouts/ProjectLayout';
-import { logPageView, renderModal, renderPopup, useUnsavedTitle } from '../../utils';
+import { renderModal, renderPopup, useUnsavedTitle } from '../../utils';
 import CNCVisualizer from '../../widgets/CNCVisualizer';
 import Thumbnail from '../../widgets/CncLaserShared/Thumbnail';
 import useRenderMainToolBar from '../CncLaserShared/MainToolBar';
@@ -144,10 +144,6 @@ const Cnc: React.FC<CNCMainPageProps> = ({ location }) => {
     const series = useSelector(state => state.machine.series, shallowEqual);
     useEffect(() => {
         dispatch(cncActions.init());
-        logPageView({
-            pathname: '/cnc',
-            isRotate: materials?.isRotate
-        });
     }, []);
 
     useEffect(() => {
@@ -184,10 +180,6 @@ const Cnc: React.FC<CNCMainPageProps> = ({ location }) => {
     const renderHomepage = () => {
         const onClose = () => {
             setShowHomePage(false);
-            logPageView({
-                pathname: '/cnc',
-                isRotate: materials?.isRotate
-            });
         };
         return showHomePage && renderPopup({
             onClose,
@@ -230,10 +222,6 @@ const Cnc: React.FC<CNCMainPageProps> = ({ location }) => {
     function renderWorkspace() {
         const onClose = () => {
             setShowWorkspace(false);
-            logPageView({
-                pathname: '/cnc',
-                isRotate: materials?.isRotate
-            });
         };
         return showWorkspace && renderPopup({
             onClose,

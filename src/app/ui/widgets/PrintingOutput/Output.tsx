@@ -4,12 +4,10 @@ import path from 'path';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
-import { HEAD_PRINTING } from '../../../constants';
 import type { RootState } from '../../../flux/index.def';
 import { actions as printingActions } from '../../../flux/printing';
 import { actions as projectActions } from '../../../flux/project';
 import gcodeActions from '../../../flux/workspace/actions-gcode';
-import { logGcodeExport } from '../../../lib/gaEvent';
 import i18n from '../../../lib/i18n';
 import { STEP_STAGE } from '../../../lib/manager/ProgressManager';
 import modal from '../../../lib/modal';
@@ -79,7 +77,6 @@ const Output: React.FC = () => {
             gcodeFile.thumbnail = thumbnail.current.getDataURL() || defaultThumbnail;
             dispatch(gcodeActions.renderGcodeFile(gcodeFile));
             setShowWorkspace(true);
-            logGcodeExport(HEAD_PRINTING, 'workspace');
             window.scrollTo(0, 0);
         },
 
@@ -102,9 +99,6 @@ const Output: React.FC = () => {
         // export
         const filename = path.basename(gcodeFile?.name);
         dispatch(projectActions.exportFile(filename, gcodeFile?.renderGcodeFileName));
-
-        // log
-        logGcodeExport(HEAD_PRINTING, 'local');
     }, [dispatch, isGcodeOverstepped, gcodeFile]);
 
     useEffect(() => {

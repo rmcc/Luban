@@ -43,7 +43,6 @@ import { findToolHead, getMachineToolHeadConfigPath, isDualExtruder } from '../.
 import { isQualityPresetVisible, PRESET_CATEGORY_CUSTOM } from '../../constants/preset';
 
 import { controller } from '../../communication/socket-communication';
-import { logPritingSlice, logProfileChange, logToolBarOperation, logTransformOperation } from '../../lib/gaEvent';
 import i18n from '../../lib/i18n';
 import log from '../../lib/log';
 import ProgressStatesManager, { getProgressStateManagerInstance, PROCESS_STAGE, STEP_STAGE } from '../../lib/manager/ProgressManager';
@@ -1249,15 +1248,6 @@ export const actions = {
                     ? '1'
                     : '0';
             }
-            logPritingSlice(
-                HEAD_PRINTING,
-                {
-                    defaultMaterialL,
-                    defaultMaterialR: '',
-                    defaultMaterialQuality
-                },
-                JSON.stringify(settings)
-            );
         } else {
             const extruderRDefaultDefinition = defaultDefinitions.find(
                 (d) => d.definitionId === defaultMaterialIdRight
@@ -1307,15 +1297,6 @@ export const actions = {
                     ? '1'
                     : '0';
             }
-            logPritingSlice(
-                HEAD_PRINTING,
-                {
-                    defaultMaterialL,
-                    defaultMaterialR,
-                    defaultMaterialQuality
-                },
-                JSON.stringify(settings)
-            );
         }
     },
 
@@ -2136,7 +2117,6 @@ export const actions = {
             if (presetId !== savedPresetIds[presetKey]) {
                 savedPresetIds[presetKey] = presetId;
                 dirty = true;
-                logProfileChange(HEAD_PRINTING, presetKey);
             }
         } else if (type === PRINTING_MANAGER_TYPE_MATERIAL) {
             const presetKey = direction === LEFT_EXTRUDER ? PRESET_KEY_MATERIAL_LEFT : PRESET_KEY_MATERIAL_RIGHT;
@@ -2144,7 +2124,6 @@ export const actions = {
             if (presetId !== savedPresetIds[presetKey]) {
                 savedPresetIds[presetKey] = presetId;
                 dirty = true;
-                logProfileChange(HEAD_PRINTING, presetKey);
             }
         }
 
@@ -3519,12 +3498,8 @@ export const actions = {
     recordModelAfterTransform: (
         transformMode,
         modelGroup,
-        combinedOperations,
-        axis
+        combinedOperations
     ) => (dispatch, getState) => {
-        if (axis) {
-            logTransformOperation(HEAD_PRINTING, transformMode, axis);
-        }
         const { targetTmpState } = getState().printing;
         let compoundOperation: CompoundOperation;
         let operation;
@@ -4051,7 +4026,6 @@ export const actions = {
 
             dispatch(sceneActions.discardPreview({ render: false }));
 
-            logToolBarOperation(HEAD_PRINTING, 'undo');
             dispatch(operationHistoryActions.undo(INITIAL_STATE.name));
             // dispatch(actions.destroyGcodeLine());
             // dispatch(actions.displayModel());
@@ -4077,7 +4051,6 @@ export const actions = {
 
             dispatch(sceneActions.discardPreview({ render: false }));
 
-            logToolBarOperation(HEAD_PRINTING, 'redo');
             dispatch(operationHistoryActions.redo(INITIAL_STATE.name));
             // dispatch(actions.destroyGcodeLine());
             // dispatch(actions.displayModel());

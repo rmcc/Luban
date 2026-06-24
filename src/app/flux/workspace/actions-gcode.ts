@@ -13,7 +13,6 @@ import {
     CONNECTION_STATUS_CONNECTED,
     PROTOCOL_TEXT,
 } from '../../constants';
-import { logGcodeExport } from '../../lib/gaEvent';
 import log from '../../lib/log';
 import workerManager from '../../lib/manager/workerManager';
 import ThreeUtils from '../../scene/three-extensions/ThreeUtils';
@@ -371,7 +370,6 @@ const renderGcodeFile = (
 ) => {
     return async (dispatch, getState) => {
         const { shouldAutoPreviewGcode } = getState().machine;
-        const { headType, isRotate } = getState().workspace;
 
         if (needToList) {
             dispatch(addGCodeFile(gcodeFile));
@@ -389,7 +387,6 @@ const renderGcodeFile = (
             );
             // TODO: used for serialport
             await dispatch(loadGcode(gcodeFile));
-            logGcodeExport(headType, 'workspace', isRotate);
 
             workerManager.gcodeToArraybufferGeometry(
                 {

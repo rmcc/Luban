@@ -9,7 +9,6 @@ import { DISPLAYED_TYPE_MODEL, DISPLAYED_TYPE_TOOLPATH, HEAD_CNC, HEAD_LASER, Mo
 import { JobOffsetMode, Origin, OriginType } from '../../constants/coordinate';
 import CompoundOperation from '../../core/CompoundOperation';
 import { controller } from '../../communication/socket-communication';
-import { logSvgSlice } from '../../lib/gaEvent';
 import i18n from '../../lib/i18n';
 import { PROCESS_STAGE, STEP_STAGE } from '../../lib/manager/ProgressManager';
 import ToolPathGroup from '../../toolpaths/ToolPathGroup';
@@ -89,8 +88,6 @@ export const processActions = {
             toolPath.object = toolPath.object.clone();
             toolPathGroup.toolPathObjects.add(toolPath.object);
         });
-
-        logSvgSlice(headType, visibleToolPathsLength);
 
         dispatch(
             baseActions.updateState(headType, {

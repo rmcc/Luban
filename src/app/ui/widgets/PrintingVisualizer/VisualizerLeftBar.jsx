@@ -3,10 +3,9 @@ import PropTypes from 'prop-types';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
-import { EPSILON, HEAD_PRINTING } from '../../../constants';
+import { EPSILON } from '../../../constants';
 import { isDualExtruder } from '../../../constants/machines';
 import { actions as printingActions } from '../../../flux/printing';
-import { logTransformOperation } from '../../../lib/gaEvent';
 import i18n from '../../../lib/i18n';
 import modal from '../../../lib/modal';
 import UniApi from '../../../lib/uni-api';
@@ -125,7 +124,6 @@ function VisualizerLeftBar(
                     setShowRotationAnalyzeModal(true);
                 }, 100);
             });
-            logTransformOperation(HEAD_PRINTING, 'roate', 'analyze_in');
         },
         rotateOnlyForUniformScale: (rotateFn) => {
             if (actions.isNonUniformScaled()) {
@@ -173,8 +171,6 @@ function VisualizerLeftBar(
 
             // show
             setPageMode(PageMode.EditSupport);
-
-            logTransformOperation(HEAD_PRINTING, 'support', 'edit_in');
         });
     }, [dispatch, fitViewIn, setPageMode]);
 

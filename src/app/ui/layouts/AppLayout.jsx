@@ -34,7 +34,6 @@ import { actions as projectActions } from '../../flux/project';
 import { actions as settingsActions } from '../../flux/setting';
 
 import { checkIsGCodeFile, checkIsSnapmakerProjectFile } from '../../lib/check-name';
-import { logLubanQuit } from '../../lib/gaEvent';
 import log from '../../lib/log';
 import i18n from '../../lib/i18n';
 import UniApi from '../../lib/uni-api';
@@ -627,8 +626,6 @@ class AppLayout extends React.PureComponent {
                 }
             });
             UniApi.Event.on('save-and-close', async () => {
-                logLubanQuit();
-
                 const done = await this.actions.saveAll();
                 if (done) {
                     UniApi.Window.call('destroy');

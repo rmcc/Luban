@@ -11,7 +11,6 @@ import { actions as operationHistoryActions } from '../../../flux/operation-hist
 import { actions as printingActions } from '../../../flux/printing';
 import sceneActions from '../../../flux/printing/actions-scene';
 import { actions as settingsActions } from '../../../flux/setting';
-import { logModelViewOperation } from '../../../lib/gaEvent';
 import i18n from '../../../lib/i18n';
 import { STEP_STAGE } from '../../../lib/manager/ProgressManager';
 import { ModelEvents } from '../../../models/events';
@@ -134,23 +133,18 @@ class Visualizer extends PureComponent {
             this.canvas.current.zoomOut();
         },
         toFront: () => {
-            logModelViewOperation(HEAD_PRINTING, 'front');
             this.canvas.current.toFront();
         },
         toLeft: () => {
-            logModelViewOperation(HEAD_PRINTING, 'left');
             this.canvas.current.toLeft();
         },
         toRight: () => {
-            logModelViewOperation(HEAD_PRINTING, 'right');
             this.canvas.current.toRight();
         },
         toTop: () => {
-            logModelViewOperation(HEAD_PRINTING, 'top');
             this.canvas.current.toTop();
         },
         toTopFrontRight: () => {
-            logModelViewOperation(HEAD_PRINTING, 'isometric');
             this.canvas.current.toTopFrontRight();
         },
         fitViewIn: () => {

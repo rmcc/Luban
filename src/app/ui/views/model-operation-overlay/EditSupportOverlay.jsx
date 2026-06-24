@@ -11,8 +11,6 @@ import Slider from '../../components/Slider';
 import { actions as printingActions } from '../../../flux/printing';
 import sceneActions from '../../../flux/printing/actions-scene';
 import { actions as menuActions } from '../../../flux/appbar-menu';
-import { HEAD_PRINTING } from '../../../constants';
-import { logTransformOperation } from '../../../lib/gaEvent';
 
 let tmpDiameter;
 const EditSupportOverlay = ({ onClose }) => {
@@ -22,7 +20,6 @@ const EditSupportOverlay = ({ onClose }) => {
 
     const actions = {
         finish: (shouldApplyChanges) => {
-            logTransformOperation(HEAD_PRINTING, 'support', 'edit_done');
             dispatch(sceneActions.finishEditSupportMode(shouldApplyChanges));
             onClose();
         },

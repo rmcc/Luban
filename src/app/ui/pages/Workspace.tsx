@@ -22,7 +22,7 @@ import Modal from '../components/Modal';
 import MainToolBar from '../layouts/MainToolBar';
 import WorkspaceLayout from '../layouts/WorkspaceLayout';
 import styles from '../layouts/styles/workspace.styl';
-import { logPageView, renderWidgetList } from '../utils';
+import { renderWidgetList } from '../utils';
 import AirPurifierWidget from '../widgets/AirPurifierWidget';
 import CNCPathWidget from '../widgets/CNCPath';
 import ConnectionWidget from '../widgets/Connection';
@@ -237,9 +237,6 @@ const Workspace: React.FC<WorkspaceProps> = ({ isPopup, onClose, style, classNam
         if (isPopup && onClose) {
             actions.addReturnButton();
         }
-        logPageView({
-            pathname: '/workspace'
-        });
 
         return () => {
             removeControllerEvents();

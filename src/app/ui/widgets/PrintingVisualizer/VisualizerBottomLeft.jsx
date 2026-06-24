@@ -3,8 +3,6 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import { HEAD_PRINTING } from '../../../constants';
-import { logModelViewOperation } from '../../../lib/gaEvent';
 import i18n from '../../../lib/i18n';
 import SvgIcon from '../../components/SvgIcon';
 
@@ -67,7 +65,6 @@ function VisualizerBottomLeft({ actions }) {
                         size={24}
                         className={classNames(styles['view-switch'])}
                         onClick={() => {
-                            logModelViewOperation(HEAD_PRINTING, 'fit_view_in');
                             actions.fitViewIn();
                         }}
                     />

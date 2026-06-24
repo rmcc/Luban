@@ -13,9 +13,8 @@ import { actions as machineActions } from '../../../flux/machine';
 /* eslint-disable-next-line import/no-cycle */
 import { CancelButton } from '../../widgets/PrintingVisualizer/VisualizerLeftBar';
 import { emitUpdateControlInputEvent } from '../../components/SMCanvas/TransformControls';
-import { HEAD_PRINTING, TRANSLATE_MODE } from '../../../constants';
+import { TRANSLATE_MODE } from '../../../constants';
 import styles from './styles.styl';
-import { logTransformOperation } from '../../../lib/gaEvent';
 
 const angleOptions = [
     {
@@ -93,7 +92,6 @@ const TranslateOverlay = React.memo(({
                     break;
             }
         });
-        !isReset && logTransformOperation(HEAD_PRINTING, 'move', 'input');
         dispatch(printingActions.updateSelectedModelTransformation(newTransformation));
         emitUpdateControlInputEvent({
             controlValue: {
@@ -111,7 +109,6 @@ const TranslateOverlay = React.memo(({
             'moveX': _moveX,
             'moveY': _moveY
         }, true);
-        logTransformOperation(HEAD_PRINTING, 'move', 'center');
         onModelAfterTransform();
     };
     const handleArrangeSettingsChange = (settings) => {
@@ -300,7 +297,6 @@ const TranslateOverlay = React.memo(({
                             onClick={() => {
                                 const { angle, offset, padding } = arragneSettings;
                                 arrangeAllModels(angle, offset, padding);
-                                logTransformOperation(HEAD_PRINTING, 'move', 'arrange');
                             }}
                             disabled={!hasModels}
                         >

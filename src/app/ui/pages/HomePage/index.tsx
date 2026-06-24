@@ -9,7 +9,7 @@ import classNames from 'classnames';
 import { HEAD_CNC, HEAD_LASER, HEAD_PRINTING } from '../../../constants';
 import { machineStore } from '../../../store/local-storage';
 import MainToolBar from '../../layouts/MainToolBar';
-import { logPageView, useRenderRecoveryModal } from '../../utils';
+import { useRenderRecoveryModal } from '../../utils';
 import CaseLibrary from './CaseLibrary';
 import MoreInfo from './MoreInfo';
 import StartProject from './StartProject';
@@ -53,12 +53,6 @@ const HomePage: React.FC<HomePageProps> = (props) => { // Todo, what's the props
             setModalShow(true);
         } else {
             setModalShow(false);
-        }
-
-        if (!props?.location?.state?.shouldNotLogPageView) {
-            logPageView({
-                pathname: '/'
-            });
         }
     }, []);
 

@@ -13,7 +13,7 @@ import modal from '../../../lib/modal';
 import { machineStore } from '../../../store/local-storage';
 import Dropzone from '../../components/Dropzone';
 import ProjectLayout from '../../layouts/ProjectLayout';
-import { logPageView, renderModal, renderPopup, useUnsavedTitle } from '../../utils';
+import { renderModal, renderPopup, useUnsavedTitle } from '../../utils';
 import Thumbnail from '../../widgets/CncLaserShared/Thumbnail';
 import StackedModel from '../../widgets/LaserStackedModel';
 import LaserVisualizer from '../../widgets/LaserVisualizer';
@@ -80,9 +80,6 @@ const LaserMainPage: React.FC<LaserMainPageProps> = ({ location }) => {
         dispatch(laserActions.init());
         // MaterialTestConfigurations show after laserActions init
         setShowMaterialTest(true);
-        logPageView({
-            pathname: '/laser',
-        });
         dispatch(laserActions.clearAB());
     }, []);
 
@@ -141,10 +138,6 @@ const LaserMainPage: React.FC<LaserMainPageProps> = ({ location }) => {
     const renderHomepage = () => {
         const onClose = () => {
             setShowHomePage(false);
-            logPageView({
-                pathname: '/laser',
-                isRotate
-            });
         };
         return showHomePage && renderPopup({
             onClose,

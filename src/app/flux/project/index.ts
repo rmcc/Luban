@@ -24,7 +24,6 @@ import {
 import { CylinderWorkpieceReference, OriginType, RectangleWorkpieceReference, convertMaterialsToWorkpiece } from '../../constants/coordinate';
 import { HEAD_CNC, HEAD_LASER, HEAD_PRINTING, SINGLE_EXTRUDER_TOOLHEAD_FOR_SM2 } from '../../constants/machines';
 import { checkIsGCodeFile, checkIsSnapmakerProjectFile } from '../../lib/check-name';
-import { logModuleVisit } from '../../lib/gaEvent';
 import i18n from '../../lib/i18n';
 import log from '../../lib/log';
 import { PROCESS_STAGE } from '../../lib/manager/ProgressManager';
@@ -719,8 +718,6 @@ export const actions = {
         } else {
             isGuideTours = machineStore.get('guideTours')?.guideTours3dp;
         }
-        logModuleVisit(newHeadType, isRotate);
-
         history.push({
             pathname: to,
             state: {

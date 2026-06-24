@@ -30,7 +30,6 @@ import {
 import { getMachineSeriesWithToolhead } from '../../constants/machines';
 import ModelGroup2D from '../../models/ModelGroup2D';
 import OperationHistory from '../../core/OperationHistory';
-import { logToolBarOperation } from '../../lib/gaEvent';
 import i18n from '../../lib/i18n';
 import { STEP_STAGE, getProgressStateManagerInstance } from '../../lib/manager/ProgressManager';
 import SVGActionsFactory from '../../models/SVGActionsFactory';
@@ -583,7 +582,6 @@ export const actions = {
         group.name = 'Camera Capture Background';
         group.remove(...group.children);
         group.add(mesh);
-        logToolBarOperation(HEAD_LASER, 'camera_capture_add_backgroup');
         dispatch(actions.setBackgroundEnabled(true));
         dispatch(editorActions.updateState(HEAD_LASER, {
             useBackground: true
@@ -651,7 +649,6 @@ export const actions = {
 
         const { group } = state.background;
         group.remove(...group.children);
-        logToolBarOperation(HEAD_LASER, 'camera_capture_remove_backgroup');
         dispatch(actions.setBackgroundEnabled(false));
         dispatch(editorActions.updateState(HEAD_LASER, {
             useBackground: false

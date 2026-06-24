@@ -4,7 +4,6 @@ import noop from 'lodash/noop';
 
 import { MARLIN, PROTOCOL_TEXT } from '../constants';
 import { ConnectionType } from '../flux/workspace/state';
-import { lubanVisit } from '../lib/gaEvent';
 import log from '../lib/log';
 import socketController from '../lib/socket-controller';
 import { machineStore } from '../store/local-storage';
@@ -202,7 +201,6 @@ class SocketCommunication {
                     }
                 }
                 if (eventName === 'daily:heartbeat') {
-                    lubanVisit();
                     return;
                 }
                 if (eventName === 'workflow:state') {

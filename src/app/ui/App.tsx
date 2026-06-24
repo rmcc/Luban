@@ -14,7 +14,6 @@ import { actions as settingActions } from '../flux/setting';
 import { actions as textActions } from '../flux/text';
 import { actions as workspaceActions } from '../flux/workspace';
 import { Canvas2dZoom } from '../lib/canvas2d-zoom';
-import { logErrorToGA } from '../lib/gaEvent';
 import { PREDEFINED_SHORTCUT_ACTIONS, ShortcutHandlerPriority, ShortcutManager } from '../lib/shortcut';
 import UniApi from '../lib/uni-api';
 import { SnapmakerRayMachine } from '../machines';
@@ -151,7 +150,6 @@ class App extends React.PureComponent<AppProps, AppState> {
 
     public componentDidCatch(error, errorInfo) {
         console.error('error', error, errorInfo);
-        logErrorToGA(errorInfo);
     }
 
     public render() {
