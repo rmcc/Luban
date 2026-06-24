@@ -1,6 +1,6 @@
 appId: com.snapmaker.luban
 productName: Snapmaker Luban
-executableName: Snapmaker-Luban
+executableName: snapmaker-luban
 
 directories:
     buildResources: build

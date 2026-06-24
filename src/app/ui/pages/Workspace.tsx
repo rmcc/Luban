@@ -304,18 +304,25 @@ const Workspace: React.FC<WorkspaceProps> = ({ isPopup, onClose, style, classNam
                 <Dropzone
                     disabled={isDraggingWidget || controller.workflowState !== WorkflowStatus.Idle}
                     accept={ACCEPT}
-                    dragEnterMsg={i18n._('key-Workspace/Page-Drop a G-code file here.')}
                     onDropAccepted={actions.onDropAccepted}
                     onDropRejected={actions.onDropRejected}
                 >
-                    <div
-                        ref={defaultContainer}
-                        className={classNames(
-                            styles.defaultContainer,
-                        )}
-                    >
-                        <VisualizerWidget onRef={ref => childRef(ref)} />
-                    </div>
+                    {({ getRootProps, getInputProps, isDragActive }) => (
+                        <div
+                            {...getRootProps({ ref: defaultContainer, onClick: (e) => e.stopPropagation() })}
+                            className={classNames(styles.defaultContainer)}
+                        >
+                            <input {...getInputProps()} />
+
+                            {isDragActive && (
+                                <div className={styles.dragOverlay}>
+                                    {i18n._('key-Workspace/Page-Drop a G-code file here.')}
+                                </div>
+                            )}
+
+                            <VisualizerWidget onRef={ref => childRef(ref)} />
+                        </div>
+                    )}
                 </Dropzone>
                 {renderModalView(connected)}
             </WorkspaceLayout>

@@ -260,25 +260,34 @@ const LaserMainPage: React.FC<LaserMainPageProps> = ({ location }) => {
                 <Dropzone
                     disabled={isDraggingWidget}
                     accept={isRotate ? ACCEPT : `${ACCEPT}, .stl, .3mf, .amf`}
-                    dragEnterMsg={i18n._('key-Laser/Page-Drop an image file here.')}
                     onDropAccepted={actions.onDropAccepted}
                     onDropRejected={actions.onDropRejected}
                 >
-                    <LaserVisualizer
-                        pageMode={pageMode}
-                        setPageMode={setPageMode}
-                    />
-                    {
-                        showStarterGuide && (
-                            <StarterGuide
-                                machineIdentifer={activeMachine?.identifier}
-                                toolHeadIdentifier={toolHeadIdentifier}
-                                isRotate={isRotate}
-                                toolPaths={toolPaths}
-                                onClose={onStarterGuideClose}
+                    {({ getRootProps, getInputProps, isDragActive }) => (
+                        <div {...getRootProps({ onClick: (e) => e.stopPropagation() })} style={{ width: '100%', height: '100%', position: 'relative' }}>
+                            <input {...getInputProps()} />
+                            {isDragActive && (
+                                <div className="drag-overlay">
+                                    {i18n._('key-Laser/Page-Drop an image file here.')}
+                                </div>
+                            )}
+                            <LaserVisualizer
+                                pageMode={pageMode}
+                                setPageMode={setPageMode}
                             />
-                        )
-                    }
+                            {
+                                showStarterGuide && (
+                                    <StarterGuide
+                                        machineIdentifer={activeMachine?.identifier}
+                                        toolHeadIdentifier={toolHeadIdentifier}
+                                        isRotate={isRotate}
+                                        toolPaths={toolPaths}
+                                        onClose={onStarterGuideClose}
+                                    />
+                                )
+                            }
+                        </div>
+                    )}
                 </Dropzone>
                 <Thumbnail
                     ref={thumbnail}

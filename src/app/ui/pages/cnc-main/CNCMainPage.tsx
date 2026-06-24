@@ -390,23 +390,32 @@ const Cnc: React.FC<CNCMainPageProps> = ({ location }) => {
                 <Dropzone
                     disabled={isDraggingWidget}
                     accept={ACCEPT}
-                    dragEnterMsg={i18n._('key-Cnc/Page-Drop an image file here.')}
                     onDropAccepted={actions.onDropAccepted}
                     onDropRejected={actions.onDropRejected}
                 >
-                    <CNCVisualizer />
-                    {enabledIntro && (
-                        <Steps
-                            options={{
-                                showBullets: false
-                            }}
-                            enabled={enabledIntro}
-                            initialStep={initIndex}
-                            onChange={handleChange}
-                            onBeforeChange={handleBeforeChange}
-                            onExit={handleExit}
-                            steps={renderStep()}
-                        />
+                    {({ getRootProps, getInputProps, isDragActive }) => (
+                        <div {...getRootProps({ onClick: (e) => e.stopPropagation() })} style={{ width: '100%', height: '100%', position: 'relative' }}>
+                            <input {...getInputProps()} />
+                            {isDragActive && (
+                                <div className="drag-overlay">
+                                    {i18n._('key-Cnc/Page-Drop an image file here.')}
+                                </div>
+                            )}
+                            <CNCVisualizer />
+                            {enabledIntro && (
+                                <Steps
+                                    options={{
+                                        showBullets: false
+                                    }}
+                                    enabled={enabledIntro}
+                                    initialStep={initIndex}
+                                    onChange={handleChange}
+                                    onBeforeChange={handleBeforeChange}
+                                    onExit={handleExit}
+                                    steps={renderStep()}
+                                />
+                            )}
+                        </div>
                     )}
                 </Dropzone>
                 <Thumbnail

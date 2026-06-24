@@ -6,8 +6,6 @@ import { Tabs } from 'antd';
 
 import styles from './styles.styl';
 
-const { TabPane } = Tabs;
-
 class TabsWrapper extends PureComponent {
     static propTypes = {
         className: PropTypes.string,
@@ -17,17 +15,23 @@ class TabsWrapper extends PureComponent {
 
     render() {
         const { className = '', options, activeKey, ...rest } = this.props;
+
+        // Map your options array into the format Ant Design's items property expects
+        const tabItems = options.map((option) => ({
+            key: option.key,
+            label: option.tab,
+            // If your options object has an inner component content or children, pass it here:
+            // children: option.content
+        }));
+
         return (
             <div className={classNames(className)}>
                 <Tabs
                     {...rest}
                     activeKey={activeKey}
                     className={classNames(styles.tabs)}
-                >
-                    {(options.map((option) => {
-                        return (<TabPane key={option.key} tab={option.tab} />);
-                    }))}
-                </Tabs>
+                    items={tabItems}
+                />
             </div>
         );
     }

@@ -341,20 +341,26 @@ const RayLaserWorkspace: React.FC<RayLaserWorkspaceProps> = ({ isPopup, onClose,
                 <Dropzone
                     disabled={isDraggingWidget || !includes([WorkflowStatus.Idle], controller.workflowState)}
                     accept={ACCEPT}
-                    dragEnterMsg={i18n._('key-Workspace/Page-Drop a G-code file here.')}
                     onDropAccepted={actions.onDropAccepted}
                     onDropRejected={actions.onDropRejected}
                 >
-                    <div
-                        ref={defaultContainer}
-                        className={classNames(
-                            // styles.defaultContainer,
-                        )}
-                    >
-                        <VisualizerWidget onRef={ref => childRef(ref)} />
-                    </div>
+                    {({ getRootProps, getInputProps, isDragActive }) => (
+                        <div
+                            {...getRootProps({ ref: defaultContainer, onClick: (e) => e.stopPropagation() })}
+                            className={classNames(
+                                // styles.defaultContainer,
+                            )}
+                        >
+                            <input {...getInputProps()} />
+                            {isDragActive && (
+                                <div className="drag-overlay">
+                                    {i18n._('key-Workspace/Page-Drop a G-code file here.')}
+                                </div>
+                            )}
+                            <VisualizerWidget onRef={ref => childRef(ref)} />
+                        </div>
+                    )}
                 </Dropzone>
-
                 <VisualizerOverlay />
 
                 {renderModalView(connected)}

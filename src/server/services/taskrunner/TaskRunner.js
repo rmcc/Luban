@@ -1,7 +1,6 @@
 import events from 'events';
 import defaultShell from 'spawn-default-shell';
 import without from 'lodash/without';
-import shortid from 'shortid';
 import logger from '../../lib/logger';
 
 const log = logger('service:taskrunner');
@@ -15,7 +14,8 @@ class TaskRunner extends events.EventEmitter {
             title = '';
         }
 
-        const taskID = shortid.generate(); // task id
+        const crypto = require('node:crypto');
+        const taskID = crypto.randomBytes(4).toString('hex'); // task id
         const child = defaultShell.spawn(command, {
             detached: true,
             ...options

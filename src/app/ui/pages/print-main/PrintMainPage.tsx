@@ -584,14 +584,23 @@ const Printing: React.FC<PrintMainPageProps> = ({ location }) => {
                 multiple
                 disabled={false}
                 accept=".stl, .obj, .3mf, .amf"
-                dragEnterMsg={i18n._('key-Printing/Page-Drop an STL/OBJ file here.')}
                 onDropAccepted={onDropAccepted}
                 onDropRejected={onDropRejected}
             >
-                <PrintingVisualizer
-                    pageMode={pageMode}
-                    setPageMode={setPageMode}
-                />
+                {({ getRootProps, getInputProps, isDragActive }) => (
+                    <div {...getRootProps({ onClick: (e) => e.stopPropagation() })} style={{ width: '100%', height: '100%', position: 'relative' }}>
+                        <input {...getInputProps()} />
+                        {isDragActive && (
+                            <div className="drag-overlay">
+                                {i18n._('key-Printing/Page-Drop an STL/OBJ file here.')}
+                            </div>
+                        )}
+                        <PrintingVisualizer
+                            pageMode={pageMode}
+                            setPageMode={setPageMode}
+                        />
+                    </div>
+                )}
             </Dropzone>
             <StarterGuide
                 enabled={starterGuideEnabled}

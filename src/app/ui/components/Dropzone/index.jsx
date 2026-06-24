@@ -11,12 +11,12 @@ import styles from './index.styl';
 // use file extension
 class Dropzone extends PureComponent {
     static propTypes = {
-        children: PropTypes.node.isRequired,
+        children: PropTypes.func,
         disabled: PropTypes.bool,
         accept: PropTypes.string.isRequired,
         onDropAccepted: PropTypes.func.isRequired,
         onDropRejected: PropTypes.func.isRequired,
-        dragEnterMsg: PropTypes.string.isRequired,
+        dragEnterMsg: PropTypes.string,
         multiple: PropTypes.bool
     };
 
