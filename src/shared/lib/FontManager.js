@@ -91,10 +91,10 @@ class FontManager {
     processAndPushFont(font, filePath) {
         const family = font.familyName;
 
-        let style = font.subFamilyName ||
-                font.name?.records?.fontSubfamily?.en ||
-                font.name?.records?.postscriptName?.en?.split('-')[1] ||
-                'Regular';
+        let style = font.subFamilyName
+                || font.name?.records?.fontSubfamily?.en
+                || font.name?.records?.postscriptName?.en?.split('-')[1]
+                || 'Regular';
 
         // Capitalize first letter to match font-scanner styling formats
         if (typeof style === 'string') {

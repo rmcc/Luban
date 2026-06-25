@@ -76,7 +76,8 @@ module.exports = {
         'react/jsx-fragments': 0,
         'import/extensions': ['error', 'never', {
             'styl': 'always',
-            'json': 'always'
+            'json': 'always',
+            'js': 'ignore'
         }],
         'no-self-assign': 0,
         'prefer-object-spread': 0,

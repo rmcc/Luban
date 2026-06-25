@@ -8,6 +8,7 @@ const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const nib = require('nib');
 const stylusLoader = require('stylus-loader');
+const ESLintPlugin = require('eslint-webpack-plugin');
 const babelConfig = require('./babel.config');
 
 const languages = require('./webpack.config.app-i18n').languages;
@@ -59,9 +60,9 @@ module.exports = {
         ],
         extensions: ['.js', '.json', '.jsx', '.styl', '.ts', '.tsx'],
         fallback: {
-            "fs": false,
-            "net": false,
-            "tls": false
+            'fs': false,
+            'net': false,
+            'tls': false
         },
         exportsFields: [],
     },
@@ -120,6 +121,11 @@ module.exports = {
         new HtmlWebpackPlugin({
             filename: 'index.html',
             template: path.resolve(__dirname, 'src/app/resources/assets/index.html'),
+        }),
+        new ESLintPlugin({
+            extensions: ['js', 'jsx', 'ts', 'tsx'],
+            exclude: 'node_modules',
+            quiet: true
         })
     ],
     module: {
@@ -131,20 +137,6 @@ module.exports = {
                 resolve: {
                     fullySpecified: false
                 }
-            },
-            // ESLint
-            {
-                enforce: 'pre',
-                test: /(\.jsx?|\.tsx?)$/,
-                loader: 'eslint-loader',
-                exclude: /node_modules/,
-                options: {
-                    cache: false,
-                    fix: false,
-                    emitWarning: false,
-                    quiet: true,
-                    configFile: path.resolve(__dirname, '.eslintrc.js'),
-                },
             },
             // workers
             {
