@@ -22,16 +22,17 @@ const devServer = {
     static: {
         directory: path.resolve(__dirname, 'output/src/app'),
     },
-    proxy: {
-        '/api': `http://localhost:${SERVER_PORT}`,
-        '/data': `http://localhost:${SERVER_PORT}`,
-        '/worker': `http://localhost:${SERVER_PORT}`,
-        '/resources': `http://localhost:${SERVER_PORT}`,
-        '/socket.io': {
-            target: `ws://localhost:${SERVER_PORT}`,
-            ws: true
+    proxy: [
+        {
+            context: ['/api', '/data', '/worker', '/resources'],
+            target: `http://localhost:${SERVER_PORT}`,
         },
-    },
+        {
+            context: ['/socket.io'],
+            target: `http://localhost:${SERVER_PORT}`,
+            ws: true,
+        }
+    ],
     devMiddleware: {
         index: true,
         writeToDisk: true,

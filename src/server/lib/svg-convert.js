@@ -1,6 +1,6 @@
 import fs from 'fs';
 import _ from 'lodash';
-import potrace from 'potrace';
+import potrace from '@gatsbyjs/potrace';
 import * as opentype from 'opentype.js';
 import { pathWithRandomSuffix } from './random-utils';
 // import fontManager from './FontManager';
