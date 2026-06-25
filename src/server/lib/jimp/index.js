@@ -1,27 +1,45 @@
-import Jimp from 'jimp';
+import { createJimp } from '@jimp/core';
+import { defaultFormats, defaultPlugins } from 'jimp';
 import JPEG from 'jpeg-js';
-import configure from '@jimp/custom';
 
-import greyscale from './jimp-plugin-greyscale';
-import halftone from './jimp-plugin-halftone';
-import threshold from './jimp-plugin-threshold';
-import alphaToWhite from './jimp-plugin-alphaToWhite';
-import bw from './jimp-plugin-bw';
+import { greyscalePlugin } from './jimp-plugin-greyscale.js';
+import { halftonePlugin } from './jimp-plugin-halftone.js';
+import { thresholdPlugin } from './jimp-plugin-threshold.js';
+import { alphaToWhitePlugin } from './jimp-plugin-alphaToWhite.js';
+import { bwPlugin } from './jimp-plugin-bw.js';
 
-Jimp.decoders['image/jpeg'] = (data) => JPEG.decode(data, {
+const customJpegDecoder = (data) => JPEG.decode(data, {
     maxMemoryUsageInMB: 6144,
     maxResolutionInMP: 600
 });
 
-configure({
+const configuredFormats = defaultFormats.map(formatFactory => {
+    const formatInstance = formatFactory();
+
+    if (formatInstance.mime === 'image/jpeg') {
+        return () => ({
+            ...formatInstance,
+            decoders: {
+                ...formatInstance.decoders,
+                'image/jpeg': customJpegDecoder
+            }
+        });
+    }
+
+    return formatFactory;
+});
+
+const Jimp = createJimp({
+    formats: configuredFormats,
     plugins: [
-        greyscale,
-        halftone,
-        threshold,
-        alphaToWhite,
-        bw
+        ...defaultPlugins,
+        greyscalePlugin,
+        halftonePlugin,
+        thresholdPlugin,
+        alphaToWhitePlugin,
+        bwPlugin
     ]
-}, Jimp);
+});
 
 // add jimp plugins here, write processor outside is not recommended
 export default Jimp;

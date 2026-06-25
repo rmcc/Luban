@@ -38,6 +38,10 @@ npm install --omit=dev
 npm dedupe
 # Clean them up so they don't end in the packaged file
 rm -rf modified-modules
+
+# Jimp 1.6.1's commonJS fails to resolve the ESM file-type path. force it as a submodule
+mkdir -p node_modules/@jimp/core/node_modules && cp -r node_modules/file-type node_modules/@jimp/core/node_modules || true
+
 popd
 
 #echo "Rebuild native modules using electron ${electron_version}"

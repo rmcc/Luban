@@ -1,8 +1,8 @@
 /* eslint-disable */
 
-const Jimp = require('jimp');
+const { Jimp } = require('jimp');
 const fs = require('fs');
-const { cv } = require('opencv-wasm');
+const { cv } = require('opencv-js-wasm');
 
 import { SnapmakerA250Machine, SnapmakerA350Machine } from '../../../../app/machines';
 import sendMessage from '../utils/sendMessage';
@@ -31,7 +31,7 @@ const remap = async () => {
             data: Buffer.from(dst.data)
         })
         const outputFileName = `remaped_${fileName}`
-        await result.writeAsync(`${Tmpdir}/${outputFileName}`);
+        await result.write(`${Tmpdir}/${outputFileName}`);
         log.info(`Remap done, output file = ${outputFileName}`);
 
         // cleanup

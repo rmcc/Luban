@@ -14,20 +14,23 @@ const getGrey = (algorithm, R, G, B) => {
     return parseInt(grey + EPS, 10);
 };
 
-export default () => ({
-    greyscale(algorithm, cb) {
-        this.scan(0, 0, this.bitmap.width, this.bitmap.height, (x, y, idx) => {
-            // const grey = parseInt(0.2126 * this.bitmap.data[idx] + 0.7152 * this.bitmap.data[idx + 1] + 0.0722 * this.bitmap.data[idx + 2] + EPS, 10);
-            const grey = getGrey(algorithm, this.bitmap.data[idx], this.bitmap.data[idx + 1], this.bitmap.data[idx + 2]);
-            this.bitmap.data[idx] = grey;
-            this.bitmap.data[idx + 1] = grey;
-            this.bitmap.data[idx + 2] = grey;
-        });
+export const greyscalePlugin = {
+    greyscale(algorithm, image) {
+        // Handle Jimp 1.x vs 0.x argument shifting safely
+        const activeImage = typeof algorithm === 'object' && algorithm.bitmap ? algorithm : (image || this);
+        const actualAlgorithm = typeof algorithm === 'string' ? algorithm : undefined;
 
-        if (cb) {
-            return cb.call(this, null, this);
-        } else {
-            return this;
+        const data = activeImage.bitmap?.data;
+        if (data) {
+            const len = data.length;
+            for (let idx = 0; idx < len; idx += 4) {
+                const grey = getGrey(actualAlgorithm, data[idx], data[idx + 1], data[idx + 2]);
+                data[idx] = grey;
+                data[idx + 1] = grey;
+                data[idx + 2] = grey;
+            }
         }
+
+        return activeImage;
     }
-});
+};

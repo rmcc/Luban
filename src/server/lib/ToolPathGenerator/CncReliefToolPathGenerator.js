@@ -1,4 +1,4 @@
-import Jimp from 'jimp';
+import { Jimp } from 'jimp';
 import EventEmitter from 'events';
 import Normalizer from './Normalizer';
 import { round } from '../../../shared/lib/utils';
@@ -144,7 +144,7 @@ export default class CncReliefToolPathGenerator extends EventEmitter {
 
                 img
                     .greyscale()
-                    .flip(this.scaleX < 0, this.scaleY < 0)
+                    .flip({ horizontal: this.scaleX < 0, vertical: this.scaleY < 0 })
                     .rotate(-this.rotationZ * 180 / Math.PI);
 
                 const scale = { w: img.bitmap.width / width, h: img.bitmap.height / height };

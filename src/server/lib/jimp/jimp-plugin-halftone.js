@@ -85,20 +85,26 @@ function spot2thresh(type, width) {
  * @param angle angle of the effect
  * @returns {Jimp} this for chaining of methods
  */
-export default () => ({
-    halftone(cellType = 'line', cellWidth = 50, angle = -45) {
-        const rot = angle * Math.PI / 180;
+export const halftonePlugin = {
+    halftone(cellType = 'line', cellWidth = 50, angle = -45, image) {
+        // Shift arguments around, jimp 1.x sends image first
+        const activeImage = cellType;
+        const actualCellType = cellWidth;
+        const actualCellWidth = angle;
+        const actualAngle = image;
+
+        const rot = actualAngle * Math.PI / 180;
         const x1 = 0;
         const y1 = 0;
-        const x2 = this.bitmap.width;
-        const y2 = this.bitmap.height;
+        const x2 = activeImage.width || activeImage.bitmap?.width;
+        const y2 = activeImage.height || activeImage.bitmap?.height;
 
-        const thresh = spot2thresh(cellType, cellWidth, angle);
+        const thresh = spot2thresh(actualCellType, actualCellWidth);
 
-        for (let y = y1; y < y2; y += cellWidth - (y % cellWidth)) {
-            for (let x = x1; x < x2; x += cellWidth - (x % cellWidth)) {
-                for (let row = 0; row < cellWidth; row++) {
-                    for (let col = 0; col < cellWidth; col++) {
+        for (let y = y1; y < y2; y += actualCellWidth - (y % actualCellWidth)) {
+            for (let x = x1; x < x2; x += actualCellWidth - (x % actualCellWidth)) {
+                for (let row = 0; row < actualCellWidth; row++) {
+                    for (let col = 0; col < actualCellWidth; col++) {
                         const p1 = {
                             x: x + col,
                             y: y + row
@@ -111,24 +117,26 @@ export default () => ({
                             y: Math.round(r * Math.sin(theta + rot))
                         };
 
-                        p2.x %= cellWidth;
-                        p2.y %= cellWidth;
-                        if (p2.x < 0) p2.x += cellWidth;
-                        if (p2.y < 0) p2.y += cellWidth;
+                        p2.x %= actualCellWidth;
+                        p2.y %= actualCellWidth;
+                        if (p2.x < 0) p2.x += actualCellWidth;
+                        if (p2.y < 0) p2.y += actualCellWidth;
 
-                        const idxThresh = (p2.y * cellWidth + p2.x);
+                        const idxThresh = (p2.y * actualCellWidth + p2.x);
 
-                        const idx = (p1.x + p1.y * this.bitmap.width) << 2;
+                        const idx = (p1.x + p1.y * x2) << 2;
 
                         const val = idxThresh < thresh.length ? thresh[idxThresh] : 0;
 
-                        this.bitmap.data[idx] = this.bitmap.data[idx] > val ? 255 : 0;
-                        this.bitmap.data[idx + 1] = this.bitmap.data[idx];
-                        this.bitmap.data[idx + 2] = this.bitmap.data[idx];
+                        if (idx >= 0 && idx < activeImage.bitmap.data.length) {
+                            activeImage.bitmap.data[idx] = activeImage.bitmap.data[idx] > val ? 255 : 0;
+                            activeImage.bitmap.data[idx + 1] = activeImage.bitmap.data[idx];
+                            activeImage.bitmap.data[idx + 2] = activeImage.bitmap.data[idx];
+                        }
                     }
                 }
             }
         }
-        return this;
+        return activeImage;
     }
-});
+};

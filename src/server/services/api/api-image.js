@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import mv from 'mv';
-import jimp from 'jimp';
+import { Jimp } from 'jimp';
 import jpegAutoRotate from 'jpeg-autorotate';
 import logger from '../../lib/logger';
 import SVGParser from '../../../shared/lib/SVGParser';
@@ -141,7 +141,7 @@ export const set = async (req, res) => {
                 }
             );
         } else {
-            await jimp.read(tempPath)
+            await Jimp.read(tempPath)
                 .then((image) => {
                     res.send({
                         originalName: originalName,

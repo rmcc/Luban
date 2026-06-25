@@ -1,4 +1,4 @@
-import Jimp from 'jimp';
+import { Jimp } from 'jimp';
 import fs from 'fs';
 import { Mesh } from './Mesh';
 import { Vector2 } from '../../../shared/lib/math/Vector2';
@@ -352,7 +352,7 @@ export class MeshProcess {
         };
     }
 
-    convertToImage() {
+    async convertToImage() {
         console.log('convertToImage');
         this.outputFilename = `${pathWithRandomSuffix(this.uploadName).replace('.stl', '')}.png`;
 
@@ -371,29 +371,26 @@ export class MeshProcess {
         const width = axisData.width;
         const height = axisData.height;
 
-        return new Promise(resolve => {
-            // eslint-disable-next-line no-new
-            new Jimp(imageWidth, imageHeight, (err, image) => {
-                for (let i = 0; i < imageWidth; i++) {
-                    for (let j = 0; j < imageHeight; j++) {
-                        const idx = j * imageWidth * 4 + i * 4;
-                        const d = data[i][j];
+        const image = new Jimp({ width: imageWidth, height: imageHeight });
 
-                        image.bitmap.data[idx] = d;
-                        image.bitmap.data[idx + 1] = d;
-                        image.bitmap.data[idx + 2] = d;
-                        image.bitmap.data[idx + 3] = 255;
-                    }
-                }
+        for (let i = 0; i < imageWidth; i++) {
+            for (let j = 0; j < imageHeight; j++) {
+                const idx = j * imageWidth * 4 + i * 4;
+                const d = data[i][j];
 
-                image.write(`${process.env.Tmpdir}/${this.outputFilename}`, () => {
-                    resolve({
-                        filename: this.outputFilename,
-                        width: width,
-                        height: height
-                    });
-                });
-            });
-        });
+                image.bitmap.data[idx] = d;
+                image.bitmap.data[idx + 1] = d;
+                image.bitmap.data[idx + 2] = d;
+                image.bitmap.data[idx + 3] = 255;
+            }
+        }
+
+        await image.write(`${process.env.Tmpdir}/${this.outputFilename}`);
+
+        return {
+            filename: this.outputFilename,
+            width: width,
+            height: height
+        };
     }
 }

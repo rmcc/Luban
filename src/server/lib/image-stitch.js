@@ -1,4 +1,4 @@
-import Jimp from 'jimp';
+import { Jimp } from 'jimp';
 import PerspT from 'perspective-transform';
 import DataStorage from '../DataStorage';
 import workerManager from '../services/task-manager/workerManager';
@@ -89,7 +89,7 @@ export const stitchEach = async (options) => {
     let stitched;
 
     if (picAmount === 1) {
-        stitched = new Jimp(size.x * density, size.y * density);
+        stitched = new Jimp({ width: size.x * density, height: size.y * density });
         for (let y = 0; y < size.y * density; y++) {
             for (let x = 0; x < size.x * density; x++) {
                 // const index = ((y)* xSize * density + x ) << 2;
@@ -134,7 +134,7 @@ export const stitchEach = async (options) => {
 
         const outputWidth = isCalibration ? size.x : xSize;
         const outputHeight = isCalibration ? size.y : ySize;
-        stitched = new Jimp(outputWidth * density, outputHeight * density);
+        stitched = new Jimp({ width: outputWidth * density, height: outputHeight * density });
         for (let y = startySize * density; y < endySize * density; y++) {
             for (let x = startxSize * density; x < endxSize * density; x++) {
                 let dy = -1;
@@ -192,7 +192,7 @@ export const stitchEach = async (options) => {
             startxSize = size.x - xSize;
         }
 
-        stitched = new Jimp(xSize * density, ySize * density);
+        stitched = new Jimp({ width: xSize * density, height: ySize * density });
 
         for (let y = startySize * density; y < endySize * density; y++) {
             for (let x = startxSize * density; x < endxSize * density; x++) {
@@ -222,19 +222,18 @@ export const stitchEach = async (options) => {
             }
         }
     }
-    stitched.flip(false, true);
+    stitched.flip({ horizontal: false, vertical: true });
 
     let filename = `stitchedEach${currentIndex}.jpg`;
     filename = pathWithRandomSuffix(filename);
-    return new Promise(async (resolve) => {
-        await stitched.write(`${DataStorage.tmpDir}/${filename}`, () => {
-            resolve({
-                filename,
-                xSize,
-                ySize
-            });
-        });
-    });
+
+    await stitched.write(`${DataStorage.tmpDir}/${filename}`);
+
+    return {
+        filename,
+        xSize,
+        ySize
+    };
 };
 
 export const stitch = async (options) => {
@@ -270,7 +269,7 @@ export const stitch = async (options) => {
         images.push(image);
     }
 
-    const stitched = new Jimp(size.x * density, size.y * density);
+    const stitched = new Jimp({ width: size.x * density, height: size.y * density });
     if (fileNames.length === 4) {
         for (let y = 0; y < size.y * density; y++) {
             for (let x = 0; x < size.x * density; x++) {
@@ -385,15 +384,14 @@ export const stitch = async (options) => {
             }
         }
     }
-    stitched.flip(false, true);
+    stitched.flip({ horizontal: false, vertical: true });
 
     let filename = 'stitched.jpg';
     filename = pathWithRandomSuffix(filename);
-    return new Promise(async (resolve) => {
-        await stitched.write(`${DataStorage.tmpDir}/${filename}`, () => {
-            resolve({
-                filename
-            });
-        });
-    });
+
+    await stitched.write(`${DataStorage.tmpDir}/${filename}`);
+
+    return {
+        filename
+    };
 };

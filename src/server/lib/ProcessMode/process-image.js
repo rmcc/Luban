@@ -77,16 +77,17 @@ export async function processLaserGreyscale(modelInfo, onProgress) {
         img.invert();
     }
 
+    /* jimp 1.x changed the scale of brightness from "-1 to 1" to "0 to 2", so "do
+     * nothing" is now "1", not "0". Just add 1 to the old math to get the new scale
+     */
     img
-        .background(0xffffffff)
-        .brightness((brightness - 50.0) / 50)
-        .quality(100)
+        .brightness((((brightness - 50.0) / 50) + 1))
         .contrast((contrast - 50.0) / 50)
         .greyscale(greyscaleAlgorithm)
-        .flip(scaleX < 0, scaleY < 0)
-        .resize(width * density, height * density);
+        .flip({ horizontal: scaleX < 0, vertical: scaleY < 0 })
+        .resize({ w: width * density, h: height * density });
     if (rotationZ !== 0) {
-        img.rotate(-rotationZ * 180 / Math.PI); // Rotating zero degrees will result in white edges
+        img.rotate({ deg: -rotationZ * 180 / Math.PI }); // Rotating zero degrees will result in white edges
     }
     img
         .threshold({ max: whiteClip });
@@ -111,7 +112,6 @@ export async function processLaserGreyscale(modelInfo, onProgress) {
             for (let x = reverse ? img.bitmap.width - 1 : 0; reverse ? x >= 0 : x < img.bitmap.width; reverse ? x-- : x++) {
                 const index = (y * img.bitmap.width + x) << 2;
                 const origin = img.bitmap.data[index];
-
                 img.bitmap.data[index] = bit(origin);
                 img.bitmap.data[index + 1] = img.bitmap.data[index];
                 img.bitmap.data[index + 2] = img.bitmap.data[index];
@@ -133,13 +133,12 @@ export async function processLaserGreyscale(modelInfo, onProgress) {
         }
     }
     onProgress && onProgress(1);
-    return new Promise(resolve => {
-        img.write(`${process.env.Tmpdir}/${outputFilename}`, () => {
-            resolve({
-                filename: outputFilename
-            });
-        });
-    });
+
+    await img.write(`${process.env.Tmpdir}/${outputFilename}`, { quality: 100 });
+
+    return {
+        filename: outputFilename
+    };
 }
 
 export async function processCNCGreyscale(modelInfo, onProgress) {
@@ -160,18 +159,16 @@ export async function processCNCGreyscale(modelInfo, onProgress) {
     onProgress && onProgress(0.6);
     img
         .greyscale()
-        .flip(scaleX < 0, scaleY < 0)
-        .resize(width * density, height * density)
-        .rotate(-rotationZ * 180 / Math.PI)
-        .background(0xffffffff);
+        .flip({ horizontal: scaleX < 0, vertical: scaleY < 0 })
+        .resize({ w: width * density, h: height * density })
+        .rotate({ deg: -rotationZ * 180 / Math.PI });
     onProgress && onProgress(1);
-    return new Promise(resolve => {
-        img.write(`${process.env.Tmpdir}/${outputFilename}`, () => {
-            resolve({
-                filename: outputFilename
-            });
-        });
-    });
+
+    await img.write(`${process.env.Tmpdir}/${outputFilename}`);
+
+    return {
+        filename: outputFilename
+    };
 }
 
 export async function processBW(modelInfo, onProgress) {
@@ -189,25 +186,23 @@ export async function processBW(modelInfo, onProgress) {
     onProgress && onProgress(0.5);
     img
         .greyscale()
-        .flip(scaleX < 0, scaleY < 0)
-        .resize(width * density, height * density)
+        .flip({ horizontal: scaleX < 0, vertical: scaleY < 0 })
+        .resize({ w: width * density, h: height * density })
         .rotate(-rotationZ * 180 / Math.PI); // rotate: unit is degree and clockwise
 
     onProgress && onProgress(0.8);
     if (invert) {
         img.invert();
     }
-    img.bw(bwThreshold)
-        .background(0xffffffff);
+    img.bw(bwThreshold);
 
     onProgress && onProgress(1);
-    return new Promise(resolve => {
-        img.write(`${process.env.Tmpdir}/${outputFilename}`, () => {
-            resolve({
-                filename: outputFilename
-            });
-        });
-    });
+
+    await img.write(`${process.env.Tmpdir}/${outputFilename}`);
+
+    return {
+        filename: outputFilename
+    };
 }
 
 export async function processHalftone(modelInfo, onProgress) {
@@ -223,21 +218,19 @@ export async function processHalftone(modelInfo, onProgress) {
     onProgress && onProgress(0.6);
     img
         .greyscale()
-        .flip(scaleX < 0, scaleY < 0)
-        .resize(width * density, height * density)
-        .rotate(-rotationZ * 180 / Math.PI) // rotate: unit is degree and clockwise
+        .flip({ horizontal: scaleX < 0, vertical: scaleY < 0 })
+        .resize({ w: width * density, h: height * density })
+        .rotate({ deg: -rotationZ * 180 / Math.PI, background: 0xffffffff }) // rotate: unit is degree and clockwise
         .threshold({ max: threshold })
         .halftone(npType, npSize, npAngle)
-        .background(0xffffffff)
         .alphaToWhite();
     onProgress && onProgress(1);
-    return new Promise(resolve => {
-        img.write(`${process.env.Tmpdir}/${outputFilename}`, () => {
-            resolve({
-                filename: outputFilename
-            });
-        });
-    });
+
+    await img.write(`${process.env.Tmpdir}/${outputFilename}`);
+
+    return {
+        filename: outputFilename
+    };
 }
 
 /**

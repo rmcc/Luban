@@ -1,48 +1,51 @@
 // copy from https://github.com/oliver-moran/jimp/blob/master/packages/plugin-threshold/src/index.js
-import { isNodePattern, throwError } from '@jimp/utils';
 
 /**
  * Applies a minimum color threshold to a greyscale image.  Converts image to greyscale by default
- * @param {number} options object
- *  max: A number auto limited between 0 - 255
- *  replace: (optional) A number auto limited between 0 - 255 (default 255)
- *  autoGreyscale: (optional) A boolean whether to apply greyscale beforehand (default true)
- * @param {number} cb (optional) a callback for when complete
+ * @param {object} options object containing max, replace, autoGreyscale
+ * @param {Jimp} image optional Jimp instance passed by v1 engine
  * @return {this} this for chaining of methods
  */
-export default () => ({
-    threshold({ max, replace = 255, autoGreyscale = true }, cb) {
+export const thresholdPlugin = {
+    threshold(options, image) {
+        // If options has a bitmap property, Jimp passed the image context as the first argument
+        const activeImage = (options && typeof options === 'object' && options.bitmap) ? options : (image || this);
+        const actualOptions = (options && typeof options === 'object' && !options.bitmap) ? options : (image && typeof image === 'object' ? image : {});
+
+        const { max, replace = 255, autoGreyscale = true } = actualOptions;
+
         if (typeof max !== 'number') {
-            return throwError.call(this, 'max must be a number', cb);
+            throw new Error('max must be a number');
         }
 
         if (typeof replace !== 'number') {
-            return throwError.call(this, 'replace must be a number', cb);
+            throw new Error('replace must be a number');
         }
 
         if (typeof autoGreyscale !== 'boolean') {
-            return throwError.call(this, 'autoGreyscale must be a boolean', cb);
+            throw new Error('autoGreyscale must be a boolean');
         }
 
-        max = this.constructor.limit255(max);
-        replace = this.constructor.limit255(replace);
+        const limit255 = (val) => Math.max(0, Math.min(255, val));
+        const actualMax = limit255(max);
+        const actualReplace = limit255(replace);
 
         if (autoGreyscale) {
-            this.greyscale();
+            activeImage.greyscale();
         }
 
-        this.scan(0, 0, this.bitmap.width, this.bitmap.height, (x, y, idx) => {
-            const grey = this.bitmap.data[idx] < max ? this.bitmap.data[idx] : replace;
+        const w = activeImage.width || activeImage.bitmap?.width;
+        const h = activeImage.height || activeImage.bitmap?.height;
 
-            this.bitmap.data[idx] = grey;
-            this.bitmap.data[idx + 1] = grey;
-            this.bitmap.data[idx + 2] = grey;
+        activeImage.scan(0, 0, w, h, (x, y, idx) => {
+            const grey = activeImage.bitmap.data[idx] < actualMax ? activeImage.bitmap.data[idx] : actualReplace;
+
+            activeImage.bitmap.data[idx] = grey;
+            activeImage.bitmap.data[idx + 1] = grey;
+            activeImage.bitmap.data[idx + 2] = grey;
         });
 
-        if (isNodePattern(cb)) {
-            cb.call(this, null, this);
-        }
-
-        return this;
+        return activeImage;
     }
-});
+};
+

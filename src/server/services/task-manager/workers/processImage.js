@@ -6,20 +6,18 @@ const processImage = async (modelInfo) => {
         sendMessage({ status: 'progress', value: num });
     };
 
-
     if (!modelInfo) {
-        return sendMessage({ status: 'fail', value: 'modelInfo is empty.' });
+        sendMessage({ status: 'fail', value: 'modelInfo is empty.' });
+        return;
     }
 
-    return new Promise((resolve, reject) => {
-        processMode(modelInfo, onProgress).then((ret) => {
-            sendMessage({ status: 'complete', value: ret });
-            resolve();
-        }).catch((e) => {
-            sendMessage({ status: 'fail', value: e });
-            reject();
-        });
-    });
+    try {
+        const ret = await processMode(modelInfo, onProgress);
+        sendMessage({ status: 'complete', value: ret });
+    } catch (e) {
+        sendMessage({ status: 'fail', value: String(e) });
+        throw e instanceof Error ? e : new Error(String(e));
+    }
 };
 
 export default processImage;

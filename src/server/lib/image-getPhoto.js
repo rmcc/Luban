@@ -1,4 +1,4 @@
-import Jimp from 'jimp';
+import { Jimp } from 'jimp';
 import request from 'superagent';
 
 import { LEVEL_TWO_POWER_LASER_FOR_SM2 } from '../../app/constants/machines';
