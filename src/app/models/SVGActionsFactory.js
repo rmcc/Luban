@@ -43,6 +43,7 @@ function getTransformList(elem) {
 function genModelConfig(elem, size, materials = {}) {
     const coord = coordGmSvgToModel(size, elem);
     let deltaLeftX = 0, deltaRightX = 0, deltaTopY = 0, deltaBottomY = 0;
+    let elemClass = 'high-visibility-object';
     if (elem.nodeName === 'text') {
         if (materials?.isRotate) {
             coord.positionY = materials.length / 2;
@@ -50,6 +51,8 @@ function genModelConfig(elem, size, materials = {}) {
             coord.positionY = 0;
         }
         coord.positionX = 0;
+        // Text arrives as a black image. It needs to be inverted for blending.
+        elemClass = 'high-visibility-object-inverted';
     }
 
     const isDraw = elem.getAttribute('id')?.includes('graph');
@@ -62,6 +65,9 @@ function genModelConfig(elem, size, materials = {}) {
             deltaTopY = 0.5;
             deltaBottomY = 1;
         }
+        // Pre-rendered paths (shape library) also arrive as black and need
+        // inversion for blending
+        elemClass = 'high-visibility-object-inverted';
     }
 
     // eslint-disable-next-line prefer-const
@@ -109,11 +115,6 @@ function genModelConfig(elem, size, materials = {}) {
         vheight = -vheight;
     }
     // Todo: need to optimize
-    let elemStyle = 'mix-blend-mode: difference;';
-    // Text arrives as a black image. It needs to be inverted for blending.
-    if (elem.getAttribute('textContent') !== null) {
-        elemStyle = 'mix-blend-mode: difference; filter: invert(1);';
-    }
 
     const content = `<svg x="0" y="0" width="${vwidth}mm" height="${vheight}mm" `
         + `viewBox="${vx} ${vy} ${vwidth} ${vheight}" `
@@ -135,7 +136,7 @@ function genModelConfig(elem, size, materials = {}) {
             'font-family': elem.getAttribute('font-family'),
             'font-style': elem.getAttribute('font-style'),
             'line-height': elem.getAttribute('line-height'),
-            style: elemStyle
+            class: elemClass
         }
     };
 

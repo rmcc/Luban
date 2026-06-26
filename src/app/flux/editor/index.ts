@@ -891,7 +891,7 @@ export const actions = {
             isRotate: materials.isRotate,
             elem: contentGroup.addSVGElement({
                 element: config.svgNodeName === 'text' ? 'image' : config.svgNodeName || 'image',
-                attr: { id: modelID, style: 'mix-blend-mode: difference; filter: invert(1);' }
+                attr: { id: modelID, class: 'high-visibility-object-inverted' }
             }),
             size: size
         };

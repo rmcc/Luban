@@ -488,6 +488,22 @@ class SvgModel extends BaseModel {
     public updateIsToolPathSelect(selected: boolean) {
         this.isToolPathSelect = selected;
 
+        /* Classes can apply their own filters. Remove them for selected
+         * objects so the direct coloring filter works */
+        if (selected) {
+            const currentClass = this.elem.getAttribute('class');
+            if (currentClass !== null) {
+                this.elem.setAttribute('data-original-class', currentClass);
+                this.elem.removeAttribute('class');
+            }
+        } else {
+            const originalClass = this.elem.getAttribute('data-original-class');
+            if (originalClass !== null) {
+                this.elem.setAttribute('class', originalClass);
+                this.elem.removeAttribute('data-original-class');
+            }
+        }
+
         switch (this.type) {
             case 'path':
             case 'circle':

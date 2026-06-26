@@ -216,7 +216,7 @@ const SVGShapeLibrary = (props) => {
                     onClick={() => onClickSvg(v)}
                 >
                     <img
-                        className="width-percent-100"
+                        className="width-percent-100 high-visibility-object-inverted"
                         src={IMG_RESOURCE_BASE_URL + v.fileInfo.file.uploadPath}
                         alt=""
                     />
