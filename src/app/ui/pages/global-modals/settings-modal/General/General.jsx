@@ -133,6 +133,7 @@ function General({ state: generalState, actions }) {
         changeTheme: (option) => {
             if (option?.value !== theme) {
                 setCurrentTheme(option?.value);
+                setTheme(option?.value);
             }
         },
         cancel: () => {
