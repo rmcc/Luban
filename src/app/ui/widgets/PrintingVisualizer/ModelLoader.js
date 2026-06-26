@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import path from 'path';
+import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
 import AMFLoader from '../../../../shared/lib/AMFLoader';
 import ThreeMFLoader from '../../../../shared/lib/3MFLoader';
 import STLLoader from '../../../scene/three-extensions/STLLoader';
@@ -104,27 +105,24 @@ class ModelLoader {
             // https://stackoverflow.com/questions/36450612/how-to-merge-two-buffergeometries-in-one-buffergeometry-in-three-js
             // so implement merge via Geometry
             (container) => {
-                // let geometry = new THREE.Geometry();
-                let geometry = null;
+                const geometries = [];
                 if (container.children.length) {
                     container.traverse((child) => {
-                        if (child instanceof THREE.Mesh) {
-                            if (!geometry) {
-                                geometry = new THREE.Geometry();
-                            }
-                            if (child.geometry && child.geometry instanceof THREE.BufferGeometry && geometry) {
-                                const ge = new THREE.Geometry();
-                                ge.fromBufferGeometry(child.geometry);
-                                geometry.merge(ge);
+                        if (child instanceof THREE.Mesh && child.geometry) {
+                            if (child.geometry instanceof THREE.BufferGeometry) {
+                                // Clone the geometry to avoid modifying the original mesh data
+                                const ge = child.geometry.clone();
+                                child.updateMatrix();
+                                ge.applyMatrix4(child.matrix);
+                                geometries.push(ge);
                             }
                         }
                     });
                     // BufferGeometry is an efficient alternative to Geometry
                     // const bufferGeometry = new THREE.BufferGeometry();
                     let bufferGeometry = null;
-                    if (geometry) {
-                        bufferGeometry = new THREE.BufferGeometry();
-                        bufferGeometry.fromGeometry(geometry);
+                    if (geometries.length > 0) {
+                        bufferGeometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
                     }
                     // call the following if lost reflection
                     // bufferGeometry.computeVertexNormals();

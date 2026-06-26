@@ -59,7 +59,7 @@ class Visualizer extends PureComponent {
     public static propTypes = {
         series: PropTypes.string.isRequired,
         size: PropTypes.object.isRequired,
-        stage: PropTypes.number.isRequired,
+        stage: PropTypes.number,
         promptTasks: PropTypes.array.isRequired,
         selectedModelArray: PropTypes.array,
         modelGroup: PropTypes.object.isRequired,

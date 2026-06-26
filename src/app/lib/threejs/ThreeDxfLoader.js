@@ -37,7 +37,7 @@ function isEqual(a, b) {
 
 function BulgeGeometry(startPoint, endPoint, bulge, segments) {
     let vertex, i;
-    THREE.Geometry.call(this);
+    THREE.BufferGeometry.call(this);
     const p0 = startPoint ? new THREE.Vector2(startPoint.x, startPoint.y) : new THREE.Vector2(0, 0);
     const p1 = endPoint ? new THREE.Vector2(endPoint.x, endPoint.y) : new THREE.Vector2(1, 0);
     bulge = bulge || 1;
@@ -58,16 +58,34 @@ function BulgeGeometry(startPoint, endPoint, bulge, segments) {
     const thetaAngle = angle / this.segments;
 
 
-    this.vertices.push(new THREE.Vector3(p0.x, p0.y, 0));
+    const verticesCount = this.segments + 1;
+    const positions = new Float32Array(verticesCount * 3);
+
+    positions[0] = p0.x;
+    positions[1] = p0.y;
+    positions[2] = 0;
 
     for (i = 1; i <= this.segments - 1; i++) {
         vertex = polar(center, Math.abs(radius), startAngle + thetaAngle * i);
 
-        this.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
+        positions[i * 3] = vertex.x;
+        positions[i * 3 + 1] = vertex.y;
+        positions[i * 3 + 2] = 0;
+    }
+
+    positions[this.segments * 3] = p1.x;
+    positions[this.segments * 3 + 1] = p1.y;
+    positions[this.segments * 3 + 2] = 0;
+
+    this.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    this.vertices = [];
+    for (i = 0; i <= this.segments; i++) {
+        this.vertices.push(new THREE.Vector3(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]));
     }
 }
 
-BulgeGeometry.prototype = Object.create(THREE.Geometry.prototype);
+BulgeGeometry.prototype = Object.create(THREE.BufferGeometry.prototype);
 
 /**
  * Calculates points for a curve between two points
@@ -100,29 +118,36 @@ class ThreeDxfLoader {
         const interpolatedPoints = new THREE.CircleGeometry(entity.radius, 32, entity.startAngle, entity.angleLength);
         const defaultColor = new THREE.Color(0xffffff);
 
-        interpolatedPoints.vertices.map((item) => {
-            item.x += entity.center.x;
-            item.y += entity.center.y;
-            item.z += entity.center.z;
-            return item;
-        });
-        interpolatedPoints.vertices.shift();
+        const circleVertices = [];
+        const positionAttr = interpolatedPoints.getAttribute('position');
+        const tempV = new THREE.Vector3();
+
+        for (let i = 0; i < positionAttr.count; i++) {
+            tempV.fromBufferAttribute(positionAttr, i);
+            circleVertices.push({
+                x: tempV.x + entity.center.x,
+                y: tempV.y + entity.center.y,
+                z: tempV.z + entity.center.z
+            });
+        }
+
+        circleVertices.shift();
 
         let previousPosition = { x: 0, y: 0, z: 0 };
         if (geometry.vertices.length > 0) {
             previousPosition = geometry.vertices[geometry.vertices.length - 1];
         }
-        if (!isEqual(previousPosition.x, interpolatedPoints.vertices[0].x)
-            || !isEqual(previousPosition.y, interpolatedPoints.vertices[0].y)) {
+        if (!isEqual(previousPosition.x, circleVertices[0].x)
+            || !isEqual(previousPosition.y, circleVertices[0].y)) {
             geometry.vertices.push(previousPosition);
             geometry.colors.push(defaultColor);
-            geometry.vertices.push(interpolatedPoints.vertices[0]);
+            geometry.vertices.push(circleVertices[0]);
             geometry.colors.push(defaultColor);
         }
 
 
-        geometry.vertices.push(...interpolatedPoints.vertices);
-        geometry.colors.push(...new Array(interpolatedPoints.vertices.length).fill(color));
+        geometry.vertices.push(...circleVertices);
+        geometry.colors.push(...new Array(circleVertices.length).fill(color));
     }
 
     drawSolid(geometry, entity) {
@@ -137,17 +162,18 @@ class ThreeDxfLoader {
         // Calculate which direction the points are facing (clockwise or counter-clockwise)
         const vector1 = new THREE.Vector3();
         const vector2 = new THREE.Vector3();
-        vector1.subVectors(verts[1], verts[0]);
-        vector2.subVectors(verts[2], verts[0]);
+        vector1.subVectors(verts[verts.length - 3], verts[verts.length - 4]);
+        vector2.subVectors(verts[verts.length - 2], verts[verts.length - 4]);
         vector1.cross(vector2);
 
+        const vOffset = geometry.vertices.length - 4;
         // If z < 0 then we must draw these in reverse order
         if (vector1.z < 0) {
-            geometry.faces.push(new THREE.Face3(2, 1, 0));
-            geometry.faces.push(new THREE.Face3(2, 3, 1));
+            geometry.faces.push(vOffset + 2, vOffset + 1, vOffset + 0);
+            geometry.faces.push(vOffset + 2, vOffset + 3, vOffset + 1);
         } else {
-            geometry.faces.push(new THREE.Face3(0, 1, 2));
-            geometry.faces.push(new THREE.Face3(1, 3, 2));
+            geometry.faces.push(vOffset + 0, vOffset + 1, vOffset + 2);
+            geometry.faces.push(vOffset + 1, vOffset + 3, vOffset + 2);
         }
     }
 
@@ -165,11 +191,11 @@ class ThreeDxfLoader {
 
         return text;
     }
-
     drawPoint(entity, data) {
-        const geometry = new THREE.Geometry();
+        const geometry = new THREE.BufferGeometry();
 
-        geometry.vertices.push(new THREE.Vector3(entity.position.x, entity.position.y, entity.position.z));
+        const positions = new Float32Array([entity.position.x, entity.position.y, entity.position.z]);
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
         // TODO: could be more efficient. PointCloud per layer?
 
@@ -181,7 +207,7 @@ class ThreeDxfLoader {
         colors[1] = color.g;
         colors[2] = color.b;
 
-        geometry.colors = colors;
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         geometry.computeBoundingBox();
 
         const material = new THREE.PointsMaterial({ size: 0.05, vertexColors: THREE.VertexColors });
@@ -264,7 +290,6 @@ class ThreeDxfLoader {
 
         return dashedLineShader;
     }
-
     drawEllipse(geometry, entity, data) {
         const color = new THREE.Color(this.getColor(entity, data));
         const xrad = Math.sqrt((entity.majorAxisEndPoint.x ** 2) + (entity.majorAxisEndPoint.y ** 2));
@@ -286,17 +311,15 @@ class ThreeDxfLoader {
         }
         if (!isEqual(previousPosition.x, interpolatedPoints[0].x)
             || !isEqual(previousPosition.y, interpolatedPoints[0].y)) {
-            geometry.vertices.push(interpolatedPoints[0]);
+            geometry.vertices.push(new THREE.Vector3(interpolatedPoints[0].x, interpolatedPoints[0].y, 0));
             geometry.colors.push(defaultColor);
         }
         interpolatedPoints.forEach((item) => {
-            if (isUndefined(item.z)) {
-                item.z = 0;
-            }
-            geometry.vertices.push(item);
+            const pt = new THREE.Vector3(item.x, item.y, isUndefined(item.z) ? 0 : item.z);
+            geometry.vertices.push(pt);
             geometry.colors.push(color);
         });
-        geometry.vertices.push(interpolatedPoints[interpolatedPoints.length - 1]);
+        geometry.vertices.push(new THREE.Vector3(interpolatedPoints[interpolatedPoints.length - 1].x, interpolatedPoints[interpolatedPoints.length - 1].y, 0));
         geometry.colors.push(defaultColor);
     }
 
@@ -387,6 +410,7 @@ class ThreeDxfLoader {
         let points;
         let interpolatedPoints = [];
         let curve;
+
         if (entity.fitPoints && entity.fitPoints.length > 0) {
             points = entity.fitPoints.map((vec) => {
                 return new THREE.Vector2(vec.x, vec.y);
@@ -436,18 +460,18 @@ class ThreeDxfLoader {
         } else {
             previewPositon = interpolatedPoints[0];
         }
+
         if (!isEqual(previewPositon.x, interpolatedPoints[0].x)
             || !isEqual(previewPositon.y, interpolatedPoints[0].y)) {
-            splineGeo.vertices.push(previewPositon);
+            splineGeo.vertices.push(new THREE.Vector3(previewPositon.x, previewPositon.y, isUndefined(previewPositon.z) ? 0 : previewPositon.z));
             splineGeo.colors.push(defaultColor);
-            splineGeo.vertices.push(interpolatedPoints[0]);
+            splineGeo.vertices.push(new THREE.Vector3(interpolatedPoints[0].x, interpolatedPoints[0].y, isUndefined(interpolatedPoints[0].z) ? 0 : interpolatedPoints[0].z));
             splineGeo.colors.push(defaultColor);
         }
+
         interpolatedPoints.forEach((item) => {
-            if (isUndefined(item.z)) {
-                item.z = 0;
-            }
-            splineGeo.vertices.push(item);
+            const pt = new THREE.Vector3(item.x, item.y, isUndefined(item.z) ? 0 : item.z);
+            splineGeo.vertices.push(pt);
             splineGeo.colors.push(color);
         });
     }
@@ -467,7 +491,19 @@ class ThreeDxfLoader {
                 endPoint = i + 1 < entity.vertices.length ? entity.vertices[i + 1] : entity.vertices[0];
 
                 bulgeGeometry = new BulgeGeometry(startPoint, endPoint, bulge);
-                interpolatedPoints.push(...bulgeGeometry.vertices);
+
+                // Read from modern BufferGeometry attribute
+                const bulgePos = bulgeGeometry.attributes.position;
+                if (bulgePos) {
+                    const tempV = new THREE.Vector3();
+                    for (let j = 0; j < bulgePos.count; j++) {
+                        tempV.fromBufferAttribute(bulgePos, j);
+                        interpolatedPoints.push(new THREE.Vector3(tempV.x, tempV.y, tempV.z));
+                    }
+                } else if (bulgeGeometry.vertices) {
+                    // Fallback fallback if BulgeGeometry hasn't been migrated yet
+                    interpolatedPoints.push(...bulgeGeometry.vertices);
+                }
             } else {
                 vertex = entity.vertices[i];
                 interpolatedPoints.push(new THREE.Vector3(vertex.x, vertex.y, 0));
@@ -482,20 +518,17 @@ class ThreeDxfLoader {
         }
         if (!isEqual(previewPositon.x, interpolatedPoints[0].x)
             || !isEqual(previewPositon.y, interpolatedPoints[0].y)) {
-            geometry.vertices.push(interpolatedPoints[0]);
+            geometry.vertices.push(new THREE.Vector3(interpolatedPoints[0].x, interpolatedPoints[0].y, 0));
             geometry.colors.push(defaultColor);
         }
         interpolatedPoints.forEach((item) => {
-            if (isUndefined(item.z)) {
-                item.z = 0;
-            }
-            geometry.vertices.push(item);
+            const pt = new THREE.Vector3(item.x, item.y, isUndefined(item.z) ? 0 : item.z);
+            geometry.vertices.push(pt);
             geometry.colors.push(color);
         });
-        geometry.vertices.push(interpolatedPoints[interpolatedPoints.length - 1]);
+        geometry.vertices.push(new THREE.Vector3(interpolatedPoints[interpolatedPoints.length - 1].x, interpolatedPoints[interpolatedPoints.length - 1].y, 0));
         geometry.colors.push(defaultColor);
     }
-
 
     drawEntity(typeGeometries, entity, data) {
         let mesh;
@@ -532,7 +565,6 @@ class ThreeDxfLoader {
 
         return mesh;
     }
-
     normalizer(dxfString, scale) {
         const dxf = dxfString;
         // entities
@@ -610,11 +642,11 @@ class ThreeDxfLoader {
             this.normalizer(dxf, scale);
 
             const typeGeometries = {
-                CIRCLE: new THREE.Geometry(),
-                LINE: new THREE.Geometry(),
-                SPLINE: new THREE.Geometry(),
-                ELLIPSE: new THREE.Geometry(),
-                SOLID: new THREE.Geometry()
+                CIRCLE: { vertices: [], colors: [] },
+                LINE: { vertices: [], colors: [] },
+                SPLINE: { vertices: [], colors: [] },
+                ELLIPSE: { vertices: [], colors: [] },
+                SOLID: { vertices: [], faces: [] }
                 // TEXT: new THREE.Geometry(),
                 // POINT: new THREE.Geometry(),
                 // MTEXT: new THREE.Geometry()
@@ -623,35 +655,34 @@ class ThreeDxfLoader {
             let obj;
             for (let i = 0; i < dxf.entities.length; i++) {
                 const entity = dxf.entities[i];
-
-                if (entity.type === 'DIMENSION') {
-                    if (entity.block) {
-                        const block = dxf.blocks[entity.block];
-                        if (!block) {
-                            continue;
-                        }
-                        for (let j = 0; j < block.entities.length; j++) {
-                            obj = this.drawEntity(typeGeometries, block.entities[j], dxf);
-                        }
-                    } else {
-                        log.warn('WARNING: No block for DIMENSION entity');
-                    }
-                } else {
-                    obj = this.drawEntity(typeGeometries, entity, dxf);
+                if (entity.type === 'CIRCLE' || entity.type === 'ARC') {
+                    this.drawCircle(typeGeometries.CIRCLE, entity, dxf);
+                } else if (entity.type === 'LINE' || entity.type === 'LWPOLYLINE' || entity.type === 'POLYLINE') {
+                    this.drawLine(typeGeometries.LINE, entity, dxf);
+                } else if (entity.type === 'SPLINE') {
+                    this.drawSpline(typeGeometries.SPLINE, entity, dxf);
+                } else if (entity.type === 'ELLIPSE') {
+                    this.drawEllipse(typeGeometries.ELLIPSE, entity, dxf);
+                } else if (entity.type === 'SOLID') {
+                    this.drawSolid(typeGeometries.SOLID, entity, dxf);
                 }
-                if (obj) {
-                    group.add(obj);
-                }
-                obj = null;
             }
-            Object.entries(typeGeometries)
-                .forEach(([key, item]) => {
+            Object.entries(typeGeometries).forEach(([key, item]) => {
                     if (key === 'SOLID') {
+                        if (item.vertices.length === 0) return;
+                        const bufferGeometry = new THREE.BufferGeometry();
+                        const positions = [];
+                        for (const v of item.vertices) {
+                            positions.push(v.x, v.y, v.z);
+                        }
+                        bufferGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+                        bufferGeometry.setIndex(item.faces);
                         group.add(new THREE.Mesh(
-                            item,
+                            bufferGeometry,
                             new THREE.MeshBasicMaterial({ color: 0xffffff })
                         ));
                     } else {
+                        if (item.vertices.length === 0) return;
                         const positions = [];
                         const colors = [];
                         for (const v of item.vertices) {
@@ -660,13 +691,13 @@ class ThreeDxfLoader {
                             positions.push(v.z);
                         }
                         for (const color of item.colors) {
-                            colors.push(color.r);
-                            colors.push(color.g);
-                            colors.push(color.b);
+                            colors.push(Math.floor(color.r * 255));
+                            colors.push(Math.floor(color.g * 255));
+                            colors.push(Math.floor(color.b * 255));
                             if (color.r === 1 && color.g === 1 && color.b === 1) {
                                 colors.push(0);
                             } else {
-                                colors.push(1);
+                                colors.push(255);
                             }
                         }
                         const bufferGeometry = new THREE.BufferGeometry();

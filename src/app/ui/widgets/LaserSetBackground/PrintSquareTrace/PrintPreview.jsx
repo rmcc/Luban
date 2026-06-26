@@ -73,12 +73,15 @@ class PrintPreview extends Component {
 
     setupSquare(squareSideLength) {
         const material = new THREE.LineBasicMaterial({ color: 0x000000 });
-        const geometry = new THREE.Geometry();
-        geometry.vertices.push(new THREE.Vector3(0.5, 0.5, 0));
-        geometry.vertices.push(new THREE.Vector3(-0.5, 0.5, 0));
-        geometry.vertices.push(new THREE.Vector3(-0.5, -0.5, 0));
-        geometry.vertices.push(new THREE.Vector3(0.5, -0.5, 0));
-        geometry.vertices.push(new THREE.Vector3(0.5, 0.5, 0));
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array([
+            0.5, 0.5, 0,
+            -0.5, 0.5, 0,
+            -0.5, -0.5, 0,
+            0.5, -0.5, 0,
+            0.5, 0.5, 0
+        ]);
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         this.squareLine = new THREE.Line(geometry, material);
         this.squareLine.scale.set(squareSideLength, squareSideLength, 1);
         this.group.add(this.squareLine);

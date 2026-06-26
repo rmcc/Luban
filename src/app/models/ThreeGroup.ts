@@ -19,7 +19,7 @@ export default class ThreeGroup extends BaseModel {
 
     private processImageName: string;
 
-    private convexGeometry: THREE.Geometry;
+    private convexGeometry: THREE.BufferGeometry;
 
     private mergedGeometry: THREE.BufferGeometry;
 
@@ -287,16 +287,8 @@ export default class ThreeGroup extends BaseModel {
         this.boundingBox = ThreeUtils.computeBoundingBox(this.meshObject);
     }
 
-    public setConvexGeometry(convexGeometry: THREE.BufferGeometry | THREE.Geometry) {
-        if (convexGeometry instanceof THREE.BufferGeometry) {
-            this.convexGeometry = new THREE.Geometry().fromBufferGeometry(convexGeometry);
-            // Optimize GC
-            convexGeometry = null;
-            this.convexGeometry.mergeVertices();
-        } else {
-            console.error('setConvexGeometry, met Geometry!!');
-            this.convexGeometry = convexGeometry;
-        }
+    public setConvexGeometry(convexGeometry: THREE.BufferGeometry) {
+        this.convexGeometry = BufferGeometryUtils.mergeVertices(convexGeometry);
     }
 
     public isModelInGroup() {

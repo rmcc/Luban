@@ -1,4 +1,4 @@
-import { Geometry, Line, LineBasicMaterial, Object3D, Quaternion, Vector3 } from 'three';
+import { BufferGeometry, BufferAttribute, Line, LineBasicMaterial, Object3D, Quaternion, Vector3 } from 'three';
 import ThreeUtils from '../../../scene/three-extensions/ThreeUtils';
 
 const BLUE = 0x00b7ee;
@@ -15,16 +15,10 @@ class Peripheral extends Object3D {
 
     initFramePeripherals() {
         // dashed line frame
-        const geometry = new Geometry();
+        const geometry = new BufferGeometry();
         // FIXME: preset vertices, or dynamic update will not work. (three.js bug?)
-        const points = [];
-        points.push(new Vector3(0, 0, 0));
-        points.push(new Vector3(0, 0, 0));
-        points.push(new Vector3(0, 0, 0));
-        points.push(new Vector3(0, 0, 0));
-        points.push(new Vector3(0, 0, 0));
-
-        geometry.vertices = points;
+        const positions = new Float32Array(5 * 3);
+        geometry.setAttribute('position', new BufferAttribute(positions, 3));
 
         const material = new LineBasicMaterial({
             color: BLUE,

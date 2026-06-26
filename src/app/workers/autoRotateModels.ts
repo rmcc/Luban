@@ -31,10 +31,25 @@ const autoRotateModels = (data: AutoRotateModelsData) => {
             const selectedModelLength = selectedModelInfo.length;
             selectedModelInfo.forEach((modelItemInfo, index) => {
                 const {
-                    matrixWorld,
+                    matrixWorld: rawMatrix,
                     inverseNormal,
-                    convexGeometry,
+                    convexGeometry: rawConvex,
                 } = modelItemInfo;
+
+                const matrixWorld = new Matrix4();
+                if (rawMatrix && rawMatrix.elements) {
+                    matrixWorld.fromArray(rawMatrix.elements);
+                }
+
+                const convexGeometry = new BufferGeometry();
+                if (rawConvex && rawConvex.attributes && rawConvex.attributes.position) {
+                    const rawPos = rawConvex.attributes.position;
+                    convexGeometry.setAttribute(
+                        'position',
+                        new BufferAttribute(rawPos.array, rawPos.itemSize, rawPos.normalized)
+                    );
+                }
+
                 const geometry = new BufferGeometry();
                 const positionObject = positionAttribute.send[index];
                 const normalObject = normalAttribute.send[index];
@@ -80,6 +95,24 @@ const autoRotateModels = (data: AutoRotateModelsData) => {
                     }
                     return isBig;
                 });
+
+                if (!bigPlanes.planes.length && planes.length > 0) {
+                    const sortedIndices = areas
+                        .map((area, idx) => ({ area, idx }))
+                        .sort((itemA, itemB) => itemB.area - itemA.area);
+
+                    const candidateCount = Math.min(5, sortedIndices.length);
+                    const backupPlanes = [];
+
+                    for (let cIdx = 0; cIdx < candidateCount; cIdx++) {
+                        const originalIdx = sortedIndices[cIdx].idx;
+                        backupPlanes.push(planes[originalIdx]);
+                        bigPlanes.areas.push(areas[originalIdx]);
+                        bigPlanes.planesPosition.push(planesPosition[originalIdx]);
+                    }
+                    bigPlanes.planes = backupPlanes;
+                }
+
                 if (!bigPlanes.planes.length) {
                     observer.next({
                         status: 'PROGRESS',
@@ -87,6 +120,7 @@ const autoRotateModels = (data: AutoRotateModelsData) => {
                             progress: (index + 1) / (selectedModelLength + 1),
                         },
                     });
+                    index + 1 >= selectedModelLength && observer.complete();
                     return;
                 }
                 const xyPlaneNormal = new Vector3(0, 0, -1);

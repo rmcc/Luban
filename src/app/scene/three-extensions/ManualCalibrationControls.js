@@ -89,13 +89,14 @@ function ManualCalibrationControls(camera, domElement, scale, remapBox2, cornerP
 
     function updateDashedLine() {
         const geometry = dashedLine.geometry;
-        geometry.vertices = [];
-        geometry.vertices.push(rightTopGizmo.position);
-        geometry.vertices.push(rightBottomGizmo.position);
-        geometry.vertices.push(leftBottomGizmo.position);
-        geometry.vertices.push(leftTopGizmo.position);
-        geometry.vertices.push(rightTopGizmo.position);
-        geometry.verticesNeedUpdate = true;
+        const positions = new Float32Array([
+            rightTopGizmo.position.x, rightTopGizmo.position.y, rightTopGizmo.position.z,
+            rightBottomGizmo.position.x, rightBottomGizmo.position.y, rightBottomGizmo.position.z,
+            leftBottomGizmo.position.x, leftBottomGizmo.position.y, leftBottomGizmo.position.z,
+            leftTopGizmo.position.x, leftTopGizmo.position.y, leftTopGizmo.position.z,
+            rightTopGizmo.position.x, rightTopGizmo.position.y, rightTopGizmo.position.z
+        ]);
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         dashedLine.computeLineDistances();
 
         emitUpdateCornerPositions();
@@ -122,7 +123,7 @@ function ManualCalibrationControls(camera, domElement, scale, remapBox2, cornerP
         rightTopGizmo.position.copy(cornerPositions.rightTop);
         rightBottomGizmo.position.copy(cornerPositions.rightBottom);
 
-        const geometry = new THREE.Geometry();
+        const geometry = new THREE.BufferGeometry();
         dashedLine = new THREE.Line(geometry, new THREE.LineDashedMaterial({
             color: SelectDashLineColor,
             linewidth: 5,

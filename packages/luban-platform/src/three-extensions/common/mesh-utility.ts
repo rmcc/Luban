@@ -19,11 +19,6 @@ export function isFaceless(mesh: THREE.Mesh): boolean {
         }
     }
 
-    // If the geometry is Geometry, check the faces array
-    if (geometry instanceof THREE.Geometry) {
-        return geometry.faces.length === 0;
-    }
-
     return false;
 }
 

@@ -21,7 +21,9 @@ export default class DeleteSupportsOperation3D extends Operation<StateMap> {
     }
 
     public undo() {
-        this.state.target.meshObject.add(this.state.support);
+        if (this.state.support) {
+            this.state.target.meshObject.add(this.state.support);
+        }
         this.state.target.supportFaceMarks = this.state.faceMarks;
         this.state.target.stickToPlate();
     }

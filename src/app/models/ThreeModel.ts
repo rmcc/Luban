@@ -7,6 +7,7 @@ import {
     Float32BufferAttribute,
 } from 'three';
 
+import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
 import { LOAD_MODEL_FROM_INNER } from '../constants';
 import log from '../lib/log';
 import ThreeUtils from '../scene/three-extensions/ThreeUtils';
@@ -40,7 +41,7 @@ class ThreeModel extends BaseModel {
     public target: unknown = null;
     public supportTag = false;
     public supportFaceMarks: number[] = [];
-    public convexGeometry: THREE.Geometry;
+    public convexGeometry: THREE.BufferGeometry;
 
     public originalGeometry: THREE.BufferGeometry;
     public originalColorAttribute: Float32BufferAttribute;
@@ -501,14 +502,7 @@ class ThreeModel extends BaseModel {
 
     // 3D
     public setConvexGeometry(convexGeometry: THREE.BufferGeometry) {
-        if (convexGeometry instanceof THREE.BufferGeometry) {
-            this.convexGeometry = new THREE.Geometry().fromBufferGeometry(convexGeometry);
-            // Optimize GC
-            convexGeometry = null;
-            this.convexGeometry.mergeVertices();
-        } else {
-            this.convexGeometry = convexGeometry;
-        }
+        this.convexGeometry = BufferGeometryUtils.mergeVertices(convexGeometry);
     }
 
     public isModelInGroup() {

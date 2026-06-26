@@ -139,7 +139,7 @@ function addInsertContent(entities, dxf, position = { x: 0, y: 0 }) {
 
 function BulgeGeometry(startPoint, endPoint, bulge, segments) {
     let vertex, i;
-    THREE.Geometry.call(this);
+    THREE.BufferGeometry.call(this);
     const p0 = startPoint
         ? new THREE.Vector2(startPoint.x, startPoint.y)
         : new THREE.Vector2(0, 0);
@@ -171,16 +171,29 @@ function BulgeGeometry(startPoint, endPoint, bulge, segments) {
     const startAngle = angle2(center, p0);
     const thetaAngle = angle / this.segments;
 
-    this.vertices.push(new THREE.Vector3(p0.x, p0.y, 0));
+    const verticesCount = this.segments + 1;
+    const positions = new Float32Array(verticesCount * 3);
+
+    positions[0] = p0.x;
+    positions[1] = p0.y;
+    positions[2] = 0;
 
     for (i = 1; i <= this.segments - 1; i++) {
         vertex = polar(center, Math.abs(radius), startAngle + thetaAngle * i);
 
-        this.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
+        positions[i * 3] = vertex.x;
+        positions[i * 3 + 1] = vertex.y;
+        positions[i * 3 + 2] = 0;
     }
+
+    positions[(this.segments) * 3] = p1.x;
+    positions[(this.segments) * 3 + 1] = p1.y;
+    positions[(this.segments) * 3 + 2] = 0;
+
+    this.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 }
 
-BulgeGeometry.prototype = Object.create(THREE.Geometry.prototype);
+BulgeGeometry.prototype = Object.create(THREE.BufferGeometry.prototype);
 
 export const dxfToSvg = (dxf, strokeWidth = 0.72) => {
     const shapes = [];

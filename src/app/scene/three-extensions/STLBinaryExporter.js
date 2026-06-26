@@ -35,12 +35,16 @@ STLBinaryExporter.prototype = {
                 if (!(object instanceof THREE.Mesh)) return;
 
                 let geometry = object.geometry;
-                if (geometry instanceof THREE.BufferGeometry) {
-                    geometry = new THREE.Geometry().fromBufferGeometry(geometry);
-                }
+                if (!(geometry instanceof THREE.BufferGeometry)) return;
 
-                if (!(geometry instanceof THREE.Geometry)) return;
-                triangles += geometry.faces.length;
+                const indexAttribute = geometry.getIndex();
+                const positionAttribute = geometry.getAttribute('position');
+
+                if (indexAttribute !== null) {
+                    triangles += indexAttribute.count / 3;
+                } else if (positionAttribute) {
+                    triangles += positionAttribute.count / 3;
+                }
 
                 object.updateMatrixWorld();
 

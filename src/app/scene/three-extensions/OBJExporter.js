@@ -41,12 +41,6 @@ OBJExporter.prototype = {
 
 			var normalMatrixWorld = new THREE.Matrix3();
 
-			if ( geometry instanceof THREE.Geometry ) {
-
-				geometry = new THREE.BufferGeometry().setFromObject( mesh );
-
-			}
-
 			if ( geometry instanceof THREE.BufferGeometry ) {
 
 				// shortcuts
@@ -182,12 +176,6 @@ OBJExporter.prototype = {
 
 			var geometry = line.geometry;
 			var type = line.type;
-
-			if ( geometry instanceof THREE.Geometry ) {
-
-				geometry = new THREE.BufferGeometry().setFromObject( line );
-
-			}
 
 			if ( geometry instanceof THREE.BufferGeometry ) {
 

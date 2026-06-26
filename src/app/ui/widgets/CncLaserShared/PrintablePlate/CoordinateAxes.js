@@ -2,7 +2,7 @@ import colornames from 'colornames';
 import * as THREE from 'three';
 
 const buildAxis = (src, dst, color, dashed) => {
-    const geometry = new THREE.Geometry();
+    const geometry = new THREE.BufferGeometry();
     let material;
 
     if (dashed) {
@@ -23,8 +23,11 @@ const buildAxis = (src, dst, color, dashed) => {
         });
     }
 
-    geometry.vertices.push(src.clone());
-    geometry.vertices.push(dst.clone());
+    const positions = new Float32Array([
+        src.x, src.y, src.z,
+        dst.x, dst.y, dst.z
+    ]);
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
     const axisLine = new THREE.Line(geometry, material);
 

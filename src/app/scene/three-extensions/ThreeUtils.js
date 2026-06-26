@@ -268,13 +268,6 @@ const ThreeUtils = {
         };
     }()),
     computeGeometryPlanes(geometry, matrix, allPlanes = [], center, inverseNormal) {
-        if (!geometry.isBufferGeometry) {
-            geometry = new THREE.BufferGeometry().fromGeometry(geometry);
-        } else {
-            geometry = geometry.clone();
-        }
-        geometry.applyMatrix4(matrix);
-
         let baseMode = true;
         let planes = [];
         let areas = [];
@@ -294,7 +287,9 @@ const ThreeUtils = {
                 && p1.normal.angleTo(p2.normal) * 180 / Math.PI < 0.6;
         }
 
-        const positions = geometry.getAttribute('position').array;
+        const positionAttr = geometry.getAttribute ? geometry.getAttribute('position') : geometry.attributes?.position;
+        const positions = positionAttr ? positionAttr.array : [];
+
         const a = new THREE.Vector3();
         const b = new THREE.Vector3();
         const c = new THREE.Vector3();
@@ -306,6 +301,11 @@ const ThreeUtils = {
             a.fromArray(positions, i);
             b.fromArray(positions, i + 3);
             c.fromArray(positions, i + 6);
+
+            a.applyMatrix4(matrix);
+            b.applyMatrix4(matrix);
+            c.applyMatrix4(matrix);
+
             triangle.set(a, b, c);
             triangle.getPlane(plane);
             const area = triangle.getArea();
