@@ -1,6 +1,5 @@
 import events from 'events';
 import FileSaver from 'file-saver';
-import i18next from 'i18next';
 import isElectron from 'is-electron';
 import { isNil } from 'lodash';
 import path from 'path';
@@ -65,18 +64,10 @@ const Event = {
 };
 
 function getAutoUpdateProviderOptions() {
-    // Use aliyun as zh users' auto update server
-    if (i18next.language === 'zh-CN') {
-        return {
-            provider: 'generic',
-            url: 'https://snapmaker.oss-cn-beijing.aliyuncs.com/snapmaker.com/download/luban',
-        };
-    }
-
     // Use Github as default auto update server
     return {
         provider: 'github',
-        owner: 'Snapmaker',
+        owner: 'rmcc',
         repo: 'Luban',
         // url: 'https://github.com/Snapmaker/Luban/releases/latest/download',
     };
