@@ -58,6 +58,7 @@ const LaserMainPage: React.FC<LaserMainPageProps> = ({ location }) => {
     const materials = useSelector(state => state[HEAD_LASER]?.materials, shallowEqual);
     const [isRotate, setIsRotate] = useState(materials?.isRotate);
 
+    const photoObjectBlending = useSelector((state: RootState) => state.machine.photoObjectBlending, shallowEqual);
 
     // state
     const [stackedModelModalDsiabled, setStackedModelModalDsiabled] = useState(false);
@@ -265,6 +266,31 @@ const LaserMainPage: React.FC<LaserMainPageProps> = ({ location }) => {
                 >
                     {({ getRootProps, getInputProps, isDragActive }) => (
                         <div {...getRootProps({ onClick: (e) => e.stopPropagation() })} style={{ width: '100%', height: '100%', position: 'relative' }}>
+                            <style id="photo-background-overrides" media={photoObjectBlending ? 'not all' : 'all'}>
+                                {`
+                                svg:has(#svg-data-background #image-background) #svg-data .high-visibility-object {
+                                    mix-blend-mode: normal;
+                                    filter: invert(1);
+                                }
+
+                                svg:has(#svg-data-background #image-background) #svg-data .high-visibility-object-inverted {
+                                    mix-blend-mode: normal;
+                                    filter: none;
+                                }
+
+                                @media (prefers-color-scheme: dark) {
+                                    svg:has(#svg-data-background #image-background) #svg-data .high-visibility-object {
+                                        mix-blend-mode: normal;
+                                        filter: none;
+                                    }
+
+                                    svg:has(#svg-data-background #image-background) #svg-data .high-visibility-object-inverted {
+                                        mix-blend-mode: normal;
+                                        filter: invert(1);
+                                    }
+                                }
+                                `}
+                            </style>
                             <input {...getInputProps()} />
                             {isDragActive && (
                                 <div className="drag-overlay">

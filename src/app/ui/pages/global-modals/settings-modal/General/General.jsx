@@ -112,12 +112,14 @@ function General({ state: generalState, actions }) {
     const autoupdateMessage = useSelector(state => state?.machine?.autoupdateMessage, shallowEqual);
     const promptDamageModel = useSelector(state => state?.machine?.promptDamageModel, shallowEqual);
     const enable3dpLivePreview = useSelector(state => state?.machine?.enable3dpLivePreview, shallowEqual);
+    const photoObjectBlending = useSelector(state => state?.machine?.photoObjectBlending, shallowEqual);
     const dispatch = useDispatch();
     const updateShouldCheckForUpdate = (shouldAutoUpdate) => dispatch(machineActions.updateShouldCheckForUpdate(shouldAutoUpdate));
     const updateShouldAutoPreviewGcode = (bool) => dispatch(machineActions.updateShouldAutoPreviewGcode(bool));
     const updateShouldHideConsole = (bool) => dispatch(machineActions.updateShouldHideConsole(bool));
     const updatePromptDamageModel = (bool) => dispatch(machineActions.updatePromptDamageModel(bool));
     const updateEnable3dpLivePreview = (bool) => dispatch(machineActions.updateEnable3dpLivePreview(bool));
+    const updatePhotoObjectBlending = (bool) => dispatch(machineActions.updatePhotoObjectBlending(bool));
     const [theme, setTheme] = useState('light');
 
     useEffect(() => {
@@ -288,7 +290,14 @@ function General({ state: generalState, actions }) {
                             value={theme}
                             onChange={handlers.changeTheme}
                             options={themeOptions}
+                        /><br />
+                        <Checkbox
+                            checked={photoObjectBlending}
+                            onChange={(event) => { updatePhotoObjectBlending(event.target.checked); }}
                         />
+                        <span className="margin-left-4">
+                            {i18n._('key-App/Settings/General-Use color blending for objects over photo backgrounds')}
+                        </span>
                     </SubMenuitemWrapper>
                 </div>
             </form>

@@ -103,6 +103,8 @@ const INITIAL_STATE = {
     enable3dpLivePreview: false,
     // wifi connection, home button in control widget
     homingModal: false,
+    // Do we use blending of objects over photo backgrounds? (laser)
+    photoObjectBlending: true,
 
     isMultiDualExtrusion: false
 };
@@ -189,6 +191,13 @@ export const actions = {
             dispatch(
                 baseActions.updateState({
                     enable3dpLivePreview: false
+                })
+            );
+        }
+        if (machineStore.get('photoObjectBlending') === false) {
+            dispatch(
+                baseActions.updateState({
+                    photoObjectBlending: false
                 })
             );
         }
@@ -523,6 +532,10 @@ export const actions = {
         machineStore.set('enable3dpLivePreview', bool);
         dispatch(baseActions.updateState({ enable3dpLivePreview: bool }));
         modelGroup.setClipperEnable(bool);
+    },
+    updatePhotoObjectBlending: (photoObjectBlending) => (dispatch) => {
+        dispatch(baseActions.updateState({ photoObjectBlending: photoObjectBlending }));
+        machineStore.set('photoObjectBlending', photoObjectBlending);
     },
     // endregion
 
