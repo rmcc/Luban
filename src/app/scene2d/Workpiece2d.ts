@@ -83,18 +83,27 @@ class Workpiece2d {
 
 
         if (Math.abs(this.scale - scale) > EPSILON) {
+            this.scale = scale;
+
+            const minorPath = this.printableAreaGroup.querySelector(`#grid-minor-${this.id}`);
+            if (minorPath) {
+                minorPath.setAttribute('stroke-width', (1 / scale).toString());
+            }
+            const majorPath = this.printableAreaGroup.querySelector(`#grid-major-${this.id}`);
+            if (majorPath) {
+                majorPath.setAttribute('stroke-width', (1 / scale).toString());
+            }
+
             const drawAxis = !(this.origin && this.origin.type === OriginType.Object);
 
-            this.scale = scale;
             for (const child of this.printableAreaGroup.childNodes) {
-                if (child.getAttribute('stroke-width') !== '0') {
-                    let realStrokeWidth = 1 / scale;
-
-                    if (drawAxis && (child.getAttribute('virtualX') === '0' || child.getAttribute('virtualY') === '0')) {
-                        realStrokeWidth = 4 / scale;
+                if (child.nodeName === 'text' || child.nodeName === 'rect') {
+                    if (child.getAttribute('stroke-width') !== '0') {
+                        child.setAttribute('stroke-width', (1 / scale).toString());
                     }
-
-                    child.setAttribute('stroke-width', realStrokeWidth);
+                }
+                if (child.nodeName === 'line' && drawAxis && (child.getAttribute('virtualX') === '0' || child.getAttribute('virtualY') === '0')) {
+                    child.setAttribute('stroke-width', (4 / scale).toString());
                 }
             }
         }
@@ -172,325 +181,193 @@ class Workpiece2d {
         const xMax = x + cx / 2 + this.coorDelta.x;
         const yMin = y - cy / 2 + this.coorDelta.y;
         const yMax = y + cy / 2 + this.coorDelta.y;
-        const colorSmallGrid = '#EEEFF0';
-        const colorBigGrid = '#EEEFF0';
+        const colorSmallGrid = '#EEEFF0'; // Light grey for the minor 10mm lines
+        const colorBigGrid = '#D1D5DB'; // darker grey for the major 50mm blocks
         const colorTextFill = '#85888C';
         const textSize = 4;
         const coordinateModeName = this.coordinateMode.value;
 
-        // small grid 10x10
-        for (let i = y; i > yMin; i -= 10) {
-            const color = colorSmallGrid;
-            const line = createSVGElement({
-                element: 'line',
-                attr: {
-                    x1: xMin,
-                    y1: i,
-                    x2: xMax,
-                    y2: i,
-                    id: uuid(),
-                    stroke: color,
-                    fill: 'none',
-                    virtualY: i - y,
-                    'stroke-width': (i === y && drawAxis) ? (4 / this.scale) : (1 / this.scale),
-                    opacity: 1,
-                    'fill-opacity': 1
-                }
-            });
-            this.printableAreaGroup.append(line);
+        let pathDataMinor = '';
+        let pathDataMajor = '';
+
+        // Generate coordinates for X-axis intervals relative to center x
+        for (let i = Math.ceil(xMin / 10) * 10; i <= xMax; i += 10) {
+            // prevent masking the thin lines
+            if (Math.round(i - x) === 0) {
+                continue;
+            }
+            if (Math.round(i - x) % 50 === 0) {
+                pathDataMajor += `M ${i} ${yMin} L ${i} ${yMax} `;
+            } else {
+                pathDataMinor += `M ${i} ${yMin} L ${i} ${yMax} `;
+            }
         }
-        for (let i = y + 10; i < yMax; i += 10) {
-            const color = colorSmallGrid;
-            const line = createSVGElement({
-                element: 'line',
-                attr: {
-                    x1: xMin,
-                    y1: i,
-                    x2: xMax,
-                    y2: i,
-                    id: uuid(),
-                    stroke: color,
-                    fill: 'none',
-                    virtualY: i - y,
-                    'stroke-width': ((i - y) === 0 && drawAxis) ? (4 / this.scale) : (1 / this.scale),
-                    opacity: 1,
-                    'fill-opacity': 1
-                }
-            });
-            this.printableAreaGroup.append(line);
+
+        // Generate coordinates for Y-axis intervals relative to center y
+        for (let i = Math.ceil(yMin / 10) * 10; i <= yMax; i += 10) {
+            // prevent masking the thin lines
+            if (Math.round(i - y) === 0) {
+                continue;
+            }
+            if (Math.round(i - y) % 50 === 0) {
+                pathDataMajor += `M ${xMin} ${i} L ${xMax} ${i} `;
+            } else {
+                pathDataMinor += `M ${xMin} ${i} L ${xMax} ${i} `;
+            }
         }
-        for (let i = x; i > xMin; i -= 10) {
-            const color = colorSmallGrid;
-            const line = createSVGElement({
-                element: 'line',
+
+        // Append minor (1cm intervals) subgrid lines as a single path
+        if (pathDataMinor) {
+            this.printableAreaGroup.append(createSVGElement({
+                element: 'path',
                 attr: {
-                    x1: i,
-                    y1: yMin,
-                    x2: i,
-                    y2: yMax,
-                    id: uuid(),
-                    stroke: color,
+                    id: `grid-minor-${this.id}`,
+                    d: pathDataMinor.trim(),
                     fill: 'none',
-                    virtualX: i - x,
-                    'stroke-width': ((i - x) === 0 && drawAxis) ? (4 / this.scale) : (1 / this.scale),
-                    opacity: 1,
-                    'fill-opacity': 1
+                    stroke: colorSmallGrid,
+                    'stroke-width': 1 / this.scale
                 }
-            });
-            this.printableAreaGroup.append(line);
+            }));
         }
-        for (let i = x + 10; i < xMax; i += 10) {
-            const color = colorSmallGrid;
-            const line = createSVGElement({
-                element: 'line',
+
+        // Append major (5cm intervals) subgrid lines as a single path
+        if (pathDataMajor) {
+            this.printableAreaGroup.append(createSVGElement({
+                element: 'path',
                 attr: {
-                    x1: i,
-                    y1: yMin,
-                    x2: i,
-                    y2: yMax,
-                    id: uuid(),
-                    stroke: color,
+                    id: `grid-major-${this.id}`,
+                    d: pathDataMajor.trim(),
                     fill: 'none',
-                    virtualX: i - x,
-                    'stroke-width': ((i - x) === 0 && drawAxis) ? (4 / this.scale) : (1 / this.scale),
-                    opacity: 1,
-                    'fill-opacity': 1
+                    stroke: colorBigGrid,
+                    'stroke-width': 1 / this.scale
                 }
-            });
-            this.printableAreaGroup.append(line);
+            }));
+        }
+
+        // thick axis crosshair lines after the background mesh
+        if (drawAxis) {
+            if (y >= yMin && y <= yMax) {
+                this.printableAreaGroup.append(createSVGElement({
+                    element: 'line',
+                    attr: { x1: xMin, y1: y, x2: xMax, y2: y, stroke: colorSmallGrid, 'stroke-width': 4 / this.scale, virtualY: 0 }
+                }));
+            }
+            if (x >= xMin && x <= xMax) {
+                this.printableAreaGroup.append(createSVGElement({
+                    element: 'line',
+                    attr: { x1: x, y1: yMin, x2: x, y2: yMax, stroke: colorSmallGrid, 'stroke-width': 4 / this.scale, virtualX: 0 }
+                }));
+            }
         }
 
         // big grid 50x50 and text
-        for (let i = y; i > yMin; i -= 50) {
-            const color = colorBigGrid;
-            const line = createSVGElement({
-                element: 'line',
-                attr: {
-                    x1: xMin,
-                    y1: i,
-                    x2: xMax,
-                    y2: i,
-                    id: uuid(),
-                    stroke: color,
-                    fill: 'none',
-                    'stroke-width': 1 / this.scale,
-                    opacity: 1,
-                    'fill-opacity': 1
-                }
-            });
-            this.printableAreaGroup.append(line);
-
-            if (drawScale) {
-                const label = createSVGElement({
-                    element: 'text',
-                    attr: {
-                        x: x + (coordinateModeName.indexOf('right') !== -1 ? 6 : -6),
-                        y: i + 1.2,
-                        id: uuid(),
-                        'font-size': textSize,
-                        fill: colorTextFill,
-                        'text-anchor': 'middle',
-                        'xml:space': 'preserve',
-                        'stroke-width': 1 / this.scale,
-                        'fill-opacity': 1,
-                        'stroke-opacity': 0
-                    }
-                });
-                label.innerHTML = -(i - y);
-                label.style.cursor = 'default';
-                this.printableAreaGroup.append(label);
-            }
-        }
-        for (let i = y + 50; i < yMax; i += 50) {
-            const color = colorBigGrid;
-            const line = createSVGElement({
-                element: 'line',
-                attr: {
-                    x1: xMin,
-                    y1: i,
-                    x2: xMax,
-                    y2: i,
-                    id: uuid(),
-                    stroke: color,
-                    fill: 'none',
-                    'stroke-width': 1 / this.scale,
-                    opacity: 1,
-                    'fill-opacity': 1
-                }
-            });
-            this.printableAreaGroup.append(line);
-
-            if (drawScale) {
-                const label = createSVGElement({
-                    element: 'text',
-                    attr: {
-                        x: x + (coordinateModeName.indexOf('right') !== -1 ? 6 : -6),
-                        y: i + 1.2,
-                        id: uuid(),
-                        'font-size': textSize,
-                        fill: colorTextFill,
-                        'text-anchor': 'middle',
-                        'xml:space': 'preserve',
-                        'stroke-width': 1 / this.scale,
-                        'fill-opacity': 1,
-                        'stroke-opacity': 0
-                    }
-                });
-                label.innerHTML = -(i - y);
-                label.style.cursor = 'default';
-                this.printableAreaGroup.append(label);
-            }
-        }
-        for (let i = x; i > xMin; i -= 50) {
-            const color = colorBigGrid;
-            const line = createSVGElement({
-                element: 'line',
-                attr: {
-                    x1: i,
-                    y1: yMin,
-                    x2: i,
-                    y2: yMax,
-                    id: uuid(),
-                    stroke: color,
-                    fill: 'none',
-                    'stroke-width': 1 / this.scale,
-                    opacity: 1,
-                    'fill-opacity': 1
-                }
-            });
-            this.printableAreaGroup.append(line);
-
-            if (drawScale) {
-                const label = createSVGElement({
-                    element: 'text',
-                    attr: {
-                        x: i,
-                        y: y + (coordinateModeName.indexOf('top') !== -1 ? -3 : 6),
-                        id: uuid(),
-                        'font-size': textSize,
-                        fill: colorTextFill,
-                        'text-anchor': 'middle',
-                        'xml:space': 'preserve',
-                        'stroke-width': 1 / this.scale,
-                        'fill-opacity': 1,
-                        'stroke-opacity': 0
-                    }
-                });
-                if (i - x !== 0) {
-                    label.innerHTML = i - x;
-                }
-                this.printableAreaGroup.append(label);
-            }
-        }
-        for (let i = x + 50; i < xMax; i += 50) {
-            const color = colorBigGrid;
-            const line = createSVGElement({
-                element: 'line',
-                attr: {
-                    x1: i,
-                    y1: yMin,
-                    x2: i,
-                    y2: yMax,
-                    id: uuid(),
-                    stroke: color,
-                    fill: 'none',
-                    'stroke-width': 1 / this.scale,
-                    opacity: 1,
-                    'fill-opacity': 1
-                }
-            });
-            this.printableAreaGroup.append(line);
-
-            if (drawScale) {
-                const label = createSVGElement({
-                    element: 'text',
-                    attr: {
-                        x: i,
-                        y: y + (coordinateModeName.indexOf('top') !== -1 ? -3 : 6),
-                        id: uuid(),
-                        'font-size': textSize,
-                        fill: colorTextFill,
-                        'text-anchor': 'middle',
-                        'xml:space': 'preserve',
-                        'stroke-width': 1 / this.scale,
-                        'fill-opacity': 1,
-                        'stroke-opacity': 0
-                    }
-                });
-                if (i - x !== 0) {
-                    label.innerHTML = i - x;
-                }
-                this.printableAreaGroup.append(label);
-            }
-        }
-
-        // 4 border lines
         if (drawScale) {
-            const borderColor = '#B9BCBF';
-            const line1 = createSVGElement({
-                element: 'line',
+            const labelXOffset = x + (coordinateModeName.indexOf('right') !== -1 ? 6 : -6);
+
+            for (let i = y; i > yMin; i -= 50) {
+                const label = createSVGElement({
+                    element: 'text',
+                    attr: {
+                        x: labelXOffset,
+                        y: i + 1.2,
+                        id: uuid(),
+                        'font-size': textSize,
+                        fill: colorTextFill,
+                        'text-anchor': 'middle',
+                        'xml:space': 'preserve',
+                        'stroke-width': 1 / this.scale,
+                        'fill-opacity': 1,
+                        'stroke-opacity': 0
+                    }
+                });
+                label.innerHTML = String(-(i - y));
+                label.style.cursor = 'default';
+                this.printableAreaGroup.append(label);
+            }
+            for (let i = y + 50; i < yMax; i += 50) {
+                const label = createSVGElement({
+                    element: 'text',
+                    attr: {
+                        x: labelXOffset,
+                        y: i + 1.2,
+                        id: uuid(),
+                        'font-size': textSize,
+                        fill: colorTextFill,
+                        'text-anchor': 'middle',
+                        'xml:space': 'preserve',
+                        'stroke-width': 1 / this.scale,
+                        'fill-opacity': 1,
+                        'stroke-opacity': 0
+                    }
+                });
+                label.innerHTML = String(-(i - y));
+                label.style.cursor = 'default';
+                this.printableAreaGroup.append(label);
+            }
+
+            const labelYOffset = y + (coordinateModeName.indexOf('top') !== -1 ? -3 : 6);
+
+            for (let i = x; i > xMin; i -= 50) {
+                const label = createSVGElement({
+                    element: 'text',
+                    attr: {
+                        x: i,
+                        y: labelYOffset,
+                        id: uuid(),
+                        'font-size': textSize,
+                        fill: colorTextFill,
+                        'text-anchor': 'middle',
+                        'xml:space': 'preserve',
+                        'stroke-width': 1 / this.scale,
+                        'fill-opacity': 1,
+                        'stroke-opacity': 0
+                    }
+                });
+                if (i - x !== 0) {
+                    label.innerHTML = String(i - x);
+                    this.printableAreaGroup.append(label);
+                }
+            }
+            for (let i = x + 50; i < xMax; i += 50) {
+                const label = createSVGElement({
+                    element: 'text',
+                    attr: {
+                        x: i,
+                        y: labelYOffset,
+                        id: uuid(),
+                        'font-size': textSize,
+                        fill: colorTextFill,
+                        'text-anchor': 'middle',
+                        'xml:space': 'preserve',
+                        'stroke-width': 1 / this.scale,
+                        'fill-opacity': 1,
+                        'stroke-opacity': 0
+                    }
+                });
+                if (i - x !== 0) {
+                    label.innerHTML = String(i - x);
+                    this.printableAreaGroup.append(label);
+                }
+            }
+        }
+
+        // 1 outer border box
+        if (drawScale) {
+            this.printableAreaGroup.append(createSVGElement({
+                element: 'rect',
                 attr: {
-                    x1: xMin,
-                    y1: yMin,
-                    x2: xMin,
-                    y2: yMax,
+                    x: xMin,
+                    y: yMin,
+                    width: xMax - xMin,
+                    height: yMax - yMin,
                     id: uuid(),
-                    stroke: borderColor,
+                    stroke: '#B9BCBF',
                     fill: 'none',
                     'stroke-width': 1 / this.scale,
                     opacity: 1,
-                    'fill-opacity': 1
+                    'fill-opacity': 0
                 }
-            });
-            const line2 = createSVGElement({
-                element: 'line',
-                attr: {
-                    x1: xMax,
-                    y1: yMin,
-                    x2: xMax,
-                    y2: yMax,
-                    id: uuid(),
-                    stroke: borderColor,
-                    fill: 'none',
-                    'stroke-width': 1 / this.scale,
-                    opacity: 1,
-                    'fill-opacity': 1
-                }
-            });
-            const line3 = createSVGElement({
-                element: 'line',
-                attr: {
-                    x1: xMin,
-                    y1: yMin,
-                    x2: xMax,
-                    y2: yMin,
-                    id: uuid(),
-                    stroke: borderColor,
-                    fill: 'none',
-                    'stroke-width': 1 / this.scale,
-                    opacity: 1,
-                    'fill-opacity': 1
-                }
-            });
-            const line4 = createSVGElement({
-                element: 'line',
-                attr: {
-                    x1: xMin,
-                    y1: yMax,
-                    x2: xMax,
-                    y2: yMax,
-                    id: uuid(),
-                    stroke: borderColor,
-                    fill: 'none',
-                    'stroke-width': 1 / this.scale,
-                    opacity: 1,
-                    'fill-opacity': 1
-                }
-            });
-            this.printableAreaGroup.append(line1);
-            this.printableAreaGroup.append(line2);
-            this.printableAreaGroup.append(line3);
-            this.printableAreaGroup.append(line4);
+            }));
         }
     }
 
