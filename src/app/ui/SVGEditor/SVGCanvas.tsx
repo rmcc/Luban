@@ -186,40 +186,40 @@ class SVGCanvas extends React.PureComponent<SVGCanvasProps> {
         window.addEventListener('resize', this.onResize, false);
     }
 
-    public componentWillReceiveProps(nextProps) {
+    public componentDidUpdate(prevProps) {
         let shouldUpdateCanvas = false;
-        const size = nextProps.size;
-        let materials = nextProps.materials;
+        const size = this.props.size;
+        let materials = this.props.materials;
 
-        if (nextProps.scale !== this.lastScale) {
+        if (this.props.scale !== this.lastScale) {
             // Updates from outsider
-            this.lastScale = nextProps.scale;
+            this.lastScale = this.props.scale;
             shouldUpdateCanvas = true;
         }
 
-        if (nextProps.target && nextProps.target !== this.target) {
-            this.offsetX = -nextProps.target.x;
-            this.offsetY = nextProps.target.y;
+        if (this.props.target && this.props.target !== prevProps.target) {
+            this.offsetX = -this.props.target.x;
+            this.offsetY = this.props.target.y;
 
             shouldUpdateCanvas = true;
         }
 
-        if (nextProps.size !== this.props.size) {
+        if (this.props.size !== prevProps.size) {
             shouldUpdateCanvas = true;
         }
-        if (nextProps.materials !== this.props.materials) {
-            materials = nextProps.materials;
+        if (this.props.materials !== prevProps.materials) {
+            materials = this.props.materials;
             shouldUpdateCanvas = true;
         }
-        if (nextProps.coordinateMode !== this.props.coordinateMode
-            || nextProps.coordinateSize.x !== this.props.coordinateSize.x
-            || nextProps.coordinateSize.y !== this.props.coordinateSize.y
-            || nextProps.origin !== this.props.origin) {
+        if (this.props.coordinateMode !== prevProps.coordinateMode
+            || this.props.coordinateSize.x !== prevProps.coordinateSize.x
+            || this.props.coordinateSize.y !== prevProps.coordinateSize.y
+            || this.props.origin !== prevProps.origin) {
             const printableArea = this.printableArea;
             printableArea.updateCoordinateMode(
-                nextProps.origin,
-                nextProps.coordinateMode,
-                nextProps.coordinateSize,
+                this.props.origin,
+                this.props.coordinateMode,
+                this.props.coordinateSize,
             );
 
             // const { coordinateSize, coordinateMode } = this.props;
@@ -230,8 +230,8 @@ class SVGCanvas extends React.PureComponent<SVGCanvasProps> {
             // coorDelta.dx += coordinateSize.x / 2 * coordinateMode.setting.sizeMultiplyFactor.x;
             // coorDelta.dy -= coordinateSize.y / 2 * coordinateMode.setting.sizeMultiplyFactor.y;
 
-            coorDelta.dx -= nextProps.coordinateSize.x / 2 * nextProps.coordinateMode.setting.sizeMultiplyFactor.x;
-            coorDelta.dy += nextProps.coordinateSize.y / 2 * nextProps.coordinateMode.setting.sizeMultiplyFactor.y;
+            coorDelta.dx -= this.props.coordinateSize.x / 2 * this.props.coordinateMode.setting.sizeMultiplyFactor.x;
+            coorDelta.dy += this.props.coordinateSize.y / 2 * this.props.coordinateMode.setting.sizeMultiplyFactor.y;
 
             this.props.updateTarget({
                 x: -coorDelta.dx / 1, y: coorDelta.dy / 1
@@ -245,8 +245,8 @@ class SVGCanvas extends React.PureComponent<SVGCanvasProps> {
             this.updateCanvas(size, materials);
         }
 
-        if (nextProps.mode !== this.props.mode || nextProps.ext !== this.props.ext) {
-            this.updateMode(nextProps.mode, nextProps.ext);
+        if (this.props.mode !== prevProps.mode || this.props.ext !== prevProps.ext) {
+            this.updateMode(this.props.mode, this.props.ext);
         }
     }
 

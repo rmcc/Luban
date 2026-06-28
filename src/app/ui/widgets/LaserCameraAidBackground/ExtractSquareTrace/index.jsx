@@ -568,11 +568,10 @@ class ExtractSquareTrace extends React.PureComponent {
         // }
     };
 
-    // eslint-disable-next-line
-    UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.tool !== this.props.tool) {
+    componentDidUpdate(prevProps) {
+        if (this.props.tool !== prevProps.tool) {
             //
-            console.log('nextProp.tool =', nextProps.tool);
+            console.log('nextProp.tool =', this.props.tool);
         }
     }
 

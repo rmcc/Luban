@@ -416,24 +416,24 @@ class Visualizer extends React.Component<VisualizerProps> {
         UniApi.Event.on('appbar-menu:laser.import', this.actions.importFile);
     }
 
-    public componentWillReceiveProps(nextProps) {
-        const { renderingTimestamp, isOverSize } = nextProps;
+    public componentDidUpdate(prevProps) {
+        const { renderingTimestamp, isOverSize } = this.props;
 
         // const { model } = nextProps;
-        const { selectedToolPathModelArray } = nextProps;
+        const { selectedToolPathModelArray } = this.props;
         // todo, selectedModelId nof found
-        if (selectedToolPathModelArray !== this.props.selectedToolPathModelArray) {
+        if (selectedToolPathModelArray !== prevProps.selectedToolPathModelArray) {
             this.canvas.current.detach();
             selectedToolPathModelArray.map(model => this.canvas.current.controls.attach(model.meshObject, SELECTEVENT.ADDSELECT));
         }
 
         // TODO: Occasionally cannot find 'controls', error on finding 'panOffset' of 'undefined'
-        if (renderingTimestamp !== this.props.renderingTimestamp) {
+        if (renderingTimestamp !== prevProps.renderingTimestamp) {
             this.canvas.current.renderScene();
         }
 
-        if (nextProps.shouldGenerateGcodeCounter !== this.props.shouldGenerateGcodeCounter) {
-            const { min, max } = nextProps.toolPathGroup.getBoundingBox();
+        if (this.props.shouldGenerateGcodeCounter !== prevProps.shouldGenerateGcodeCounter) {
+            const { min, max } = this.props.toolPathGroup.getBoundingBox();
             const target = new THREE.Vector3();
 
             target.copy(min).add(max).divideScalar(2);
@@ -442,35 +442,42 @@ class Visualizer extends React.Component<VisualizerProps> {
             this.canvas.current && this.canvas.current.setCamera(position, target);
         }
 
-        if (nextProps.displayedType !== this.props.displayedType) {
-            if (nextProps.displayedType === DISPLAYED_TYPE_TOOLPATH) {
+        if (this.props.displayedType !== prevProps.displayedType) {
+            if (this.props.displayedType === DISPLAYED_TYPE_TOOLPATH) {
                 this.canvas.current.controls.disableClick();
             } else {
                 this.canvas.current.controls.enableClick();
             }
         }
 
-        if (!isEqual(nextProps.size, this.props.size)) {
+        if (!isEqual(this.props.size, prevProps.size)) {
             this.canvas.current.setCamera(new THREE.Vector3(0, 0, VISUALIZER_CAMERA_HEIGHT), new THREE.Vector3());
         }
 
-        if (!isEqual(nextProps.workpiece, this.props.workpiece) || !isEqual(nextProps.origin, this.props.origin)) {
-            const { workpiece, origin } = nextProps;
+        if (!isEqual(this.props.workpiece, prevProps.workpiece) || !isEqual(this.props.origin, prevProps.origin)) {
+            const { workpiece, origin } = this.props;
 
             this.printableArea = new PrintablePlate(workpiece, origin);
             this.actions.autoFocus();
         }
 
-        if (isOverSize !== this.props.isOverSize) {
-            this.setState({
-                limitPicModalShow: isOverSize
-            });
+        if (isOverSize !== prevProps.isOverSize) {
             if (isOverSize === false) {
                 this.actions.onClickLimitImage(false);
             }
         }
 
-        this.allowedFiles = (nextProps.workpiece.shape === WorkpieceShape.Cylinder ? this.uploadExts : `${this.uploadExts}, .stl, .amf, .3mf`);
+        this.allowedFiles = (this.props.workpiece.shape === WorkpieceShape.Cylinder ? this.uploadExts : `${this.uploadExts}, .stl, .amf, .3mf`);
+    }
+
+    public static getDerivedStateFromProps(nextProps, prevState) {
+        if (nextProps.isOverSize !== prevState.lastIsOverSize) {
+            return {
+                limitPicModalShow: nextProps.isOverSize,
+                lastIsOverSize: nextProps.isOverSize
+            };
+        }
+        return null;
     }
 
     public componentWillUnmount() {

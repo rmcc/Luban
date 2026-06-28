@@ -87,7 +87,7 @@ function VisualizerClippingControl() {
                             }}
                         >
                             <Slider
-                                tooltipVisible={false}
+                                tooltipVisible={{ open: false }}
                                 className={styles['vertical-slider']}
                                 vertical
                                 min={qualitySetting.layer_height.default_value}

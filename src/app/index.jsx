@@ -67,7 +67,7 @@ series([
         user.signin({ token: token })
             .then(({ authenticated }) => {
                 if (authenticated) {
-                    log.error('Create and establish a WebSocket connection');
+                    log.info('Create and establish a WebSocket connection');
                     controller.connect(() => {
                         next();
                     });

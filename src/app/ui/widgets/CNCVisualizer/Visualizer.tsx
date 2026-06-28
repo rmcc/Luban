@@ -450,65 +450,62 @@ class Visualizer extends React.Component<VisualizerProps> {
         UniApi.Event.on('appbar-menu:cnc.import', this.actions.importFile);
     }
 
-    public componentWillReceiveProps(nextProps) {
-        const { renderingTimestamp, isOverSize } = nextProps;
+    public componentDidUpdate(prevProps) {
+        const { renderingTimestamp, isOverSize } = this.props;
 
-        if (!isEqual(nextProps.size, this.props.size)) {
-            const { size } = nextProps;
+        if (!isEqual(this.props.size, prevProps.size)) {
+            const { size } = this.props;
             this.canvas.current.setCamera(new THREE.Vector3(0, 0, Math.min(size.z, VISUALIZER_CAMERA_HEIGHT)), new THREE.Vector3());
             this.actions.autoFocus();
         }
 
         // const { model } = nextProps;
-        const { selectedToolPathModelArray } = nextProps;
+        const { selectedToolPathModelArray } = this.props;
         // todo, selectedModelId nof found
-        if (selectedToolPathModelArray !== this.props.selectedToolPathModelArray) {
+        if (selectedToolPathModelArray !== prevProps.selectedToolPathModelArray) {
             this.canvas.current.detach();
             selectedToolPathModelArray.map(model => this.canvas.current.attach(model.meshObject, SELECTEVENT.ADDSELECT));
         }
 
-        if (renderingTimestamp !== this.props.renderingTimestamp) {
+        if (renderingTimestamp !== prevProps.renderingTimestamp) {
             this.canvas.current.renderScene();
             this.canvas.current.setCameraOnTop();
 
-            this.canvas.current.controls.panOffset.add(new THREE.Vector3(this.props.target?.x || 0, this.props.target?.y || 0, 0));
+            this.canvas.current.controls.panOffset.add(new THREE.Vector3(prevProps.target?.x || 0, prevProps.target?.y || 0, 0));
             this.canvas.current.controls.updateCamera();
         }
 
-        if (nextProps.displayedType !== this.props.displayedType) {
-            if (nextProps.displayedType === DISPLAYED_TYPE_TOOLPATH) {
+        if (this.props.displayedType !== prevProps.displayedType) {
+            if (this.props.displayedType === DISPLAYED_TYPE_TOOLPATH) {
                 this.canvas.current.disableControls();
             } else {
                 this.canvas.current.enableControls();
             }
         }
-        if (nextProps.selectedToolPathModels !== this.props.selectedToolPathModels) {
+        if (this.props.selectedToolPathModels !== prevProps.selectedToolPathModels) {
             this.canvas.current.detach();
-            for (const selectedToolPathModel of nextProps.selectedToolPathModels) {
+            for (const selectedToolPathModel of this.props.selectedToolPathModels) {
                 this.canvas.current.attach(selectedToolPathModel.meshObject, SELECTEVENT.ADDSELECT);
             }
         }
 
-        if (!isEqual(nextProps.materials, this.props.materials)
-            || !isEqual(nextProps.origin, this.props.origin)
+        if (!isEqual(this.props.materials, prevProps.materials)
+            || !isEqual(this.props.origin, prevProps.origin)
         ) {
-            const { materials, origin } = nextProps;
+            const { materials, origin } = this.props;
             const workpiece = convertMaterialsToWorkpiece(materials);
             this.printableArea = new PrintablePlate(workpiece, origin);
             this.actions.autoFocus();
         }
 
-        if (isOverSize !== this.props.isOverSize) {
-            this.setState({
-                limitPicModalShow: isOverSize
-            });
+        if (isOverSize !== prevProps.isOverSize) {
             if (isOverSize === false) {
                 this.actions.onClickLimitImage(false);
             }
         }
 
-        const { stage, promptTasks, modelGroup } = nextProps;
-        if (stage !== this.props.stage) {
+        const { stage, promptTasks, modelGroup } = this.props;
+        if (stage !== prevProps.stage) {
             if (stage === STEP_STAGE.CNC_LASER_REPAIRING_MODEL) {
                 if (promptTasks && promptTasks.length > 0) {
                     const needRepairModels = promptTasks.filter(item => item.status === 'need-repair-model').map((i) => {
@@ -525,7 +522,17 @@ class Visualizer extends React.Component<VisualizerProps> {
                 }
             }
         }
-        this.printableArea.changeCoordinateVisibility(!nextProps.showSimulation);
+        this.printableArea.changeCoordinateVisibility(!this.props.showSimulation);
+    }
+
+    public static getDerivedStateFromProps(nextProps, prevState) {
+        if (nextProps.isOverSize !== prevState.lastIsOverSize) {
+            return {
+                limitPicModalShow: nextProps.isOverSize,
+                lastIsOverSize: nextProps.isOverSize
+            };
+        }
+        return null;
     }
 
     public componentWillUnmount() {

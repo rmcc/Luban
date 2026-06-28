@@ -405,6 +405,10 @@ export const actions = {
     setABPositionPoint: (position: {x: number, y: number, id?: string}, tagColor: string = '#242424', tagLength: number = 3) => {
         let point = document.querySelector(`#${position.id}`);
         const backgroundOverlay = actions.getABPositionBackgroundOverlay();
+        // Don't even try to create the path if there's no position
+        if (position.x === undefined || position.y === undefined) {
+            return;
+        }
         if (!point) {
             point = createSVGElement({
                 element: 'path',

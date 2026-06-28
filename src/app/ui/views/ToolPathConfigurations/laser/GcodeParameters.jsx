@@ -179,8 +179,6 @@ class GcodeParameters extends PureComponent {
             }
         });
 
-        console.log('true', pathType, movementMode, pathType === 'fill' && movementMode === 'greyscale-line');
-
         return (
             <React.Fragment>
                 <div>

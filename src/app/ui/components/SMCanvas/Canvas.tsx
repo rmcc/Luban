@@ -193,25 +193,25 @@ class Canvas extends React.PureComponent<CanvasProps> {
     }
 
     // just for laser and cnc, dont set scale prop for 3dp
-    public componentWillReceiveProps(nextProps) {
-        if (nextProps.inProgress !== this.props.inProgress) {
-            this.controls.setInProgress(nextProps.inProgress);
+    public componentDidUpdate(prevProps) {
+        if (this.props.inProgress !== prevProps.inProgress) {
+            this.controls.setInProgress(this.props.inProgress);
         }
 
-        if (nextProps.scale && nextProps.scale !== this.lastScale) {
+        if (this.props.scale && this.props.scale !== this.lastScale) {
             if (!this.isCanvasInitialized()) return;
 
             const currentScale = this.initialDistance
                 / this.camera.position.distanceTo(this.controls.target);
-            this.controls.setScale(currentScale / nextProps.scale);
-            this.lastScale = nextProps.scale;
+            this.controls.setScale(currentScale / this.props.scale);
+            this.lastScale = this.props.scale;
             this.controls.updateCamera();
         }
 
-        if (nextProps.target && nextProps.target !== this.lastTarget) {
+        if (this.props.target && this.props.target !== this.lastTarget) {
             if (!this.isCanvasInitialized()) return;
 
-            const { x, y } = nextProps.target;
+            const { x, y } = this.props.target;
             this.controls.panOffset.add(
                 new Vector3(
                     x - this.controls.target.x,
@@ -222,20 +222,20 @@ class Canvas extends React.PureComponent<CanvasProps> {
             this.controls.updateCamera();
         }
 
-        if (nextProps.printableArea !== this.props.printableArea) {
-            this.group.remove(this.props.printableArea);
-            this.group.add(nextProps.printableArea);
+        if (this.props.printableArea !== prevProps.printableArea) {
+            this.group.remove(prevProps.printableArea);
+            this.group.add(this.props.printableArea);
         }
 
-        if (nextProps.displayedType !== this.props.displayedType) {
-            if (nextProps.displayedType === 'gcode') {
+        if (this.props.displayedType !== prevProps.displayedType) {
+            if (this.props.displayedType === 'gcode') {
                 this.controls.removeTransformControls();
                 this.group.remove(this.modelGroup.object);
                 this.group.add(this.modelGroup.grayModeObject);
             } else {
                 this.controls.recoverTransformControls(
-                    nextProps.primeTowerSelected,
-                    nextProps.transformMode
+                    this.props.primeTowerSelected,
+                    this.props.transformMode
                 );
                 this.group.remove(this.modelGroup.grayModeObject);
                 this.group.add(this.modelGroup.object);
@@ -244,20 +244,20 @@ class Canvas extends React.PureComponent<CanvasProps> {
         }
 
         if (
-            nextProps.primeTowerSelected !== this.props.primeTowerSelected
-            && nextProps.displayedType !== 'gcode'
+            this.props.primeTowerSelected !== prevProps.primeTowerSelected
+            && this.props.displayedType !== 'gcode'
         ) {
             this.controls.removeTransformControls();
-            if (nextProps.primeTowerSelected) {
+            if (this.props.primeTowerSelected) {
                 this.controls.recoverTransformControls(
                     true,
-                    nextProps.transformMode
+                    this.props.transformMode
                 );
                 this.controls.setPrimeTower(true);
             } else {
                 this.controls.recoverTransformControls(
                     false,
-                    nextProps.transformMode
+                    this.props.transformMode
                 );
                 this.controls.setPrimeTower(false);
             }

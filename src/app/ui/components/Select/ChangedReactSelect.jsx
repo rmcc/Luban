@@ -182,7 +182,6 @@ class ChangedReactSelect extends PureComponent {
                         bordered={bordered}
                         getPopupContainer={() => document.body}
                         dropdownMatchSelectWidth={false}
-                        popupMatchSelectWidth={false}
                     />
                 </div>
             );
@@ -215,7 +214,6 @@ class ChangedReactSelect extends PureComponent {
                         placement={this.props.placement}
                         getPopupContainer={() => document.body}
                         dropdownMatchSelectWidth={false}
-                        popupMatchSelectWidth={false}
                     >
                         {(options.map((option) => {
                             return (<Option key={option.value + option.label} value={option.value}>{i18n._(option.label)}</Option>);

@@ -34,8 +34,8 @@ class PrintPreview extends Component {
         this.animate();
     }
 
-    componentWillReceiveProps(nextProps) {
-        const { sideLength } = nextProps;
+    componentDidUpdate() {
+        const { sideLength } = this.props;
         sideLength && this.squareLine.scale.set(sideLength, sideLength, 1);
     }
 

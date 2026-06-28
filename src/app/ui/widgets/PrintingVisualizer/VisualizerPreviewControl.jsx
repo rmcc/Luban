@@ -78,7 +78,7 @@ function GcodeLayout() {
                 }}
             >
                 <Slider
-                    tooltipVisible={false}
+                    tooltipVisible={{ open: false }}
                     className={styles['vertical-slider']}
                     vertical
                     min={0}

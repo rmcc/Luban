@@ -33,13 +33,15 @@ class DegreeInput extends PureComponent {
         };
     }
 
-    componentWillReceiveProps(nextProps) {
+    static getDerivedStateFromProps(nextProps, prevState) {
         // new value passed in
-        if (nextProps.value !== this.state.value) {
-            this.setState({
-                value: this.getNumberWithSuffix(nextProps.value)
-            });
+        if (nextProps.value !== prevState.rawPropsValue) {
+            return {
+                value: DegreeInput.prototype.getNumberWithSuffix(nextProps.value),
+                rawPropsValue: nextProps.value
+            };
         }
+        return null;
     }
 
     onChangeInputValue = (event) => {

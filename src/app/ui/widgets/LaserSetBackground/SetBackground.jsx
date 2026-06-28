@@ -104,18 +104,20 @@ class SetBackground extends PureComponent {
         }
     };
 
-    componentWillReceiveProps(nextProps) {
-        if (!isEqual(nextProps.size, this.props.size)) {
+    static getDerivedStateFromProps(nextProps, prevState) {
+        if (!isEqual(nextProps.size, prevState.rawPropsSize)) {
             const size = nextProps.size;
             const maxSideLength = Math.min(size.x, size.y);
             const minSideLength = Math.min(40, maxSideLength);
-            const sideLength = Math.min(maxSideLength, Math.max(minSideLength, this.state.sideLength));
-            this.setState({
+            const sideLength = Math.min(maxSideLength, Math.max(minSideLength, prevState.sideLength));
+            return {
                 sideLength,
                 minSideLength,
-                maxSideLength
-            });
+                maxSideLength,
+                rawPropsSize: nextProps.size
+            };
         }
+        return null;
     }
 
     render() {

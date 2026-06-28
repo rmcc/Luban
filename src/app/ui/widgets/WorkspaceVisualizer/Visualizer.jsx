@@ -565,16 +565,21 @@ class Visualizer extends React.PureComponent {
      *  - Re-render G-code objects
      *  - Upload G-code to controller
      */
-    componentWillReceiveProps(nextProps) {
-        if (!isEqual(nextProps.activeMachine, this.props.activeMachine) || !isEqual(nextProps.preview, this.props.preview)) {
-            const activeMachine = nextProps.activeMachine;
-            if (nextProps.preview) {
-                this.previewPrintableArea && this.previewPrintableArea.updateSize(this.props.activeMachine.identifier, {
+    /* eslint-disable react/no-did-update-set-state */
+    componentDidUpdate(prevProps) {
+        if (this.props.onRef !== prevProps.onRef && this.props.onRef) {
+            this.props.onRef(this);
+        }
+
+        if (!isEqual(this.props.activeMachine, prevProps.activeMachine) || !isEqual(this.props.preview, prevProps.preview)) {
+            const activeMachine = this.props.activeMachine;
+            if (this.props.preview) {
+                this.previewPrintableArea && this.previewPrintableArea.updateSize(prevProps.activeMachine.identifier, {
                     x: activeMachine.metadata.size.x * 2,
                     y: activeMachine.metadata.size.y * 2
                 });
             } else {
-                this.state.printableArea && this.state.printableArea.updateSize(this.props.activeMachine.identifier, {
+                this.state.printableArea && this.state.printableArea.updateSize(prevProps.activeMachine.identifier, {
                     x: activeMachine.metadata.size.x * 2,
                     y: activeMachine.metadata.size.y * 2
                 });
@@ -582,37 +587,37 @@ class Visualizer extends React.PureComponent {
             this.canvas.current && this.canvas.current.setCamera(new THREE.Vector3(0, 0, Math.min(activeMachine.metadata.size.z * 2, 300)), new THREE.Vector3());
         }
 
-        if (this.props.workflowStatus !== WorkflowStatus.Idle && nextProps.workflowStatus === WorkflowStatus.Idle) {
+        if (prevProps.workflowStatus !== WorkflowStatus.Idle && this.props.workflowStatus === WorkflowStatus.Idle) {
             this.stopToolheadRotationAnimation();
             this.updateWorkPositionToZero();
             this.props.setGcodePrintingIndex(0);
         }
-        if (this.props.workflowStatus !== WorkflowStatus.Unknown && nextProps.workflowStatus === WorkflowStatus.Unknown) {
+        if (prevProps.workflowStatus !== WorkflowStatus.Unknown && this.props.workflowStatus === WorkflowStatus.Unknown) {
             this.stopToolheadRotationAnimation();
             this.updateWorkPositionToZero();
             this.props.setGcodePrintingIndex(0);
         }
-        if (this.props.workflowStatus !== WorkflowStatus.Running && nextProps.workflowStatus === WorkflowStatus.Running) {
-            for (let i = 0; i < nextProps.gcodePrintingInfo.sent; i++) {
+        if (prevProps.workflowStatus !== WorkflowStatus.Running && this.props.workflowStatus === WorkflowStatus.Running) {
+            for (let i = 0; i < this.props.gcodePrintingInfo.sent; i++) {
                 this.props.setGcodePrintingIndex(i);
             }
             this.startToolheadRotationAnimation();
             this.renderScene();
         }
-        if (this.props.workflowStatus !== WorkflowStatus.Paused && nextProps.workflowStatus === WorkflowStatus.Paused) {
+        if (prevProps.workflowStatus !== WorkflowStatus.Paused && this.props.workflowStatus === WorkflowStatus.Paused) {
             this.stopToolheadRotationAnimation();
         }
-        if (nextProps.gcodePrintingInfo && nextProps.gcodePrintingInfo.sent > 0 && nextProps.gcodePrintingInfo.sent !== this.props.gcodePrintingInfo.sent) {
-            this.updateWorkPosition(this.props.workPosition);
-            this.props.setGcodePrintingIndex(nextProps.gcodePrintingInfo.sent);
+        if (this.props.gcodePrintingInfo && this.props.gcodePrintingInfo.sent > 0 && this.props.gcodePrintingInfo.sent !== prevProps.gcodePrintingInfo.sent) {
+            this.updateWorkPosition(prevProps.workPosition);
+            this.props.setGcodePrintingIndex(this.props.gcodePrintingInfo.sent);
             this.renderScene();
         }
-        if (nextProps.renderingTimestamp !== this.props.renderingTimestamp) {
+        if (this.props.renderingTimestamp !== prevProps.renderingTimestamp) {
             this.renderScene();
         }
-        if (nextProps.stage !== this.props.stage && nextProps.stage === WORKSPACE_STAGE.LOAD_GCODE_SUCCEED) {
-            if (nextProps.boundingBox !== null) {
-                const { min, max } = nextProps.boundingBox;
+        if (this.props.stage !== prevProps.stage && this.props.stage === WORKSPACE_STAGE.LOAD_GCODE_SUCCEED) {
+            if (this.props.boundingBox !== null) {
+                const { min, max } = this.props.boundingBox;
                 const target = new THREE.Vector3();
 
                 target.copy(min).add(max).divideScalar(2);
@@ -621,45 +626,46 @@ class Visualizer extends React.PureComponent {
                 this.canvas.current && this.canvas.current.setCamera(position, target);
             }
         }
+
+        let nextState = null;
+
         // open the enclosureDoorOpened modal
-        if (nextProps.isEnclosureDoorOpen !== this.props.isEnclosureDoorOpen) {
-            this.setState({
-                showEnclosureDoorWarn: nextProps.isEnclosureDoorOpen
-            });
-        } else if (this.props.doorSwitchCount !== 0 && nextProps.doorSwitchCount !== this.props.doorSwitchCount) {
-            this.setState({
-                showEnclosureDoorWarn: true
-            });
+        if (this.props.isEnclosureDoorOpen !== prevProps.isEnclosureDoorOpen) {
+            nextState = nextState || {};
+            nextState.showEnclosureDoorWarn = this.props.isEnclosureDoorOpen;
+        } else if (prevProps.doorSwitchCount !== 0 && this.props.doorSwitchCount !== prevProps.doorSwitchCount) {
+            nextState = nextState || {};
+            nextState.showEnclosureDoorWarn = true;
+        }
+        // open the enclosureDoorOpened modal
+        if (this.props.isEnclosureDoorOpen !== prevProps.isEnclosureDoorOpen) {
+            nextState = nextState || {};
+            nextState.showEnclosureDoorWarn = this.props.isEnclosureDoorOpen;
+        } else if (prevProps.doorSwitchCount !== 0 && this.props.doorSwitchCount !== prevProps.doorSwitchCount) {
+            nextState = nextState || {};
+            nextState.showEnclosureDoorWarn = true;
         }
         // open the emergencyStopped warning modal
-        if (nextProps.isEmergencyStopped !== this.props.isEmergencyStopped && nextProps.isEmergencyStopped) {
-            this.setState({
-                isEmergencyStopped: true
-            });
+        if (this.props.isEmergencyStopped !== prevProps.isEmergencyStopped && this.props.isEmergencyStopped) {
+            nextState = nextState || {};
+            nextState.isEmergencyStopped = true;
         }
-        if (nextProps.laser10WErrorState !== this.props.laser10WErrorState) {
-            if (nextProps.laser10WErrorState & (1 << 2)) {
-                this.setState({
-                    isLaser10WCheck2: true,
-                    isLaser10WCheck1: false
-                });
-            } else if (nextProps.laser10WErrorState & (1 << 1)) {
-                this.setState({
-                    isLaser10WCheck2: false,
-                    isLaser10WCheck1: true
-                });
+        if (this.props.laser10WErrorState !== prevProps.laser10WErrorState) {
+            nextState = nextState || {};
+            if (this.props.laser10WErrorState & (1 << 2)) {
+                nextState.isLaser10WCheck2 = true;
+                nextState.isLaser10WCheck1 = false;
+            } else if (this.props.laser10WErrorState & (1 << 1)) {
+                nextState.isLaser10WCheck2 = false;
+                nextState.isLaser10WCheck1 = true;
             } else {
-                this.setState({
-                    isLaser10WCheck2: false,
-                    isLaser10WCheck1: false
-                });
+                nextState.isLaser10WCheck2 = false;
+                nextState.isLaser10WCheck1 = false;
             }
         }
-    }
 
-    componentDidUpdate(prevProps) {
-        if (this.props.onRef !== prevProps && this.props.onRef) {
-            this.props.onRef(this);
+        if (nextState) {
+            this.setState(nextState);
         }
     }
 
