@@ -684,3 +684,26 @@
     mix-blend-mode: difference;
     filter: invert(1);
 }
+
+// ... except data objects on photo backgrounds
+svg:has(#svg-data-background #image-background) #svg-data .high-visibility-object {
+    mix-blend-mode: normal;
+    filter: invert(1);
+}
+
+svg:has(#svg-data-background #image-background) #svg-data .high-visibility-object-inverted {
+    mix-blend-mode: normal;
+    filter: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    svg:has(#svg-data-background #image-background) #svg-data .high-visibility-object {
+        mix-blend-mode: normal;
+        filter: none;
+    }
+
+    svg:has(#svg-data-background #image-background) #svg-data .high-visibility-object-inverted {
+        mix-blend-mode: normal;
+        filter: invert(1);
+    }
+}
