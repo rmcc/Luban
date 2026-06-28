@@ -32,7 +32,7 @@ export default {
             }
         },
         { id: 'line-1', type: 'separator' },
-        {
+        /*{
             id: 'view-in-browser',
             label: 'key-App/Menu-View In Browser',
             enabled: true,
@@ -43,7 +43,7 @@ export default {
                     UniApi.Event.emit('appbar-menu:window', 'viewInBrowser');
                 }
             }
-        },
+        },*/
         {
             id: 'toggle-developer-tools',
             label: 'key-App/Menu-Toggle Developer Tools',
