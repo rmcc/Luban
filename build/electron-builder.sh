@@ -27,8 +27,8 @@ echo 'Syncing modified modules for distribution install...'
 # "npm install" will use natives
 if [[ " $* " =~ " --win " ]]; then
     echo "Windows build detected! Forcing Windows environment variables..."
-    export npm_config_platform=win32
-    export npm_config_arch=x64
+    export npm_config_target_platform=win32
+    export npm_config_target_arch=x64
 fi
 # Copy the folder from the project root to the dist folder
 cp -r ../../modified-modules ./

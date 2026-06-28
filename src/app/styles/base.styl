@@ -24,10 +24,16 @@
 
 /* Force old hardwired values into the new antd "hovering stuff" constraints. */
 :global(.ant-tooltip)
+    position: absolute !important
     will-change: transform, opacity !important
-    transform: translateZ(0) !important
-    pointer-events: none !important
     max-width: 270px !important // Pinches the floating column width back to normal bounds which were hardwired in old antd and assumed by Luban in large tooltips
+    pointer-events: auto !important
+
+:global(.ant-slider-vertical .ant-slider-handle:not(:hover):not(:active) ~ div .ant-tooltip),
+:global(.ant-slider-vertical .ant-slider-handle:not(:hover):not(:active) + .ant-tooltip)
+    opacity: 0 !important
+    visibility: hidden !important
+    pointer-events: none !important
 
 :global(.ant-tooltip-inner)
     white-space: normal !important

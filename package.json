@@ -1,6 +1,6 @@
 {
   "name": "snapmaker-luban",
-  "version": "4.16.1",
+  "version": "4.16.2",
   "description": "A web-based interface for Snapmaker 3-in-1 3D Printer",
   "homepage": "https://github.com/Snapmaker/Luban",
   "author": "Snapmaker Software Team",
@@ -271,7 +271,7 @@
     "cross-env": "5.2.1",
     "css-loader": "5.2.7",
     "del": "6.1.1",
-    "electron": "^39.8.10",
+    "electron": "^41.9.0",
     "electron-builder": "^24.13.3",
     "eslint": "7.5.0",
     "eslint-config-airbnb": "18.2.1",
