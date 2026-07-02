@@ -1871,7 +1871,7 @@
     "key-Progress/3DP-Repair model successfully.": "モデルは正常に修復されました",
     "key-Progress/3DP-Repairing model... {{progress}}%": "モデルの修復中...{{progress}}%",
     "key-Progress/3DP-Scale to fit...{{progress}}%": "適応スケーリング...{{progress}}%",
-    "key-Progress/3DP-Simplify model...{{prgress}}%": "モデルの簡略化進行中... {{progress}}%",
+    "key-Progress/3DP-Simplify model...{{progress}}%": "モデルの簡略化進行中... {{progress}}%",
     "key-Progress/3DP-SingleLayer": "単層ビュー",
     "key-Progress/3DP-Slice Failed": "スライスに失敗しました",
     "key-Progress/3DP-Slice Failed reason": "モデルが小さすぎ、スライスに失敗しました。",

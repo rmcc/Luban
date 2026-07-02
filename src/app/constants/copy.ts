@@ -415,7 +415,7 @@ i18n._('key-Printing/3DP-scale to fit failed.');
 i18n._('key-Progress/3DP-Repairing model... {{progress}}%');
 i18n._('key-Progress/3DP-Repair model successfully.');
 i18n._('key-Progress/3DP-Failed to repair model.');
-i18n._('key-Progress/3DP-Simplify model...{{prgress}}%');
+i18n._('key-Progress/3DP-Simplify model...{{progress}}%');
 i18n._('key-Progress/3DP-Preparing Mesh Painting...');
 i18n._('key-Progress/3DP-Prepare successfully.');
 i18n._('key-Progress/3DP-Failed to prepare mesh painting.');

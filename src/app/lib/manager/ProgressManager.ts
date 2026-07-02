@@ -447,7 +447,7 @@ export function getProgressStateManagerInstance(): ProgressStatesManager {
                 percent: 1
             }
         ],
-        'key-Progress/3DP-Simplify model...{{prgress}}%',
+        'key-Progress/3DP-Simplify model...{{progress}}%',
         'key-Progress/3DP-Simplify model successfully.',
         'key-Progress/3DP-Simplify model failed.');
     manager.push(
