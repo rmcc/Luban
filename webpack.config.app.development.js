@@ -245,5 +245,8 @@ module.exports = {
             },
         ]
     },
+    cache: {
+        type: 'filesystem'
+    },
     devServer: devServer,
 };

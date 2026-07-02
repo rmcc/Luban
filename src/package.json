@@ -32,7 +32,7 @@
     "cookie-parser": "1.4.6",
     "core-js": "^3.49.0",
     "debug": "3.1.0",
-    "earcut": "2.2.3",
+    "earcut": "3.2.2",
     "electron-store": "8.1.0",
     "electron-updater": "^6.8.9",
     "ensure-array": "1.0.0",

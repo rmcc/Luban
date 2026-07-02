@@ -77,5 +77,8 @@ module.exports = {
         global: true,
         __filename: true, // Use relative path
         __dirname: true, // Use relative path
+    },
+    cache: {
+        type: 'filesystem'
     }
 };
