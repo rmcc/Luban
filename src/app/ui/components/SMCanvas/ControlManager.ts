@@ -177,6 +177,7 @@ class ControlManager extends EventEmitter {
 
         this.bindEventListeners();
         this.ray.params.Line.threshold = 0.5;
+        this.ray.layers.enable(1);
     }
 
     public getControl(mode: string): Control | null {
