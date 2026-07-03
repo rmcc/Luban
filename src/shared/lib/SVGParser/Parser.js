@@ -4,7 +4,6 @@ import log from 'loglevel';
 import path from 'path';
 import xml2js from 'xml2js';
 import AttributesParser from './AttributesParser';
-// import DefsTagParser from './DefsTagParser';
 import CircleTagParser from './CircleTagParser';
 import { SVG_ATTR_HREF, SVG_ATTR_ID, SVG_ATTR_TRANSFORM, SVG_TAG_SVG, SVG_TAG_USE, XLINK_HREF } from './constants';
 import EllipseTagParser from './EllipseTagParser';

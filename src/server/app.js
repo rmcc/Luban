@@ -276,18 +276,6 @@ const createApplication = () => {
             res.status(404).send({ msg: 'Not found' });
         }
     });
-    // app.use(errlog());
-    // app.use(errclient({
-    //     error: 'XHR error'
-    // }));
-    // app.use(errnotfound({
-    //     view: path.join('common', '404.hogan'),
-    //     error: 'Not found'
-    // }));
-    // app.use(errserver({
-    //     view: path.join('common', '500.hogan'),
-    //     error: 'Internal server error'
-    // }));
     return app;
 };
 
