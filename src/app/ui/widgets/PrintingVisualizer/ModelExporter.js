@@ -5,7 +5,7 @@ import OBJExporter from '../../../scene/three-extensions/OBJExporter';
 
 class ModelExporter {
     // default: binary stl
-    parse(object3d, format = 'stl', isBinary = true) {
+    parse(object3d, format = 'stl', isBinary = true, options = {}) {
         if (!format) {
             return null;
         }
@@ -17,7 +17,7 @@ class ModelExporter {
         }
         if (format === 'stl') {
             if (isBinary) {
-                return this.parseToBinaryStl(object3d);
+                return this.parseToBinaryStl(object3d, options);
             } else {
                 return this.parseToAsciiStl(object3d);
             }
@@ -34,8 +34,8 @@ class ModelExporter {
         return new STLExporter().parse(object3d);
     }
 
-    parseToBinaryStl(object3d) {
-        return new STLExporter().parse(object3d, { binary: true });
+    parseToBinaryStl(object3d, options) {
+        return new STLExporter().parse(object3d, Object.assign({ binary: true }, options));
     }
 
     parseToObj(object3d) {

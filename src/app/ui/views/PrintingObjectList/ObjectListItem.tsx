@@ -268,6 +268,7 @@ const ObjectListItem: React.FC<ObjectListItemProps> = (
                                     }}
                                     overlay={getModelExtruderOverlayMenu()}
                                     trigger={['click']}
+                                    getPopupContainer={() => document.body}
                                     disabled={extruderCount === 1}
                                 >
                                     {renderExtruderIcon(extrudersUsed, colorsUsed)}

@@ -15,7 +15,8 @@ import * as THREE from 'three';
 class STLExporter {
     parse(scene, options = {}) {
         options = Object.assign({
-            binary: false
+            binary: false,
+            clean: false
         }, options);
 
         const binary = options.binary;
@@ -139,7 +140,9 @@ class STLExporter {
                     const a = index.getX(j + 0);
                     const b = index.getX(j + 1);
                     const c = index.getX(j + 2);
-                    const extraAttrValue = byteCountAttribute[j / 3];
+
+                    // Intercept and strip if clean option is passed
+                    const extraAttrValue = options.clean ? 0 : byteCountAttribute[j / 3];
 
                     writeFace(a, b, c, positionAttribute, object, extraAttrValue);
                 }
@@ -150,7 +153,9 @@ class STLExporter {
                     const a = j;
                     const b = j + 1 <= positionAttribute.count ? j + 1 : positionAttribute.count;
                     const c = j + 2 <= positionAttribute.count ? j + 2 : positionAttribute.count;
-                    const extraAttrValue = byteCountAttribute[j / 3];
+
+                    // Intercept and strip if clean option is passed
+                    const extraAttrValue = options.clean ? 0 : byteCountAttribute[j / 3];
 
                     writeFace(a, b, c, positionAttribute, object, extraAttrValue);
                 }

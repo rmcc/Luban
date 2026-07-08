@@ -40,25 +40,243 @@ interface UploadMeshOptions {
  * Upload Mesh object.
  */
 const uploadMesh = async (mesh: Mesh, fileName: string, options?: UploadMeshOptions) => {
+    // From ThreeModel:
+    // BYTE_COUNT_COLOR_MASK, BYTE_COUNT_LEFT_EXTRUDER, BYTE_COUNT_RIGHT_EXTRUDER
+    // We can't use them directly, it hangs app startup. Circular dependency?
+    const MASK_COLOR = 0xff00;
+    const EXTRUDER_LEFT = 0x0100;
+    const EXTRUDER_RIGHT = 0x0200;
+
     const fileType = options?.fileType || 'stl';
+    const geometry = mesh.geometry;
+    const byteCountAttr = geometry.getAttribute('byte_count');
+    const positionAttr = geometry.getAttribute('position');
 
-    const formData = new FormData();
+    let finalUploadResult = null;
 
-    // file
-    const stl = new ModelExporter().parse(mesh, fileType, true);
-    const blob = new Blob([stl], { type: 'text/plain' });
-    const fileOfBlob = new File([blob], fileName);
-    formData.append('file', fileOfBlob);
+    // The editor uses a per-face coloring hack by tagging each bytecount field
+    // with a "this is painted" flag on dual-extrusion. If we find that, let's
+    // turn it into Cura's MaterialSplitter syntax
 
-    // uploadName
-    if (options?.uploadName) {
-        formData.append('uploadName', options.uploadName);
+    if (byteCountAttr && positionAttr && fileType.toLowerCase() === 'stl') {
+        const indexAttr = geometry.index;
+        const totalFaces = indexAttr !== null ? (indexAttr.count / 3) : (positionAttr.count / 3);
+
+        // CuraEngine takes the "painted areas" map as a texture map in a PNG.
+        // Let's make that PNG, and its corresponding UV coordinate map.
+        //
+        // For each face in the model, the PNG will have a 16x16 square,
+        // with the red channel containing just the extruder ID (0 or 1). The
+        // other channels are irrelevant, so we'll leave them black.
+        // The UV map will point each of those faces' three vertices to a fixed,
+        // uniform right-angle triangle mapped completely inside that 16x16 square.
+        // CuraEngine will sample the pixels bounded by this 2D triangle area
+        // to read the extruder ID (value of red channel) for that face.
+
+        const columns = Math.ceil(Math.sqrt(totalFaces));
+        const rows = Math.ceil(totalFaces / columns);
+        const cellSize = 16;
+        const imgWidth = columns * cellSize;
+        const imgHeight = rows * cellSize;
+
+        const totalVertices = totalFaces * 3;
+        const uvBufferLength = 4 + (totalVertices * 2 * 4);
+        const uvArrayBuffer = new ArrayBuffer(uvBufferLength);
+        const uvView = new DataView(uvArrayBuffer);
+
+        uvView.setUint32(0, totalVertices, true);
+        let uvOffset = 4; // Start coordinate writes at offset 4
+
+        // Allocate flat raw byte buffer for direct array manipulation
+        const rawPixelBytes = new Uint8Array(imgWidth * imgHeight * 4);
+
+        // Precompute dimensions and scaling factor inverses to avoid slow division inside the loop
+        const pad = 0.5;
+        const invWidth = 1 / imgWidth;
+        const invHeight = 1 / imgHeight;
+        const padX = pad * invWidth;
+        const padY = pad * invHeight;
+        const cellW = cellSize * invWidth;
+        const cellH = cellSize * invHeight;
+
+        for (let faceIndex = 0; faceIndex < totalFaces; faceIndex++) {
+            // Read the Luban byteCount coloring flag
+            const byteCount = byteCountAttr.array[faceIndex] || 0;
+            const byteCountColor = (byteCount & MASK_COLOR);
+
+            // Isolate target extruder number (0 for T0, 1 for T1)
+            let extruderId = 0;
+
+            if (byteCountColor === EXTRUDER_LEFT) {
+                extruderId = 0;
+            } else if (byteCountColor === EXTRUDER_RIGHT) {
+                extruderId = 1;
+            }
+
+            const col = faceIndex % columns;
+            const row = Math.floor(faceIndex / columns);
+            const startX = col * cellSize;
+            const startY = row * cellSize;
+
+            // Build the PNG's 16x16 square for this face
+            for (let cy = 0; cy < cellSize; cy++) {
+                const pixelStartIndex = ((startY + cy) * imgWidth + startX) * 4;
+                const pixelEndIndex = pixelStartIndex + (cellSize * 4);
+
+                // Zero out the entire row of pixels inside the cell first
+                rawPixelBytes.fill(0, pixelStartIndex, pixelEndIndex);
+
+                // Set the specific Red and Alpha bytes across the 16 pixels
+                for (let cx = 0; cx < cellSize; cx++) {
+                    const idx = pixelStartIndex + (cx * 4);
+                    rawPixelBytes[idx] = extruderId; // Red Channel: Stores literal 0 or 1 byte
+                    rawPixelBytes[idx + 3] = 255; // Alpha Channel: Fully opaque to guarantee zero compression losses from anti-aliasing
+                }
+            }
+
+            // Now write vertex A, B, and C (u, v) as raw 32-bit floats for the map
+            const uStart = startX * invWidth;
+            const vStart = startY * invHeight;
+
+            // Vertex A
+            uvView.setFloat32(uvOffset, uStart + padX, true); uvOffset += 4;
+            uvView.setFloat32(uvOffset, vStart + padY, true); uvOffset += 4;
+
+            // Vertex B
+            uvView.setFloat32(uvOffset, uStart + cellW - padX, true); uvOffset += 4;
+            uvView.setFloat32(uvOffset, vStart + padY, true); uvOffset += 4;
+
+            // Vertex C
+            uvView.setFloat32(uvOffset, uStart, true); uvOffset += 4;
+            uvView.setFloat32(uvOffset, vStart + cellH - padY, true); uvOffset += 4;
+        }
+        // upload a clean STL file, with the coloring flags stripped out so
+        // Luban doesn't try to use the custom MultiMaterialSegmentation code. We
+        // want Cura's variant.
+        const stl = new ModelExporter().parse(mesh, fileType, true, { clean: true });
+        const blob = new Blob([stl], { type: 'application/octet-stream' });
+        const fileOfBlob = new File([blob], fileName);
+
+        const stlFormData = new FormData();
+        stlFormData.append('file', fileOfBlob);
+        if (options?.uploadName) {
+            stlFormData.append('uploadName', options.uploadName);
+        }
+
+        finalUploadResult = await api.uploadFile(stlFormData, HEAD_PRINTING);
+
+        // CuraEngine searches for files with the exact same name but different extensions
+        // to determine if there is coloring to be applied. So get the name our file got
+        // after uploading and use it.
+        let baselineUploadName = finalUploadResult.body.uploadName;
+        if (baselineUploadName.toLowerCase().endsWith('.stl')) {
+            baselineUploadName = baselineUploadName.substring(0, baselineUploadName.lastIndexOf('.'));
+        }
+
+        const uvUploadName = `${baselineUploadName}.uv`;
+        const pngUploadName = `${baselineUploadName}.png`;
+        const baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+
+        // Upload the UV coordinate map as a raw binary
+        const uvBlob = new Blob([uvArrayBuffer], { type: 'application/octet-stream' });
+        const uvFile = new File([uvBlob], `${baseName}.uv`);
+
+        const uvFormData = new FormData();
+        uvFormData.append('file', uvFile);
+        uvFormData.append('uploadName', uvUploadName);
+
+        await api.uploadFile(uvFormData, HEAD_PRINTING);
+
+        // Write the raw byte array into a canvas context to generate the PNG
+        const canvas = new OffscreenCanvas(imgWidth, imgHeight);
+        const ctx = canvas.getContext('2d')!;
+        const imgData = ctx.createImageData(imgWidth, imgHeight);
+        imgData.data.set(rawPixelBytes);
+        ctx.putImageData(imgData, 0, 0);
+
+        const pngBlob = await canvas.convertToBlob({ type: 'image/png' });
+        const pngArrayBuffer = await pngBlob.arrayBuffer();
+        const pngBytes = new Uint8Array(pngArrayBuffer);
+
+        // We have the PNG, build and inject the metadata
+        const metadataObj = {
+            'extruder': Array.of(24, 31) // In an RGBA set of 32 bits, we want the last 8
+        };
+        const jsonString = JSON.stringify(metadataObj);
+
+        // Format a standard PNG tEXt chunk: "Description\0" + JSON string
+        const keyStr = 'Description';
+
+        // Encode metadata payloads directly using native text compilation
+        const textEncoder = new TextEncoder();
+        const keyBytes = textEncoder.encode(keyStr);
+        const jsonBytes = textEncoder.encode(jsonString);
+        const chunkDataLength = keyBytes.length + 1 + jsonBytes.length;
+
+        // Length(4) + ChunkType(4) + Data(Length) + CRC(4)
+        const textChunkBytes = new Uint8Array(4 + 4 + chunkDataLength + 4);
+        const chunkView = new DataView(textChunkBytes.buffer);
+
+        // Write chunk data size (big-endian)
+        chunkView.setUint32(0, chunkDataLength, false);
+
+        // Write chunk type keyword: "tEXt"
+        chunkView.setUint32(4, 0x74455874, false);
+
+        // Write key "Description" followed by a null terminator and the JSON payload via direct byte blitting
+        textChunkBytes.set(keyBytes, 8);
+        textChunkBytes[8 + keyBytes.length] = 0; // null terminator
+        textChunkBytes.set(jsonBytes, 8 + keyBytes.length + 1);
+
+        const textOffset = 8 + chunkDataLength;
+
+        // mandatory CRC-32 checksum
+        let crc = -1;
+        // CRC checks run from chunk type (index 4) up to the start of the CRC field itself
+        for (let i = 4; i < textOffset; i++) {
+            let c = (crc ^ chunkView.getUint8(i)) & 0xFF;
+            for (let k = 0; k < 8; k++) {
+                c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
+            }
+            crc = c ^ (crc >>> 8);
+        }
+        const finalCrc = (crc ^ -1) >>> 0;
+        chunkView.setUint32(textOffset, finalCrc, false);
+
+        // Locate the end of the 8-byte signature + 25-byte IHDR chunk to inject metadata
+        const ihdrEndOffset = 8 + 4 + 4 + 13 + 4; // Signature (8) + Len (4) + Type (4) + Data (13) + CRC (4)
+        const finalPngBytes = new Uint8Array(pngBytes.length + textChunkBytes.length);
+
+        // Stitch the final payload: [Signature + IHDR] + [tEXt Chunk] + [Rest of original PNG]
+        finalPngBytes.set(pngBytes.subarray(0, ihdrEndOffset), 0);
+        finalPngBytes.set(textChunkBytes, ihdrEndOffset);
+        finalPngBytes.set(pngBytes.subarray(ihdrEndOffset), ihdrEndOffset + textChunkBytes.length);
+
+        const modifiedPngBlob = new Blob(Array.of(finalPngBytes), { type: 'image/png' });
+        const pngFile = new File(Array.of(modifiedPngBlob), `${baseName}.png`);
+
+        const pngFormData = new FormData();
+        pngFormData.append('file', pngFile);
+        pngFormData.append('uploadName', pngUploadName);
+
+        await api.uploadFile(pngFormData, HEAD_PRINTING);
+    } else {
+        // No coloring, just upload the file
+        const stl = new ModelExporter().parse(mesh, fileType, true, { clean: false });
+        const blob = new Blob([stl], { type: 'application/octet-stream' });
+        const fileOfBlob = new File([blob], fileName);
+
+        const fallbackFormData = new FormData();
+        fallbackFormData.append('file', fileOfBlob);
+        if (options?.uploadName) {
+            fallbackFormData.append('uploadName', options.uploadName);
+        }
+
+        finalUploadResult = await api.uploadFile(fallbackFormData, HEAD_PRINTING);
     }
 
-    const uploadResult = await api.uploadFile(formData, HEAD_PRINTING);
-    return uploadResult;
+    return finalUploadResult;
 };
-
 
 /**
  * Check integrity of meshes.

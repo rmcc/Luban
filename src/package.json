@@ -1,6 +1,6 @@
 {
   "name": "snapmaker-luban",
-  "version": "4.16.3",
+  "version": "4.16.4",
   "description": "Snapmaker 3-in-1 Software for 3D Printing, Laser Engraving and CNC Cutting (customized).",
   "homepage": "https://github.com/Snapmaker/Luban",
   "author": "Snapmaker Software Team",
@@ -18,7 +18,7 @@
   "dependencies": {
     "@electron/remote": "^2.1.3",
     "@gatsbyjs/potrace": "^3.0.0",
-    "@snapmaker/snapmaker-lunar": "file:modified-modules/snapmaker-snapmaker-lunar-1.4.9.tgz",
+    "@snapmaker/snapmaker-lunar": "file:modified-modules/snapmaker-snapmaker-lunar-1.5.0.tgz",
     "@snapmaker/snapmaker-sacp-sdk": "0.1.1",
     "@xmldom/xmldom": "^0.8.2",
     "bcrypt-nodejs": "0.0.3",

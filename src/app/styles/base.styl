@@ -11,7 +11,7 @@
   }
 
   // Un-invert these
-  img, video, iframe, canvas, .dont-invert, image#image-background {
+  img:not(.dont-invert *), video, iframe, canvas, .dont-invert, image#image-background {
     filter: url(#lossless-hue-rotate) invert(1);
   }
 
