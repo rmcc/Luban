@@ -49,8 +49,8 @@ const uploadMesh = async (mesh: Mesh, fileName: string, options?: UploadMeshOpti
 
     const fileType = options?.fileType || 'stl';
     const geometry = mesh.geometry;
-    const byteCountAttr = geometry.getAttribute('byte_count');
-    const positionAttr = geometry.getAttribute('position');
+    const byteCountAttr = geometry?.getAttribute('byte_count');
+    const positionAttr = geometry?.getAttribute('position');
 
     let finalUploadResult = null;
 
@@ -99,6 +99,7 @@ const uploadMesh = async (mesh: Mesh, fileName: string, options?: UploadMeshOpti
         const cellW = cellSize * invWidth;
         const cellH = cellSize * invHeight;
 
+        let didColors = false;
         for (let faceIndex = 0; faceIndex < totalFaces; faceIndex++) {
             // Read the Luban byteCount coloring flag
             const byteCount = byteCountAttr.array[faceIndex] || 0;
@@ -111,6 +112,7 @@ const uploadMesh = async (mesh: Mesh, fileName: string, options?: UploadMeshOpti
                 extruderId = 0;
             } else if (byteCountColor === EXTRUDER_RIGHT) {
                 extruderId = 1;
+                didColors = true;
             }
 
             const col = faceIndex % columns;
@@ -150,10 +152,8 @@ const uploadMesh = async (mesh: Mesh, fileName: string, options?: UploadMeshOpti
             uvView.setFloat32(uvOffset, uStart, true); uvOffset += 4;
             uvView.setFloat32(uvOffset, vStart + cellH - padY, true); uvOffset += 4;
         }
-        // upload a clean STL file, with the coloring flags stripped out so
-        // Luban doesn't try to use the custom MultiMaterialSegmentation code. We
-        // want Cura's variant.
-        const stl = new ModelExporter().parse(mesh, fileType, true, { clean: true });
+        // upload the original STL file
+        const stl = new ModelExporter().parse(mesh, fileType, true);
         const blob = new Blob([stl], { type: 'application/octet-stream' });
         const fileOfBlob = new File([blob], fileName);
 
@@ -164,6 +164,12 @@ const uploadMesh = async (mesh: Mesh, fileName: string, options?: UploadMeshOpti
         }
 
         finalUploadResult = await api.uploadFile(stlFormData, HEAD_PRINTING);
+
+        // We may have painted faces JUST for supports. Don't upload texture maps
+        // unless we actually have any extruder-coloring operations, exit now
+        if (!didColors) {
+            return finalUploadResult;
+        }
 
         // CuraEngine searches for files with the exact same name but different extensions
         // to determine if there is coloring to be applied. So get the name our file got
@@ -262,7 +268,7 @@ const uploadMesh = async (mesh: Mesh, fileName: string, options?: UploadMeshOpti
         await api.uploadFile(pngFormData, HEAD_PRINTING);
     } else {
         // No coloring, just upload the file
-        const stl = new ModelExporter().parse(mesh, fileType, true, { clean: false });
+        const stl = new ModelExporter().parse(mesh, fileType, true);
         const blob = new Blob([stl], { type: 'application/octet-stream' });
         const fileOfBlob = new File([blob], fileName);
 
