@@ -5,7 +5,7 @@ import 'core-js';
 // import 'regenerator-runtime/runtime';
 
 import { enable as electronEnable, initialize as electronRemoteMainInitialize } from '@electron/remote/main';
-import { app, BrowserWindow, dialog, ipcMain, Menu, powerSaveBlocker, protocol, screen, session, shell, nativeTheme, net } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, powerSaveBlocker, protocol, screen, session, shell, nativeTheme, net, utilityProcess } from 'electron';
 import Store from 'electron-store';
 import { autoUpdater } from 'electron-updater';
 import fs from 'fs';
@@ -37,8 +37,6 @@ const loadingMenu = [{
 }];
 
 const themeConfigPath = path.join(userDataDir, 'theme-selection.json');
-
-const childProcess = require('child_process');
 
 const SERVER_DATA = 'serverData';
 const UPLOAD_WINDOWS = 'uploadWindows';
@@ -310,6 +308,7 @@ const startToBegin = (data) => {
             'http://*/app.*.*',
         ]
     };
+
     session.defaultSession.webRequest.onBeforeRequest(
         filter,
         (request, callback) => {
@@ -328,7 +327,7 @@ const startToBegin = (data) => {
 
     webContentsSession.setProxy({ proxyRules: 'direct://' })
         .then(() => mainWindow.loadURL(loadUrl).catch(err => {
-            console.log('err', err.message);
+            console.error('Critical loadURL failure:', err.message);
         }));
 
     try {
@@ -362,38 +361,60 @@ const showMainWindow = async () => {
 
     // only start server once
     if (!serverData) {
-        if (process.env.NODE_ENV === 'development') {
-            process.chdir(path.resolve(__dirname, 'server'));
-            // Use require instead of import to avoid being precompiled in production mode
-            const { createServer } = require('./server');
-            createServer({
-                port: SERVER_PORT,
-                host: '127.0.0.1'
-            }, (err, data) => {
-                startToBegin({ ...data, port: CLIENT_PORT });
-            });
-        } else {
-            serverProcess = childProcess.fork(
-                path.resolve(__dirname, 'server-cli.js'),
-                [],
-                {
-                    env: {
-                        ...process.env,
-                        // USER_DATA_DIR: userDataDir,
-                        USER_DATA_DIR: app.getPath('userData')
-                    }
+        const serverScript = path.resolve(__dirname, 'server-cli.js');
+
+        const serverArgs = app.isPackaged
+            ? []
+            : ['--port', String(SERVER_PORT)];
+
+        serverProcess = utilityProcess.fork(
+            serverScript,
+            serverArgs,
+            {
+                // Set working directory to here. Most of the server modules use
+                // relative paths and assume it's rooted there. Originally done as a
+                // chdir() before starting the server
+                cwd: path.resolve(__dirname, 'server'),
+                stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+                env: {
+                    ...process.env,
+                    USER_DATA_DIR: app.getPath('userData'),
+                    NODE_ENV: process.env.NODE_ENV || (app.isPackaged ? 'production' : 'development')
                 }
-            );
-            serverProcess.on('message', (data) => {
-                if (data.type === SERVER_DATA) {
-                    startToBegin(data);
-                } else if (data.type === UPLOAD_WINDOWS) {
-                    window.loadURL(loadUrl).catch(err => {
-                        console.log('err', err.message);
-                    });
-                }
+            }
+        );
+
+        if (serverProcess.stdout) {
+            serverProcess.stdout.on('data', function (chunk) {
+                console.log("[SERVER]:", chunk.toString('utf8').trim());
             });
         }
+
+        if (serverProcess.stderr) {
+            serverProcess.stderr.on('data', function (chunk) {
+                console.error("[SERVER ERROR]:", chunk.toString('utf8').trim());
+            });
+        }
+
+        // Chromium native error
+        serverProcess.on('error', function (err) {
+            console.error("[SERVER INTERNAL ERROR]:", err && err.stack ? err.stack : err);
+        });
+
+        serverProcess.on('message', (data) => {
+            if (data.type === SERVER_DATA) {
+                if (app.isPackaged) {
+                    startToBegin(data);
+                } else {
+                    startToBegin({ ...data, port: CLIENT_PORT });
+                }
+            } else if (data.type === UPLOAD_WINDOWS) {
+                window.loadURL(loadUrl).catch(err => {
+                    console.log('err', err.message);
+                });
+            }
+        });
+
         // window.webContents.openDevTools();
         window.loadURL(path.resolve(__dirname, 'app', 'loading.html'))
             .then(() => window.setTitle(`Snapmaker Luban ${pkg.version}`))
@@ -401,22 +422,12 @@ const showMainWindow = async () => {
                 console.log('err', err.message);
             });
         window.setBackgroundColor('#f5f5f7');
-        if (process.platform === 'win32') {
+        window.once('ready-to-show', () => {
             window.show();
-        } else {
-            window.on('ready-to-show', () => {
-                window.show();
-            });
-        }
+        });
         // serverData = await launchServer();
     } else {
-        if (process.platform === 'win32') {
-            window.show();
-        } else {
-            window.on('ready-to-show', () => {
-                window.show();
-            });
-        }
+        window.show();
     }
 
     window.on('close', (e) => {

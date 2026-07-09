@@ -44,9 +44,6 @@ const launchServer = () => new Promise((resolve, reject) => {
         userDataDir: process.env.USER_DATA_DIR
     };
 
-    // Change working directory to 'server' before require('./server')
-    process.chdir(path.resolve(__dirname, 'server'));
-
     require('./server').createServer({
         port: options.port,
         host: options.host,
@@ -61,7 +58,17 @@ const launchServer = () => new Promise((resolve, reject) => {
             reject(err);
             return;
         }
-        process.send({ type: SERVER_DATA, ...data });
+
+        const messagePayload = { type: SERVER_DATA, ...data };
+
+        if (typeof process.parentPort !== 'undefined' && process.parentPort) {
+            // General case: running in Electron
+            process.parentPort.postMessage(messagePayload);
+        } else if (process.send) {
+            // CLI mode
+            process.send(messagePayload);
+        }
+
         resolve(data);
     });
 });
