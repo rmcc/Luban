@@ -1,0 +1,16 @@
+diff --git a/node_modules/snapmaker-luban-engine/lib/getpath.js b/node_modules/snapmaker-luban-engine/lib/getpath.js
+index 251430d..5ded4e2 100644
+--- a/node_modules/snapmaker-luban-engine/lib/getpath.js
++++ b/node_modules/snapmaker-luban-engine/lib/getpath.js
+@@ -24,7 +24,10 @@ function getPlatformPath() {
+   }
+ }
+ 
+-var LubanEnginePath = path.join(__dirname, getPlatformPath());
++// If we get an ASAR-packaged path, make sure we point to the unpacked variant.
++// Binaries won't run from inside the pack
++// var LubanEnginePath = path.join(__dirname, getPlatformPath());
++var LubanEnginePath = path.resolve(process.cwd(), __dirname, getPlatformPath()).replace('app.asar', 'app.asar.unpacked');
+ 
+ function getPath() {
+   if (fs.existsSync(LubanEnginePath)) {

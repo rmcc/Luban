@@ -26,7 +26,7 @@
     "linux"
   ],
   "scripts": {
-    "postinstall": "npm run pkgsync && npm run electron-rebuild",
+    "postinstall": "npm run pkgsync && patch-package",
     "commit": "npx git-cz",
     "pkgsync": "node build/pkgsync.js",
     "update-i18n": "gulp i18nextServer i18nextApp",
@@ -191,7 +191,6 @@
     "rxjs": "^7.5.5",
     "semver": "^7.5.2",
     "serialport": "10.5.0",
-    "serve-favicon": "2.5.0",
     "session-file-store": "1.1.2",
     "sha1": "1.1.1",
     "snapmaker-luban-engine": "^0.9.1",
@@ -283,6 +282,7 @@
     "i18next-scanner": "4.4.0",
     "mini-css-extract-plugin": "1.6.2",
     "nib": "1.2.0",
+    "patch-package": "^8.0.1",
     "plugin-error": "1.0.1",
     "pofile": "1.0.11",
     "progress": "2.0.3",

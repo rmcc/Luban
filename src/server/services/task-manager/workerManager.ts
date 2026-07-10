@@ -1,5 +1,6 @@
 import workerpool, { WorkerPool } from 'workerpool';
 import DataStorage from '../../DataStorage';
+import path from 'path';
 
 // Avoid TSC precompiling, at the same time, webpack can collect dependencies
 if (process.env.NODE_ENV === 'production') {
@@ -34,9 +35,11 @@ class WorkerManager {
             const config: workerpool.WorkerPoolOptions = {
                 workerType: 'process',
                 forkOpts: {
+                    stdio: 'inherit',
                     env: {
                         Tmpdir: DataStorage.tmpDir,
                         fontDir: DataStorage.fontDir,
+                        VIRTUAL_CWD: process.cwd()
                     }
                 }
             };
@@ -46,7 +49,11 @@ class WorkerManager {
             // } else {
             config.minWorkers = 1;
             // }
-            this.pool = workerpool.pool('./Pool.worker.js', config);
+
+            // Use an absolute path based on our virtual working directory set
+            // by server-cli.
+            const targetWorkerFile = path.join(process.cwd(), 'Pool.worker.js');
+            this.pool = workerpool.pool(targetWorkerFile, config);
         }
         return this.pool;
     }

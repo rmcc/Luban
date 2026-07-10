@@ -20,7 +20,6 @@ import methodOverride from 'method-override';
 import morgan from 'morgan';
 import path from 'path';
 import rangeCheck from 'range_check';
-import favicon from 'serve-favicon';
 import sessionFileStore from 'session-file-store';
 
 import settings from './config/settings';
@@ -145,7 +144,11 @@ const createApplication = () => {
         })
     }));
 
-    app.use(favicon(path.join(settings.assets.app.path, 'favicon.ico')));
+    app.get(/\/favicon\.ico$/, (req, res) => {
+        const iconPath = path.join(settings.assets.app.path, 'favicon.ico');
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year cache
+        res.sendFile(iconPath);
+    });
     app.use(cookieParser());
 
     // Connect's body parsing middleware. This only handles urlencoded and json bodies.

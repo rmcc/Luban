@@ -1,3 +1,10 @@
+// the forked utilityProcess that spawned the server
+// gave us a pseudo-root path from which we work. Keep overloading it
+// since a direct process.chdir() can't be done inside ASAR
+if (process.env.VIRTUAL_CWD) {
+    process.cwd = () => process.env.VIRTUAL_CWD;
+}
+
 import workerpool from 'workerpool';
 
 const methods = require.context('./workers', false, /\.(t|j)s/).keys()

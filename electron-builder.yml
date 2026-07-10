@@ -18,8 +18,12 @@ fileAssociations:
 #
 # global pack options
 #
-asar: false
-asarUnpack: []
+asar:
+    smartUnpack: false
+asarUnpack:
+    - "**/*.node"
+    - "**/node_modules/@snapmaker/snapmaker-lunar/engine/**/*"
+    - "**/node_modules/snapmaker-luban-engine/engine/**/*"
 
 #
 # publish options
