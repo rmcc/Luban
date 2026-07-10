@@ -371,10 +371,6 @@ const showMainWindow = async () => {
             serverScript,
             serverArgs,
             {
-                // Set working directory to here. Most of the server modules use
-                // relative paths and assume it's rooted there. Originally done as a
-                // chdir() before starting the server
-                cwd: path.resolve(__dirname, 'server'),
                 stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
                 env: {
                     ...process.env,

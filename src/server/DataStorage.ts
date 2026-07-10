@@ -248,10 +248,10 @@ class DataStorage {
         const CURA_ENGINE_CONFIG_LOCAL = path.resolve('../../resources/print-settings');
 
         // default config
-        await copyDir(CURA_ENGINE_CONFIG_LOCAL, this.defaultConfigDir);
+        await copyDir(CURA_ENGINE_CONFIG_LOCAL, this.defaultConfigDir, { asarSafe: true });
 
         // config
-        await copyDir(CURA_ENGINE_CONFIG_LOCAL, this.configDir);
+        await copyDir(CURA_ENGINE_CONFIG_LOCAL, this.configDir, { asarSafe: true });
     }
 
     private async initRecoverActive() {

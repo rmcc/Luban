@@ -16,7 +16,7 @@ export default {
                 '/', // fallback
                 '/worker',
             ],
-            path: path.resolve(__dirname, '..', '..', 'app'),
+            path: path.join(__dirname, '..', '..', 'app'),
             maxAge: maxAge
         }
     },

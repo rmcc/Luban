@@ -8,8 +8,8 @@ exports.default = async function(context) {
   
   // Target the root of the build artifacts folder
   const buildDir = path.join(
-    appOutDir, 
-    'resources/app/node_modules/@serialport/bindings-cpp/build'
+    context.packager.projectDir,
+    'dist/Luban/node_modules/@serialport/bindings-cpp/build'
   );
 
   if (fs.existsSync(buildDir)) {

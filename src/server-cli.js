@@ -9,6 +9,11 @@ const SERVER_DATA = 'serverData';
 // Defaults to 'production'
 process.env.NODE_ENV = process.env.NODE_ENV || 'production';
 
+// Setting a cwd before starting the server works, except if
+// ASAR is used. So overload process.cwd() instead so that it
+// returns our base working path, which works on all cases
+process.cwd = () => path.join(__dirname, 'server');
+
 const increaseVerbosityLevel = (val, total) => {
     return total + 1;
 };
