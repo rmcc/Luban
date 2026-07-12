@@ -1,6 +1,5 @@
 import schedule from 'node-schedule';
 import EventEmitter from 'events';
-import { Socket } from 'socket.io';
 
 import logger from '../logger';
 

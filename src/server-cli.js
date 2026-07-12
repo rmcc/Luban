@@ -1,5 +1,7 @@
 /* eslint max-len: 0 */
 /* eslint no-console: 0 */
+import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import program from 'commander';
 import isElectron from 'is-electron';
@@ -49,9 +51,37 @@ const launchServer = () => new Promise((resolve, reject) => {
         userDataDir: process.env.USER_DATA_DIR
     };
 
+    // Development mode needs a fixed path, since it goes into the webpack config
+    const isDev = process.env.NODE_ENV === 'development';
+    const pipePath = os.platform() === 'win32'
+        ? path.join('\\\\.\\pipe', isDev ? 'luban-ipc-dev' : `luban-ipc-${Date.now()}`)
+        : path.join(os.tmpdir(), isDev ? 'luban-ipc-dev.sock' : `luban-ipc-${Date.now()}.sock`);
+
+    // Clean up previous unix socket if it exists (again, mostly for dev)
+    // Also, hook up clean-on-exit to avoid leaving stale sockets around
+    // Windows socks aren't actual files, so this doesn't apply
+    if (os.platform() !== 'win32') {
+        const handleSignal = () => {
+            try { if (fs.existsSync(pipePath)) fs.unlinkSync(pipePath); } catch(e){}
+            process.exit(0);
+        };
+
+        process.on('SIGINT', handleSignal);
+        process.on('SIGTERM', handleSignal);
+
+        process.on('exit', () => {
+            try { if (fs.existsSync(pipePath)) fs.unlinkSync(pipePath); } catch(e){}
+        });
+
+        if (fs.existsSync(pipePath)) {
+            fs.unlinkSync(pipePath);
+        }
+    }
+
     require('./server').createServer({
         port: options.port,
         host: options.host,
+        pipePath: pipePath,
         backlog: options.backlog,
         verbosity: options.verbose,
         watchDirectory: options.watchDirectory,

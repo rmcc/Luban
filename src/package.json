@@ -77,8 +77,6 @@
     "serialport": "10.5.0",
     "session-file-store": "1.1.2",
     "snapmaker-luban-engine": "^0.9.1",
-    "socket.io": "^4.8.3",
-    "socketio-jwt": "4.5.1",
     "spawn-default-shell": "2.0.0",
     "static-eval": "2.0.5",
     "superagent": "8.1.2",

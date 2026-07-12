@@ -1,4 +1,6 @@
-import { Socket } from 'socket.io-client';
+interface Socket {
+    emit(event: string, ...args: any[]): void;
+}
 
 const TASK_STATUS_IDLE = 'idle';
 export type TGcodeFile = {

@@ -93,7 +93,9 @@ const createApplication = () => {
     // Check if client's IP address is in the whitelist
     app.use((req, res, next) => {
         const ipaddr = req.ip || req.connection.remoteAddress;
-        const allowedAccess = _.some(IP_WHITELIST, (whitelist) => {
+        const isPipeConnection = !ipaddr;
+
+        const allowedAccess = isPipeConnection || _.some(IP_WHITELIST, (whitelist) => {
             return rangeCheck.inRange(ipaddr, whitelist);
         }) || (settings.allowRemoteAccess);
         const forbiddenAccess = !allowedAccess;

@@ -1,6 +1,7 @@
 /* eslint no-var: 0 */
 /* eslint prefer-arrow-callback: 0 */
 const without = require('lodash/without');
+const os = require('os');
 const path = require('path');
 const webpack = require('webpack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -15,6 +16,9 @@ const languages = require('./webpack.config.app-i18n').languages;
 const pkg = require('./package.json');
 
 const { CLIENT_PORT, SERVER_PORT } = pkg.config;
+const devPipePath = os.platform() === 'win32'
+    ? '\\\\.\\pipe\\luban-ipc-dev'
+    : path.join(os.tmpdir(), 'luban-ipc-dev.sock');
 
 const devServer = {
     hot: true,
@@ -26,11 +30,8 @@ const devServer = {
         {
             context: ['/api', '/data', '/worker', '/resources'],
             target: `http://localhost:${SERVER_PORT}`,
-        },
-        {
-            context: ['/socket.io'],
-            target: `http://localhost:${SERVER_PORT}`,
-            ws: true,
+            agent: new (require('http').Agent)({ socketPath: devPipePath }),
+            changeOrigin: true
         }
     ],
     devMiddleware: {

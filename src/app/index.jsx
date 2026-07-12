@@ -57,17 +57,23 @@ async function setup() {
 }
 
 series([
-    async (next) => {
-        // setup
-        await setup();
-        next();
+    (next) => {
+        setup()
+            .then(() => {
+                next();
+            })
+            .catch((err) => {
+                // Prevent silent failures if setup rejects
+                console.error('Setup initialization failed:', err);
+                next(err);
+            });
     },
     (next) => {
         const token = machineStore.get('session.token');
         user.signin({ token: token })
             .then(({ authenticated }) => {
                 if (authenticated) {
-                    log.info('Create and establish a WebSocket connection');
+                    log.info('Create and establish a MessagePort connection');
                     controller.connect(() => {
                         next();
                     });

@@ -268,12 +268,61 @@ if (process.platform === 'win32') {
 
 const startToBegin = (data) => {
     serverData = data;
-    const { address, port } = data;
+    const { address, pipePath, port } = data;
+    const targetHost = address || '127.0.0.1';
+
     configureWindow(mainWindow);
 
     updateHandle();
 
-    loadUrl = `http://${address}:${port}`;
+    if (app.isPackaged) {
+        loadUrl = `lubanserver://worker`;
+    } else {
+        // To go through webpack-dev-server for HMR
+        loadUrl = `http://${targetHost}:${port}`;
+    }
+
+    protocol.handle('lubanserver', (request) => {
+        const urlObj = new URL(request.url);
+
+        let resolvedPath = urlObj.pathname + urlObj.search;
+        if (resolvedPath === '/') {
+            resolvedPath = '/index.html';
+        }
+
+        const reqOpts = {
+            socketPath: pipePath,
+            method: request.method,
+            path: resolvedPath,
+            headers: Object.fromEntries ? Object.fromEntries(request.headers.entries()) : [...request.headers.entries()]
+        };
+
+        return new Promise((resolve) => {
+            const proxyReq = require('http').request(reqOpts, (proxyRes) => {
+                resolve(new Response(proxyRes, {
+                    status: proxyRes.statusCode,
+                    headers: proxyRes.headers
+                }));
+            });
+
+            proxyReq.on('error', (err) => {
+                console.error("Pipe request execution failed:", err.message);
+                resolve(new Response(err.message, { status: 502 }));
+            });
+
+            // If a body payload exists, include it
+            if (request.body) {
+                request.arrayBuffer().then(buf => {
+                    const finalBuffer = Buffer.from(buf);
+                    proxyReq.setHeader('Content-Length', finalBuffer.length);
+                    proxyReq.write(finalBuffer);
+                    proxyReq.end();
+                }).catch(() => proxyReq.end());
+            } else {
+                proxyReq.end();
+            }
+        });
+    });
 
     // register file protocol
     protocol.handle('luban', (request) => {
@@ -306,13 +355,18 @@ const startToBegin = (data) => {
             'http://*/polyfill.*.*',
             'http://*/vendor.*.*',
             'http://*/app.*.*',
+            'lubanserver://*/resources/images/*',
+            'lubanserver://*/app.css',
+            'lubanserver://*/polyfill.*.*',
+            'lubanserver://*/vendor.*.*',
+            'lubanserver://*/app.*.*',
         ]
     };
 
     session.defaultSession.webRequest.onBeforeRequest(
         filter,
         (request, callback) => {
-            const redirectURL = request.url.replace(/^http/, 'luban');
+            const redirectURL = request.url.replace(/^(http|lubanserver)/, 'luban');
             callback({ redirectURL });
         }
     );
@@ -409,6 +463,13 @@ const showMainWindow = async () => {
                     console.log('err', err.message);
                 });
             }
+        });
+
+        const { MessageChannelMain, ipcMain } = require('electron');
+        ipcMain.on('renderer-ready-for-port', (event) => {
+            const { port1, port2 } = new MessageChannelMain();
+            serverProcess.postMessage({ type: 'setup-socket-port' }, [port1]);
+            event.sender.postMessage('setup-socket-port', null, [port2]);
         });
 
         // window.webContents.openDevTools();
@@ -750,7 +811,10 @@ app.on('second-instance', (event, commandLine) => {
         }
     }
 });
-protocol.registerSchemesAsPrivileged([{ scheme: 'luban', privileges: { standard: true, corsEnabled: true } }]);
+protocol.registerSchemesAsPrivileged([
+    { scheme: 'luban', privileges: { standard: true, corsEnabled: true, supportFetchAPI: true, secure: true } },
+    { scheme: 'lubanserver', privileges: { standard: true, corsEnabled: true, supportFetchAPI: true, secure: true } }
+]);
 
 /**
  * when ready

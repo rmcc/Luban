@@ -80,9 +80,19 @@ const createServer = (options, callback) => {
 
     const app = createApplication();
 
-    const { port = 0, host, backlog } = options;
+    const { port = 0, pipePath, host, backlog } = options;
     const server = http.createServer(app);
-    server.listen(port, host, backlog, () => {
+
+    const listenOptions = {};
+    if (typeof pipePath !== 'undefined' && pipePath !== '') {
+        listenOptions.path = pipePath;
+    } else {
+        listenOptions.port = port;
+        listenOptions.host = host;
+        listenOptions.backlog = backlog;
+    }
+
+    server.listen(listenOptions, () => {
         // Start socket service
         startServices(server);
 
@@ -91,21 +101,11 @@ const createServer = (options, callback) => {
         const realPort = server.address().port;
         callback && callback(null, {
             address: realAddress,
-            port: realPort
+            port: realPort,
+            pipePath: pipePath
         });
 
-        log.info(`Starting the server at ${chalk.cyan(`http://${realAddress}:${realPort}`)}`);
-
-        dns.lookup(os.hostname(), { family: 4, all: true }, (err, addresses) => {
-            if (err) {
-                log.error(`Can't resolve host name: ${err}`);
-                return;
-            }
-
-            addresses.forEach(({ address }) => {
-                log.info(`Starting the server at ${chalk.cyan(`http://${address}:${realPort}`)}`);
-            });
-        });
+        log.info(`Starting the server at ${chalk.cyan(`${pipePath}`)}`);
     });
 };
 

@@ -1,11 +1,6 @@
-import { Server, Socket } from 'socket.io';
-import socketioJwt from 'socketio-jwt';
-import rangeCheck from 'range_check';
 import EventEmitter from 'events';
 
-import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import settings from '../../config/settings';
-import { IP_WHITELIST } from '../../constants';
 import logger from '../logger';
 
 const log = logger('service:socket-server');
@@ -18,56 +13,67 @@ type TMessage = {
 class SocketServer extends EventEmitter {
     private server = null;
 
-    private io: Server<DefaultEventsMap, DefaultEventsMap> = null;
+    private io = null;
 
-    private sockets: Socket[] = [];
+    private sockets: any[] = [];
 
     public id = '';
 
     private events = [];
 
+    private port: any = null;
+
     public start(server) {
+        this.sockets = [];
         this.stop();
 
         this.server = server;
-        this.io = new Server(this.server, {
-            serveClient: true,
-            allowEIO3: true,
-            pingTimeout: 180000, // 60s without pong to consider the connection closed
-            path: '/socket.io',
-            maxHttpBufferSize: 1e8
-        });
 
-        // JWT (JSON Web Tokens) support
-        this.io.use(socketioJwt.authorize({
-            secret: settings.secret,
-            handshake: true
-        }));
+        if (typeof process.parentPort !== 'undefined' && process.parentPort) {
+            process.parentPort.on('message', (messageEvent: any) => {
+                if (messageEvent.data && messageEvent.data.type === 'setup-socket-port') {
+                    // If we lost the channel during HMR
+                    if (this.port) {
+                        this.port.close();
+                    }
+                    const [port] = messageEvent.ports;
+                    this.port = port;
 
-        // Register middleware that checks for client IP address and blocks connections
-        // which are not in white list.
-        this.io.use((socket, next) => {
-            const clientIp = socket.handshake.address;
-            const allowedAccess = IP_WHITELIST.some(whitelist => {
-                return rangeCheck.inRange(clientIp, whitelist);
-            }) || (settings.allowRemoteAccess);
+                    // Support both EventEmitter style and property-assignment message listeners for UtilityProcess frameworks
+                    const handlePortMessage = (e: any) => {
+                        const { event, args } = e.data;
+                        this.emit(event, ...args);
 
-            if (!allowedAccess) {
-                log.warn(`Forbidden: Deny connection from ${clientIp}`);
-                next(new Error('You are not allowed on this server!'));
-                return;
-            }
+                        if (this.events && this.events.length > 0) {
+                            for (const [evt, callback] of this.events) {
+                                if (evt === event) {
+                                    const mockSocket = this.getOrCreateMockSocket();
+                                    callback(mockSocket, ...args);
+                                }
+                            }
+                        }
+                    };
 
-            next();
-        });
+                    this.port.on('message', handlePortMessage);
+                    if ('onmessage' in this.port) {
+                        this.port.onmessage = handlePortMessage;
+                    }
 
-        this.io.on('connection', this.onConnection);
+                    this.port.start();
+
+                    const mockSocket = this.getOrCreateMockSocket();
+                    this.onConnection(mockSocket);
+                }
+            });
+        } else {
+            console.error('[SOCKETSERVER] Warning: process.parentPort is undefined inside this thread context. This shouldn\'t happen');
+        }
     }
 
     public stop() {
-        if (this.io) {
-            this.io.close();
-            this.io = null;
+        if (this.port) {
+            this.port.close();
+            this.port = null;
         }
         this.sockets = [];
         this.server = null;
@@ -87,31 +93,14 @@ class SocketServer extends EventEmitter {
         socket.emit('startup');
         this.emit('connection', socket);
 
-        if (this.events && this.events.length > 0) {
-            for (const [event, callback] of this.events) {
-                const socketEventFn = (...params) => {
-                    return callback(socket, ...params);
-                };
-                socket.on(event, socketEventFn);
-            }
-        }
-
-        // Disconnect from socket
-        socket.on('disconnect', (err) => {
-            log.debug(`Disconnected from err=${err}`);
-            log.debug(`Disconnected from ${address}: id=${socket.id}, token.id=${token.id}, token.name=${token.name}`);
-
-            this.emit('disconnection', socket);
-
-            this.sockets.splice(this.sockets.indexOf(socket), 1);
-        });
+        // Disconnect from socket doesn't happen. MessagePort is persistent
     };
 
     public registerEvent(event: string, callback) {
         this.events.push([event, callback]);
     }
 
-    private channelMiddleware = (socket: Socket, topic: string, invoke, actionid, params) => {
+    private channelMiddleware = (socket: any, topic: string, invoke, actionid, params) => {
         const actions = {
             next: (res) => {
                 socket.emit(topic, actionid, 'next', res);
@@ -137,6 +126,51 @@ class SocketServer extends EventEmitter {
                 return this.channelMiddleware(socket, topic, callback, actionid, params);
             }
         ]);
+    }
+
+    // This is here just to make the various event emitters happy. They want a socket,
+    // so they get a "socket". It's just wrapping their socket "emit" events into
+    // MessagePort messages, easier than rewriting everything to use postMessage.
+    private getOrCreateMockSocket() {
+        let existing = this.sockets.find(s => s.id === 'utility-port');
+        if (existing) {
+            return existing;
+        }
+
+        const mockSocket = {
+            id: 'utility-port',
+            handshake: {
+                address: '127.0.0.1',
+                headers: {}
+            },
+            decoded_token: {},
+            emit: (event: string, ...args: any[]) => {
+                if (this.port) {
+                    try {
+                        this.port.postMessage({ event, args });
+                    } catch (cloneError) {
+                        args.forEach((arg, index) => {
+                            if (arg && typeof arg === 'object') {
+                                Object.keys(arg).forEach(key => {
+                                    const valType = typeof arg[key];
+                                });
+                            }
+                        });
+                        // Safe fallback emulator matching old socket behavior:
+                        const sanitizedArgs = JSON.parse(JSON.stringify(args));
+                        this.port.postMessage({ event, args: sanitizedArgs });
+                    }
+                }
+            },
+            on: (event: string, callback: (...args: any[]) => void) => {
+                this.on(event, callback);
+            },
+            once: (event: string, callback: (...args: any[]) => void) => {
+                this.once(event, callback);
+            }
+        };
+
+        return mockSocket;
     }
 }
 
