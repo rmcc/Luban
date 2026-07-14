@@ -2,6 +2,9 @@ module.exports = {
     presets: [
         '@babel/preset-react',
         ['@babel/preset-env', {
+            targets: {
+                electron: '41.0'
+            },
             useBuiltIns: false
         }],
     ],
@@ -51,9 +54,7 @@ module.exports = {
         /**
          * Stage 4
          */
-        // logical assignment
-        // https://github.com/tc39/proposal-logical-assignment
-        '@babel/plugin-proposal-logical-assignment-operators',
+        // Removed logical assignment operator plugin (Fully supported natively in Electron 41 / Node 24)
 
         // https://github.com/babel/babel/issues/9849
         '@babel/plugin-transform-runtime',

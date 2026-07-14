@@ -3,11 +3,6 @@ import { cloneDeep, isNil, isUndefined } from 'lodash';
 
 import log from '../../lib/log';
 
-// We put with statement into an ES5 module
-import * as ParameterContextModule from './parameter-context.es5';
-
-(globalThis as any).ParameterContext = ParameterContextModule.default || ParameterContextModule;
-
 declare type ModifyParameterItem = [string, number | string | boolean];
 
 const KEYWORDS = new Set([
@@ -179,6 +174,57 @@ function calculateParameterTopologicalGraph() {
 
 const allContext = {};
 
+class ParameterContext {
+    public context: any = {};
+    private usedProperties = new Set<string>();
+
+    public setContext(context: any) {
+        this.context = context;
+    }
+
+    public defineProperty(key: string, getter: () => any, setter: (v: any) => void) {
+        Object.defineProperty(this.context, key, {
+            get: () => {
+                this.usedProperties.add(key);
+                return getter();
+            },
+            set: (v) => setter(v),
+            configurable: true,
+            enumerable: true
+        });
+    }
+
+    public executeExpression(expression: string) {
+        this.usedProperties.clear();
+        if (!this.context) return '';
+
+        const proxy = new Proxy(this.context, {
+            has: (target, prop) => {
+                // Check if the property actually exists on the context object or its prototype,
+                // or if it's a passthrough. i.e., Math.* expressions
+                return prop in target;
+            },
+            get: (target, prop) => {
+                if (typeof prop === 'string') {
+                    this.usedProperties.add(prop);
+                }
+                return target[prop];
+            }
+        });
+
+        const runner = new Function('context', `
+            with (context) {
+                return ${expression};
+            }
+        `);
+        return runner(proxy);
+    }
+
+    public getUsedProperties() {
+        return Array.from(this.usedProperties);
+    }
+}
+
 function getContext(definition, contextKey = '') {
     contextKey = contextKey || definition.definitionId;
 
@@ -196,7 +242,7 @@ function getContext(definition, contextKey = '') {
         defaultExtruderPosition: () => 0,
     };
 
-    const newContext = new (globalThis as any).ParameterContext();
+    const newContext = new ParameterContext();
 
     // @ts-ignore
     newContext.setContext(ctx);

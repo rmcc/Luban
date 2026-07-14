@@ -77,7 +77,9 @@ module.exports = {
         filename: '[name].[hash].bundle.js',
         publicPath: '',
         globalObject: 'this',
-        libraryTarget: 'umd',
+        library: {
+            type: 'umd',
+        }
     },
     optimization: {
         minimize: false,

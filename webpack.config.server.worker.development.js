@@ -38,7 +38,9 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, 'output/src/server'),
         filename: '[name].js',
-        libraryTarget: 'commonjs2'
+        library: {
+            type: 'commonjs'
+        }
     },
     plugins: [
         new webpack.DefinePlugin({

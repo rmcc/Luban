@@ -41,7 +41,9 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, 'dist/Luban/src/server'),
         filename: '[name].js',
-        libraryTarget: 'commonjs2'
+        library: {
+            type: 'commonjs',
+        }
     },
     optimization: {
         minimize: true,
