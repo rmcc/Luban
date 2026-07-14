@@ -2,8 +2,7 @@ module.exports = {
     presets: [
         '@babel/preset-react',
         ['@babel/preset-env', {
-            useBuiltIns: 'entry',
-            corejs: '3.6.5',
+            useBuiltIns: false
         }],
     ],
     plugins: [

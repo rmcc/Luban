@@ -1,9 +1,3 @@
-// babel/preset-env, useBuiltIns: "entry"
-// https://babeljs.io/docs/babel-preset-env#usebuiltins
-import 'core-js';
-// import 'core-js/stable';
-// import 'regenerator-runtime/runtime';
-
 import { enable as electronEnable, initialize as electronRemoteMainInitialize } from '@electron/remote/main';
 import { app, BrowserWindow, dialog, ipcMain, Menu, powerSaveBlocker, protocol, screen, session, shell, nativeTheme, net, utilityProcess } from 'electron';
 import Store from 'electron-store';
@@ -352,12 +346,10 @@ const startToBegin = (data) => {
         urls: [
             'http://*/resources/images/*',
             'http://*/app.css',
-            'http://*/polyfill.*.*',
             'http://*/vendor.*.*',
             'http://*/app.*.*',
             'lubanserver://*/resources/images/*',
             'lubanserver://*/app.css',
-            'lubanserver://*/polyfill.*.*',
             'lubanserver://*/vendor.*.*',
             'lubanserver://*/app.*.*',
         ]

@@ -50,10 +50,8 @@ module.exports = {
         exportsFields: [],
     },
     entry: {
-        polyfill: path.resolve(__dirname, 'src/app/polyfill/index.js'),
         vendor: findImports([
             'src/app/**/*.{js,jsx}',
-            '!src/app/polyfill/**/*.js',
             '!src/app/**/*.development.js'
         ], { flatten: true }),
         app: path.resolve(__dirname, 'src/app/index.jsx')

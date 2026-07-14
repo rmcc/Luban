@@ -70,7 +70,6 @@ module.exports = {
     },
     entry: {
         app: path.resolve(__dirname, 'src/app/index.jsx'),
-        polyfill: path.resolve(__dirname, 'src/app/polyfill/index.js'),
         // 'Pool.worker': path.resolve(__dirname, 'src/app/lib/manager/Pool.worker.js')
     },
     output: {
