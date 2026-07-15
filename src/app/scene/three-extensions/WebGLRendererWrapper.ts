@@ -188,6 +188,26 @@ class WebGLRendererWrapper {
     public render(scene, camera) {
         const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
+        // To prevent invalid texture errors when pushing images to the GPU
+        scene.traverse((object: any) => {
+            if (object.material) {
+                const materials = Array.isArray(object.material) ? object.material : [object.material];
+                materials.forEach((mat: any) => {
+                    if (mat.map && mat.map.image) {
+                        const img = mat.map.image;
+
+                        // Catch un-decoded default SVG shapes (300x150) or empty 0x0 assets
+                        if (img instanceof HTMLImageElement && (!img.complete || img.width === 300)) {
+                            // Temporarily unbind the invalid texture map for this specific frame
+                            mat._cachedMap = mat.map;
+                            mat.map = null;
+                            mat.needsUpdate = true;
+                        }
+                    }
+                });
+            }
+        });
+
         if (!isDarkMode || !this.renderTarget) {
             camera.layers.enableAll();
             this.renderer.setRenderTarget(null);
@@ -218,6 +238,22 @@ class WebGLRendererWrapper {
         this.renderer.clearDepth();
         this.renderer.render(scene, camera);
         this.renderer.autoClear = true;
+
+        // We detached incomplete textures at the start to prevent invalid texture errors
+        // when pushing images to the GPU. Restore the texture links immediately so they
+        // can update on the next frame loop
+        scene.traverse((object: any) => {
+            if (object.material) {
+                const materials = Array.isArray(object.material) ? object.material : [object.material];
+                materials.forEach((mat: any) => {
+                    if (mat._cachedMap) {
+                        mat.map = mat._cachedMap;
+                        delete mat._cachedMap;
+                        mat.needsUpdate = true;
+                    }
+                });
+            }
+        });
 
         camera.layers.mask = originalMask;
     }
