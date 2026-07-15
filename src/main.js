@@ -92,16 +92,18 @@ function getBrowserWindowOptions() {
         }
     } else {
         const display = screen.getPrimaryDisplay();
-        // const { x, y, width, height } = display.workArea;
-        const { x, y, width } = display.workArea;
+        const { x, y, width, height } = display.workArea;
         const nx = x + (width - 1440) / 2;
+        const ny = y + (height - 900) / 2;
         windowOptions = {
             id: display.id,
             // x,
             // y,
             x: nx,
-            y,
-            center: true
+            y: height < 900 ? y : ny,
+            center: true,
+            width: Math.min(1440, width),
+            height: Math.min(900, height)
             // width,
             // height
         };
