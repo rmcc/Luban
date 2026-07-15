@@ -396,14 +396,7 @@ const Window = {
     },
 
     copySelection(text) {
-        if (isElectron()) {
-            const clipboard = window.require('electron').clipboard;
-            clipboard.writeText(text);
-        } else {
-            navigator.clipboard.writeText(text);
-            // execCommand is unstable
-            // document.execCommand('copy', true, text);
-        }
+        navigator.clipboard.writeText(text);
     },
     reload() {
         window.location.href = '/';
