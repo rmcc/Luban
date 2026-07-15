@@ -1789,7 +1789,7 @@ export const actions = {
                     fill: '#ffffff',
                     'fill-opacity': '0',
                     opacity: '1',
-                    stroke: '#000000',
+                    stroke: '#ffffff',
                     'stroke-width': '0.2756410256410256',
                     width: w,
                     height: h,
