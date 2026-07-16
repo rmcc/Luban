@@ -50,10 +50,6 @@ module.exports = {
         exportsFields: [],
     },
     entry: {
-        vendor: findImports([
-            'src/app/**/*.{js,jsx}',
-            '!src/app/**/*.development.js'
-        ], { flatten: true }),
         app: path.resolve(__dirname, 'src/app/index.jsx')
     },
     output: {
