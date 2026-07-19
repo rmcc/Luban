@@ -10,14 +10,14 @@ import {
     Mesh,
     Line,
     BufferGeometry,
-    BoxBufferGeometry,
-    PlaneBufferGeometry,
-    CylinderBufferGeometry,
-    OctahedronBufferGeometry,
-    TorusBufferGeometry,
+    BoxGeometry,
+    PlaneGeometry,
+    CylinderGeometry,
+    OctahedronGeometry,
+    TorusGeometry,
     MeshBasicMaterial,
     LineBasicMaterial,
-    Math as ThreeMath,
+    MathUtils as ThreeMath,
 } from 'three';
 // import * as THREE from 'three';
 import { throttle } from 'lodash';
@@ -265,14 +265,14 @@ class TransformControls extends Object3D {
         selectedPoints.push(new Vector3(1, 0, 0));
 
         this.defaults = {
-            ARROW: new CylinderBufferGeometry(0, 0.05, 0.2, 12, 1, false),
+            ARROW: new CylinderGeometry(0, 0.05, 0.2, 12, 1, false),
             LINE: new BufferGeometry(),
             SELECTEDLINE: new BufferGeometry().setFromPoints(selectedPoints),
-            BOX: new BoxBufferGeometry(0.125, 0.125, 0.125),
-            PLANE: new PlaneBufferGeometry(0.2, 0.2, 2),
+            BOX: new BoxGeometry(0.125, 0.125, 0.125),
+            PLANE: new PlaneGeometry(0.2, 0.2, 2),
 
-            TRANSLATE_PICKER: new CylinderBufferGeometry(0.2, 0, 1, 4, 1, false),
-            ROTATE_PICKER: new TorusBufferGeometry(1, 0.1, 4, 24),
+            TRANSLATE_PICKER: new CylinderGeometry(0.2, 0, 1, 4, 1, false),
+            ROTATE_PICKER: new TorusGeometry(1, 0.1, 4, 24),
 
             MESH_MATERIAL_RED: meshMaterialRed,
             MESH_MATERIAL_GREEN: meshMaterialGreen,
@@ -481,11 +481,11 @@ class TransformControls extends Object3D {
 
         this.rotatePeripheral = this.createPeripheral([
             ['X', new Line(new ArcBufferGeometry(1, 64, Math.PI), defaults.LINE_MATERIAL_RED.clone()), null, [Math.PI, Math.PI / 2, 0]],
-            ['X', new Mesh(new OctahedronBufferGeometry(0.04, 0), defaults.MESH_MATERIAL_RED.clone()), [0, -0.99, 0], [Math.PI / 2, 0, 0], [1, 3, 1]],
+            ['X', new Mesh(new OctahedronGeometry(0.04, 0), defaults.MESH_MATERIAL_RED.clone()), [0, -0.99, 0], [Math.PI / 2, 0, 0], [1, 3, 1]],
             ['Y', new Line(new ArcBufferGeometry(1, 64, Math.PI), defaults.LINE_MATERIAL_GREEN.clone()), null, [Math.PI / 2, 0, 0]],
-            ['Y', new Mesh(new OctahedronBufferGeometry(0.04, 0), defaults.MESH_MATERIAL_GREEN.clone()), [0, 0, 0.99], [0, 0, Math.PI / 2], [1, 3, 1]],
+            ['Y', new Mesh(new OctahedronGeometry(0.04, 0), defaults.MESH_MATERIAL_GREEN.clone()), [0, 0, 0.99], [0, 0, Math.PI / 2], [1, 3, 1]],
             ['Z', new Line(new ArcBufferGeometry(1, 64, Math.PI), defaults.LINE_MATERIAL_BLUE.clone()), null, [Math.PI, 0, 0]],
-            ['Z', new Mesh(new OctahedronBufferGeometry(0.04, 0), defaults.MESH_MATERIAL_BLUE.clone()), [0, -0.99, 0], [0, 0, Math.PI / 2], [1, 3, 1]],
+            ['Z', new Mesh(new OctahedronGeometry(0.04, 0), defaults.MESH_MATERIAL_BLUE.clone()), [0, -0.99, 0], [0, 0, Math.PI / 2], [1, 3, 1]],
             ['XYZE', new Line(new ArcBufferGeometry(1, 64, Math.PI * 2), defaults.LINE_MATERIAL_GRAY.clone()), null, [0, 0, 0]]
         ]);
         this.rotatePeripheral.name = 'Rotate Peripheral';
@@ -500,22 +500,22 @@ class TransformControls extends Object3D {
         this.rotatePicker.visiable = false;
         this.add(this.rotatePicker);
         this.leftPlane = this.createPeripheral([
-            ['LEFTPLANE', new Mesh(new PlaneBufferGeometry(1, 1, 2), defaults.MESH_MATERIAL_GRAY2.clone()), null, [Math.PI / 2, Math.PI / 2, 0], null]
+            ['LEFTPLANE', new Mesh(new PlaneGeometry(1, 1, 2), defaults.MESH_MATERIAL_GRAY2.clone()), null, [Math.PI / 2, Math.PI / 2, 0], null]
         ]);
         this.rightPlane = this.createPeripheral([
-            ['RIGHTPLANE', new Mesh(new PlaneBufferGeometry(1, 1, 2), defaults.MESH_MATERIAL_GRAY2.clone()), null, [Math.PI / 2, Math.PI / 2, 0], null]
+            ['RIGHTPLANE', new Mesh(new PlaneGeometry(1, 1, 2), defaults.MESH_MATERIAL_GRAY2.clone()), null, [Math.PI / 2, Math.PI / 2, 0], null]
         ]);
         this.topPlane = this.createPeripheral([
-            ['TOPPLANE', new Mesh(new PlaneBufferGeometry(1, 1, 2), defaults.MESH_MATERIAL_GRAY2.clone()), null, null, null]
+            ['TOPPLANE', new Mesh(new PlaneGeometry(1, 1, 2), defaults.MESH_MATERIAL_GRAY2.clone()), null, null, null]
         ]);
         this.bottomPlane = this.createPeripheral([
-            ['BOTTOMPLANE', new Mesh(new PlaneBufferGeometry(1, 1, 2), defaults.MESH_MATERIAL_GRAY2.clone()), null, null, null]
+            ['BOTTOMPLANE', new Mesh(new PlaneGeometry(1, 1, 2), defaults.MESH_MATERIAL_GRAY2.clone()), null, null, null]
         ]);
         this.frontPlane = this.createPeripheral([
-            ['FRONTPLANE', new Mesh(new PlaneBufferGeometry(1, 1, 2), defaults.MESH_MATERIAL_GRAY2.clone()), null, [Math.PI / 2, 0, 0], null]
+            ['FRONTPLANE', new Mesh(new PlaneGeometry(1, 1, 2), defaults.MESH_MATERIAL_GRAY2.clone()), null, [Math.PI / 2, 0, 0], null]
         ]);
         this.backPlane = this.createPeripheral([
-            ['BACKPLANE', new Mesh(new PlaneBufferGeometry(1, 1, 2), defaults.MESH_MATERIAL_GRAY2.clone()), null, [Math.PI / 2, 0, 0], null]
+            ['BACKPLANE', new Mesh(new PlaneGeometry(1, 1, 2), defaults.MESH_MATERIAL_GRAY2.clone()), null, [Math.PI / 2, 0, 0], null]
         ]);
         this.planeArr = [
             this.leftPlane,
@@ -569,7 +569,7 @@ class TransformControls extends Object3D {
 
     initPlane() {
         this.plane = new Mesh(
-            new PlaneBufferGeometry(500, 500, 2, 2),
+            new PlaneGeometry(500, 500, 2, 2),
             new MeshBasicMaterial({ visible: false, wireframe: true, side: DoubleSide, transparent: true, opacity: 1 })
         );
 

@@ -7,7 +7,7 @@ import {
     Float32BufferAttribute,
 } from 'three';
 
-import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils';
 import { LOAD_MODEL_FROM_INNER } from '../constants';
 import log from '../lib/log';
 import ThreeUtils from '../scene/three-extensions/ThreeUtils';

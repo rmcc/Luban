@@ -6,7 +6,7 @@ import {
     MeshBasicMaterial,
     Object3D,
     ShapeGeometry,
-    Math as ThreeMath
+    MathUtils as ThreeMath
 } from 'three';
 
 import { DEFAULT_LUBAN_HOST } from '../../../../constants';

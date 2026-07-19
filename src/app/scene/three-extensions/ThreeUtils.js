@@ -153,7 +153,7 @@ const ThreeUtils = {
 
     generateSupportBoxGeometry(width, height, topZ, bottomZ = 0) {
         const depth = topZ - bottomZ;
-        const box = new THREE.BoxBufferGeometry(width, height, depth).toNonIndexed();
+        const box = new THREE.BoxGeometry(width, height, depth).toNonIndexed();
         box.translate(0, 0, depth / 2 + bottomZ);
         return box;
     },

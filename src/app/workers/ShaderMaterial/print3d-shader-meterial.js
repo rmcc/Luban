@@ -25,7 +25,6 @@ export const PRINT3D_UNIFORMS = {
     u_r_travel_visible: { value: 0 },
     u_r_unknown_visible: { value: 1 },
     texture: {
-        type: 't',
         value: new THREE.TextureLoader().load(`${DEFAULT_LUBAN_HOST}/resources/images/wood.png`)
     }
 

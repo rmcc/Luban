@@ -795,4 +795,4 @@ var BufferGeometryUtils = {
 
 };
 
-export { BufferGeometryUtils };
+export default BufferGeometryUtils;

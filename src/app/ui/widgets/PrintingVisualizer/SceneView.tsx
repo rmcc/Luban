@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
-import { Box3, Quaternion, Math as ThreeMath, Vector3 } from 'three';
+import { Box3, Quaternion, MathUtils as ThreeMath, Vector3 } from 'three';
 
 import { EPSILON, HEAD_PRINTING, ROTATE_MODE, SCALE_MODE, TRANSLATE_MODE } from '../../../constants';
 import { actions as machineActions } from '../../../flux/machine';

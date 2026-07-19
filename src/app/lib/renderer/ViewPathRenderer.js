@@ -49,9 +49,9 @@ export class ViewPathRenderer {
 
         let geometry = null;
         if (isRotate) {
-            geometry = new THREE.CylinderBufferGeometry(diameter / 2, diameter / 2, height, radialSegments, heightSegments);
+            geometry = new THREE.CylinderGeometry(diameter / 2, diameter / 2, height, radialSegments, heightSegments);
         } else {
-            geometry = new THREE.PlaneBufferGeometry(width, height, radialSegments, heightSegments);
+            geometry = new THREE.PlaneGeometry(width, height, radialSegments, heightSegments);
         }
         const positions = geometry.attributes.position.array;
 

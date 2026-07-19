@@ -1,5 +1,5 @@
 import {
-    Color, Float32BufferAttribute, VertexColors,
+    Color, Float32BufferAttribute,
     BufferGeometry, LineBasicMaterial, LineSegments
 } from 'three';
 
@@ -49,7 +49,7 @@ class Grid extends LineSegments {
         geometry.setAttribute('position', new Float32BufferAttribute(vertices, 3));
         geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
 
-        const material = new LineBasicMaterial({ vertexColors: VertexColors });
+        const material = new LineBasicMaterial({ vertexColors: true });
 
         return new Grid(geometry, material);
     }

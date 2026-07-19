@@ -123,9 +123,9 @@ const RotateOverlay = React.memo(({
 
     const resetRotation = () => {
         onModelTransform({
-            'rotateX': THREE.Math.degToRad(0),
-            'rotateY': THREE.Math.degToRad(0),
-            'rotateZ': THREE.Math.degToRad(0)
+            'rotateX': THREE.MathUtils.degToRad(0),
+            'rotateY': THREE.MathUtils.degToRad(0),
+            'rotateZ': THREE.MathUtils.degToRad(0)
         });
         onModelAfterTransform();
     };
@@ -133,7 +133,7 @@ const RotateOverlay = React.memo(({
     const rotateByDirection = (rotateAxis, rotateAngle, type) => {
         dispatch(printingActions.recordModelBeforeTransform(modelGroup));
         const _rotateAxis = new THREE.Vector3(rotateAxis === 'X' ? 1 : 0, rotateAxis === 'Y' ? 1 : 0, rotateAxis === 'Z' ? 1 : 0);
-        const quaternion = new THREE.Quaternion().setFromAxisAngle(_rotateAxis, THREE.Math.degToRad(rotateAngle));
+        const quaternion = new THREE.Quaternion().setFromAxisAngle(_rotateAxis, THREE.MathUtils.degToRad(rotateAngle));
         if (type === 'freeRotate') {
             selectedModelArray.forEach(modelItem => {
                 if (!modelItem.visible) return;

@@ -212,7 +212,7 @@ THREE.CombinedCamera.prototype.setLens = function ( focalLength, filmGauge ) {
 	var vExtentSlope = 0.5 * filmGauge /
 			( focalLength * Math.max( this.cameraP.aspect, 1 ) );
 
-	var fov = THREE.Math.RAD2DEG * 2 * Math.atan( vExtentSlope );
+	var fov = THREE.MathUtils.RAD2DEG * 2 * Math.atan( vExtentSlope );
 
 	this.setFov( fov );
 

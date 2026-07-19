@@ -731,8 +731,12 @@ const OBJLoader = ( function () {
 
                     }
 
-                    material.flatShading = sourceMaterial.smooth ? false : true;
-                    material.vertexColors = hasVertexColors ? THREE.VertexColors : THREE.NoColors;
+                    if ('flatShading' in material) {
+                        material.flatShading = sourceMaterial.smooth ? false : true;
+                        material.needsUpdate = true; // recompile the shader
+                    }
+
+                    material.vertexColors = hasVertexColors;
 
                     createdMaterials.push( material );
 

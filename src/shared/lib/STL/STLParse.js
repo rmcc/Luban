@@ -194,7 +194,7 @@ export class STLParse {
 
     ensureString(buffer) {
         if (typeof buffer !== 'string') {
-            return THREE.LoaderUtils.decodeText(new Uint8Array(buffer));
+            return new TextDecoder().decode(new Uint8Array(buffer));
         }
 
         return buffer;

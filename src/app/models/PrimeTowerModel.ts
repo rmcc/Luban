@@ -12,7 +12,7 @@ class PrimeTowerModel extends ThreeModel {
         positionX: 100,
         positionY: 100
     }) {
-        const geometry = new THREE.CylinderBufferGeometry(10, 10, 1, 60);
+        const geometry = new THREE.CylinderGeometry(10, 10, 1, 60);
         const material = new THREE.MeshPhongMaterial({
             side: THREE.DoubleSide,
             color: 0xB9BCBF

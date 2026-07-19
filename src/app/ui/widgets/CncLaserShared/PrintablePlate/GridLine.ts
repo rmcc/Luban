@@ -18,7 +18,7 @@ class GridLine extends Object3D {
         for (let x = Math.ceil(minX / stepX) * stepX; x <= Math.floor(maxX / stepX) * stepX; x += stepX) {
             const geometry = new THREE.BufferGeometry();
             const material = new THREE.LineBasicMaterial({
-                vertexColors: THREE.VertexColors
+                vertexColors: true
             });
             const color = colorGrid;
 
@@ -40,7 +40,7 @@ class GridLine extends Object3D {
         for (let y = Math.ceil(minY / stepY) * stepY; y <= Math.floor(maxY / stepY) * stepY; y += stepY) {
             const geometry = new THREE.BufferGeometry();
             const material = new THREE.LineBasicMaterial({
-                vertexColors: THREE.VertexColors
+                vertexColors: true
             });
             const color = colorGrid;
 

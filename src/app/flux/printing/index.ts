@@ -3917,7 +3917,7 @@ export const actions = {
                             positionY: 0
                         };
                         // dispatch(actions.recordModelBeforeTransform(modelGroup, operations));
-                        const quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.Math.degToRad(rotateAngel));
+                        const quaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(rotateAngel));
                         modelGroup.selectedGroup.quaternion
                             .copy(quaternion)
                             .multiply(originQuaternion)

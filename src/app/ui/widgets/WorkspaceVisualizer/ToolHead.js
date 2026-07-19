@@ -26,18 +26,14 @@ const buildToolHead = (color, texture) => {
         color: color,
         map: texture,
         opacity: 0.5,
-        flatShading: true,
         side: THREE.FrontSide,
-        // flatShading: true,
         transparent: true
     });
     const materialBack = new THREE.MeshBasicMaterial({
         color: color,
         map: texture,
         opacity: 0.5,
-        flatShading: true,
         side: THREE.BackSide,
-        // flatShading: true,
         transparent: true
     });
 

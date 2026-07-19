@@ -35,57 +35,58 @@ function isEqual(a, b) {
     return Math.abs(a - b) < EPSILON;
 }
 
-function BulgeGeometry(startPoint, endPoint, bulge, segments) {
-    let vertex, i;
-    THREE.BufferGeometry.call(this);
-    const p0 = startPoint ? new THREE.Vector2(startPoint.x, startPoint.y) : new THREE.Vector2(0, 0);
-    const p1 = endPoint ? new THREE.Vector2(endPoint.x, endPoint.y) : new THREE.Vector2(1, 0);
-    bulge = bulge || 1;
-    this.startPoint = p0;
-    this.endPoint = p1;
-    this.bulge = bulge;
+// Use the new constructor
+class BulgeGeometry extends THREE.BufferGeometry {
+    constructor(startPoint, endPoint, bulge, segments) {
+        super();
 
-    const angle = 4 * Math.atan(bulge);
-    const radius = p0.distanceTo(p1) / 2 / Math.sin(angle / 2);
-    const center = polar(startPoint, radius, angle2(p0, p1) + (Math.PI / 2 - angle / 2));
+        let vertex, i;
+        const p0 = startPoint ? new THREE.Vector2(startPoint.x, startPoint.y) : new THREE.Vector2(0, 0);
+        const p1 = endPoint ? new THREE.Vector2(endPoint.x, endPoint.y) : new THREE.Vector2(1, 0);
+        bulge = bulge || 1;
+        this.startPoint = p0;
+        this.endPoint = p1;
+        this.bulge = bulge;
 
-    if (segments !== undefined) {
-        this.segments = segments;
-    } else {
-        this.segments = Math.max(Math.abs(Math.ceil(angle / (Math.PI / 36))), 6); // By default want a segment roughly every 5 degrees
-    }
-    const startAngle = angle2(center, p0);
-    const thetaAngle = angle / this.segments;
+        const angle = 4 * Math.atan(bulge);
+        const radius = p0.distanceTo(p1) / 2 / Math.sin(angle / 2);
+        const center = polar(startPoint, radius, angle2(p0, p1) + (Math.PI / 2 - angle / 2));
 
+        if (segments !== undefined) {
+            this.segments = segments;
+        } else {
+            this.segments = Math.max(Math.abs(Math.ceil(angle / (Math.PI / 36))), 6); // By default want a segment roughly every 5 degrees
+        }
+        const startAngle = angle2(center, p0);
+        const thetaAngle = angle / this.segments;
 
-    const verticesCount = this.segments + 1;
-    const positions = new Float32Array(verticesCount * 3);
+        const verticesCount = this.segments + 1;
+        const positions = new Float32Array(verticesCount * 3);
 
-    positions[0] = p0.x;
-    positions[1] = p0.y;
-    positions[2] = 0;
+        positions[0] = p0.x;
+        positions[1] = p0.y;
+        positions[2] = 0;
 
-    for (i = 1; i <= this.segments - 1; i++) {
-        vertex = polar(center, Math.abs(radius), startAngle + thetaAngle * i);
+        for (i = 1; i <= this.segments - 1; i++) {
+            vertex = polar(center, Math.abs(radius), startAngle + thetaAngle * i);
 
-        positions[i * 3] = vertex.x;
-        positions[i * 3 + 1] = vertex.y;
-        positions[i * 3 + 2] = 0;
-    }
+            positions[i * 3] = vertex.x;
+            positions[i * 3 + 1] = vertex.y;
+            positions[i * 3 + 2] = 0;
+        }
 
-    positions[this.segments * 3] = p1.x;
-    positions[this.segments * 3 + 1] = p1.y;
-    positions[this.segments * 3 + 2] = 0;
+        positions[this.segments * 3] = p1.x;
+        positions[this.segments * 3 + 1] = p1.y;
+        positions[this.segments * 3 + 2] = 0;
 
-    this.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        this.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-    this.vertices = [];
-    for (i = 0; i <= this.segments; i++) {
-        this.vertices.push(new THREE.Vector3(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]));
+        this.vertices = [];
+        for (i = 0; i <= this.segments; i++) {
+            this.vertices.push(new THREE.Vector3(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]));
+        }
     }
 }
-
-BulgeGeometry.prototype = Object.create(THREE.BufferGeometry.prototype);
 
 /**
  * Calculates points for a curve between two points
@@ -210,7 +211,7 @@ class ThreeDxfLoader {
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         geometry.computeBoundingBox();
 
-        const material = new THREE.PointsMaterial({ size: 0.05, vertexColors: THREE.VertexColors });
+        const material = new THREE.PointsMaterial({ size: 0.05, vertexColors: true });
         const point = new THREE.Points(geometry, material);
         return point;
     }
@@ -230,8 +231,8 @@ class ThreeDxfLoader {
             THREE.UniformsLib.fog,
 
             {
-                'pattern': { type: 'fv1', value: pattern },
-                'patternLength': { type: 'f', value: totalLength }
+                'pattern': { value: pattern },
+                'patternLength': { value: totalLength }
             }
 
         ]);

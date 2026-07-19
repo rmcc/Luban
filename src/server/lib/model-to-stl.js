@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid';
 import AMFLoader from '../../shared/lib/AMFLoader';
 import ThreeMFLoader from '../../shared/lib/3MFLoader';
 import STLExporter from '../../shared/lib/STL/STLExporter';
-import { BufferGeometryUtils } from '../../shared/lib/BufferGeometryUtils';
+import BufferGeometryUtils from '../../shared/lib/BufferGeometryUtils';
 import DataStorage from '../DataStorage';
 import { removeSpecialChars } from '../../shared/lib/utils';
 import { generateRandomPathName } from '../../shared/lib/random-utils';

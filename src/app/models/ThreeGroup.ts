@@ -2,7 +2,7 @@ import { ConvexGeometry } from '@snapmaker/luban-platform';
 import { cloneDeep } from 'lodash';
 import * as THREE from 'three';
 
-import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils';
 import { BOTH_EXTRUDER_MAP_NUMBER } from '../constants';
 import ThreeUtils from '../scene/three-extensions/ThreeUtils';
 import type ModelGroup from './ModelGroup';

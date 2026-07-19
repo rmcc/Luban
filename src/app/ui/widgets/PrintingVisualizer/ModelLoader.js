@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import path from 'path';
-import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils';
 import AMFLoader from '../../../../shared/lib/AMFLoader';
 import ThreeMFLoader from '../../../../shared/lib/3MFLoader';
 import STLLoader from '../../../scene/three-extensions/STLLoader';
