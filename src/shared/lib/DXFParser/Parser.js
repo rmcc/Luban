@@ -137,63 +137,67 @@ function addInsertContent(entities, dxf, position = { x: 0, y: 0 }) {
     }
 }
 
-function BulgeGeometry(startPoint, endPoint, bulge, segments) {
-    let vertex, i;
-    THREE.BufferGeometry.call(this);
-    const p0 = startPoint
-        ? new THREE.Vector2(startPoint.x, startPoint.y)
-        : new THREE.Vector2(0, 0);
-    const p1 = endPoint
-        ? new THREE.Vector2(endPoint.x, endPoint.y)
-        : new THREE.Vector2(1, 0);
-    bulge = bulge || 1;
-    this.startPoint = p0;
-    this.endPoint = p1;
-    this.bulge = bulge;
+class BulgeGeometry extends THREE.BufferGeometry {
+    constructor(startPoint, endPoint, bulge, segments) {
+        super();
+        let vertex, i;
+        const p0 = startPoint
+            ? new THREE.Vector2(startPoint.x, startPoint.y)
+            : new THREE.Vector2(0, 0);
+        const p1 = endPoint
+            ? new THREE.Vector2(endPoint.x, endPoint.y)
+            : new THREE.Vector2(1, 0);
+        bulge = bulge || 1;
+        this.startPoint = p0;
+        this.endPoint = p1;
+        this.bulge = bulge;
 
-    const angle = 4 * Math.atan(bulge);
-    const radius = p0.distanceTo(p1) / 2 / Math.sin(angle / 2);
-    const center = polar(
-        startPoint,
-        radius,
-        angle2(p0, p1) + (Math.PI / 2 - angle / 2)
-    );
+        const angle = 4 * Math.atan(bulge);
+        const radius = p0.distanceTo(p1) / 2 / Math.sin(angle / 2);
+        const center = polar(
+            startPoint,
+            radius,
+            angle2(p0, p1) + (Math.PI / 2 - angle / 2)
+        );
 
-    if (segments !== undefined) {
-        this.segments = segments;
-    } else {
-        this.segments = Math.max(
-            Math.abs(Math.ceil(angle / (Math.PI / 36))),
-            6
-        ); // By default want a segment roughly every 5 degrees
+        if (segments !== undefined) {
+            this.segments = segments;
+        } else {
+            this.segments = Math.max(
+                Math.abs(Math.ceil(angle / (Math.PI / 36))),
+                6
+            ); // By default want a segment roughly every 5 degrees
+        }
+
+        const startAngle = angle2(center, p0);
+        const thetaAngle = angle / this.segments;
+
+        const verticesCount = this.segments + 1;
+        const positions = new Float32Array(verticesCount * 3);
+        this.vertices = [];
+
+        positions[0] = p0.x;
+        positions[1] = p0.y;
+        positions[2] = 0;
+        this.vertices.push(new THREE.Vector2(p0.x, p0.y));
+
+        for (i = 1; i <= this.segments - 1; i++) {
+            vertex = polar(center, Math.abs(radius), startAngle + thetaAngle * i);
+
+            positions[i * 3] = vertex.x;
+            positions[i * 3 + 1] = vertex.y;
+            positions[i * 3 + 2] = 0;
+            this.vertices.push(new THREE.Vector2(vertex.x, vertex.y));
+        }
+
+        positions[(this.segments) * 3] = p1.x;
+        positions[(this.segments) * 3 + 1] = p1.y;
+        positions[(this.segments) * 3 + 2] = 0;
+        this.vertices.push(new THREE.Vector2(p1.x, p1.y));
+
+        this.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     }
-
-    const startAngle = angle2(center, p0);
-    const thetaAngle = angle / this.segments;
-
-    const verticesCount = this.segments + 1;
-    const positions = new Float32Array(verticesCount * 3);
-
-    positions[0] = p0.x;
-    positions[1] = p0.y;
-    positions[2] = 0;
-
-    for (i = 1; i <= this.segments - 1; i++) {
-        vertex = polar(center, Math.abs(radius), startAngle + thetaAngle * i);
-
-        positions[i * 3] = vertex.x;
-        positions[i * 3 + 1] = vertex.y;
-        positions[i * 3 + 2] = 0;
-    }
-
-    positions[(this.segments) * 3] = p1.x;
-    positions[(this.segments) * 3 + 1] = p1.y;
-    positions[(this.segments) * 3 + 2] = 0;
-
-    this.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 }
-
-BulgeGeometry.prototype = Object.create(THREE.BufferGeometry.prototype);
 
 export const dxfToSvg = (dxf, strokeWidth = 0.72) => {
     const shapes = [];
@@ -288,25 +292,13 @@ export const dxfToSvg = (dxf, strokeWidth = 0.72) => {
             shape.paths.push(pathsObj);
         } else if (entities.type === 'ARC') {
             const { radius, startAngle, endAngle, angleLength } = entities;
+            const totalAngle = startAngle <= endAngle ? angleLength : Math.PI * 2 + angleLength;
 
-            if (startAngle <= endAngle) {
-                const geometry = new THREE.CircleGeometry(radius, 64, startAngle, angleLength);
-                geometry.vertices.shift();
-                geometry.vertices.forEach((item) => {
-                    pathsObj.points.push([
-                        item.x + entities.center.x,
-                        item.y + entities.center.y
-                    ]);
-                });
-            } else {
-                const geometry2 = new THREE.CircleGeometry(radius, 64, startAngle, Math.PI * 2 + angleLength);
-                geometry2.vertices.shift();
-                geometry2.vertices.forEach((item) => {
-                    pathsObj.points.push([
-                        item.x + entities.center.x,
-                        item.y + entities.center.y
-                    ]);
-                });
+            for (let i = 0; i <= 64; i++) {
+                const angle = startAngle + (totalAngle * (i / 64));
+                const x1 = entities.center.x + radius * Math.cos(angle);
+                const y1 = entities.center.y + radius * Math.sin(angle);
+                pathsObj.points.push([x1, y1]);
             }
 
             pathsObj.closed = false;
@@ -483,19 +475,17 @@ export const measureBoundary = (dxfString) => {
             minY = Math.min(center.y - radius, minY);
         } else if (entities.type === 'ARC') {
             const { center, radius, startAngle, endAngle, angleLength } = entities;
-            let geometry;
-            if (startAngle <= endAngle) {
-                geometry = new THREE.CircleGeometry(radius, 64, startAngle, angleLength);
-            } else {
-                geometry = new THREE.CircleGeometry(radius, 64, startAngle, Math.PI * 2 + angleLength);
+            const totalAngle = startAngle <= endAngle ? angleLength : Math.PI * 2 + angleLength;
+
+            for (let i = 0; i <= 64; i++) {
+                const angle = startAngle + (totalAngle * (i / 64));
+                const x1 = center.x + radius * Math.cos(angle);
+                const y1 = center.y + radius * Math.sin(angle);
+                maxX = Math.max(x1, maxX);
+                minX = Math.min(x1, minX);
+                maxY = Math.max(y1, maxY);
+                minY = Math.min(y1, minY);
             }
-            geometry.vertices.shift();
-            geometry.vertices.forEach((item) => {
-                maxX = Math.max(item.x + center.x, maxX);
-                minX = Math.min(item.x + center.x, minX);
-                maxY = Math.max(item.y + center.y, maxY);
-                minY = Math.min(item.y + center.y, minY);
-            });
         } else if (entities.type === 'ELLIPSE') {
             const centerX = entities.center.x;
             const centerY = entities.center.y;
