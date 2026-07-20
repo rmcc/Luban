@@ -2,11 +2,11 @@ import fs from 'fs';
 import * as THREE from 'three';
 import { isUndefined } from 'lodash';
 import log from 'loglevel';
-import DxfParser from './DxfParser';
+import * as dxfModule from 'dxf';
 import { svgInverse, svgToString } from '../SVGParser/SvgToString';
-import bSpline from './bSpline';
 
-// const EPSILON = 1e-6;
+const Helper = dxfModule.Helper || dxfModule.default || dxfModule;
+
 function angle2(p1, p2) {
     const v1 = new THREE.Vector2(p1.x, p1.y);
     const v2 = new THREE.Vector2(p2.x, p2.y);
@@ -16,63 +16,6 @@ function angle2(p1, p2) {
     return Math.acos(v2.x);
 }
 
-function polar(point, distance, angle) {
-    const result = {};
-    result.x = point.x + distance * Math.cos(angle);
-    result.y = point.y + distance * Math.sin(angle);
-    return result;
-}
-function getBSplinePolyline(
-    controlPoints,
-    degree,
-    knots,
-    interpolationsPerSplineSegment,
-    weights
-) {
-    const polyline = [];
-    const controlPointsForLib = controlPoints.map((p) => {
-        return [p.x, p.y];
-    });
-
-    const segmentTs = [knots[degree]];
-    const domain = [knots[degree], knots[knots.length - 1 - degree]];
-
-    for (let k = degree + 1; k < knots.length - degree; ++k) {
-        if (segmentTs[segmentTs.length - 1] !== knots[k]) {
-            segmentTs.push(knots[k]);
-        }
-    }
-
-    interpolationsPerSplineSegment = interpolationsPerSplineSegment || 25;
-    for (let i = 1; i < segmentTs.length; ++i) {
-        const uMin = segmentTs[i - 1];
-        const uMax = segmentTs[i];
-        for (let k = 0; k <= interpolationsPerSplineSegment; ++k) {
-            const u = (k / interpolationsPerSplineSegment) * (uMax - uMin) + uMin;
-            // Clamp t to 0, 1 to handle numerical precision issues
-            let t = (u - domain[0]) / (domain[1] - domain[0]);
-            t = Math.max(t, 0);
-            t = Math.min(t, 1);
-            const p = bSpline(t, degree, controlPointsForLib, knots, weights);
-            polyline.push(new THREE.Vector2(p[0], p[1]));
-        }
-    }
-    return polyline;
-}
-
-function drawBezierCurve(controlPoints, degreeOfSplineCurve, knotValues) {
-    let interpolatedPoints = [];
-    const points = getBSplinePolyline(
-        controlPoints,
-        degreeOfSplineCurve,
-        knotValues,
-        100
-    );
-    const curve = new THREE.SplineCurve(points);
-    interpolatedPoints = curve.getPoints(points.length);
-
-    return interpolatedPoints;
-}
 function readFile(originalPath) {
     return new Promise((resolve, reject) => {
         fs.readFile(originalPath, 'utf8', async (err, fileText) => {
@@ -86,55 +29,6 @@ function readFile(originalPath) {
     }).catch((err) => {
         log.error(err);
     });
-}
-function addInsertContent(entities, dxf, position = { x: 0, y: 0 }) {
-    position = {
-        x: position.x + entities.position.x,
-        y: position.y + entities.position.y
-    };
-    const oldEntities = dxf.blocks[entities.name].entities;
-    let newEntities;
-    for (let i = 0; i < oldEntities.length; i++) {
-        newEntities = JSON.parse(JSON.stringify(oldEntities[i]));
-        if (
-            oldEntities[i].type === 'LINE'
-            || oldEntities[i].type === 'LWPOLYLINE'
-            || oldEntities[i].type === 'POLYLINE'
-        ) {
-            newEntities.vertices.x += position.x;
-            newEntities.vertices.y += position.y;
-            dxf.entities.push(newEntities);
-        } else if (oldEntities[i].type === 'SPLINE') {
-            if (newEntities.fitPoints && newEntities.fitPoints.length > 0) {
-                newEntities.fitPoints.map((item) => {
-                    item.x += position.x;
-                    item.y += position.y;
-                    return item;
-                });
-            } else {
-                newEntities.controlPoints.map((item) => {
-                    item.x += position.x;
-                    item.y += position.y;
-                    return item;
-                });
-            }
-            dxf.entities.push(newEntities);
-        } else if (oldEntities[i].type === 'POINT') {
-            newEntities.position.x += position.x;
-            newEntities.position.y += position.y;
-            dxf.entities.push(newEntities);
-        } else if (
-            oldEntities[i].type === 'ARC'
-            || oldEntities[i].type === 'CIRCLE'
-            || oldEntities[i].type === 'ELLIPSE'
-        ) {
-            newEntities.center.x += position.x;
-            newEntities.center.y += position.y;
-            dxf.entities.push(newEntities);
-        } else if (oldEntities[i].type === 'INSERT') {
-            addInsertContent(newEntities, dxf, position);
-        }
-    }
 }
 
 class BulgeGeometry extends THREE.BufferGeometry {
@@ -154,11 +48,10 @@ class BulgeGeometry extends THREE.BufferGeometry {
 
         const angle = 4 * Math.atan(bulge);
         const radius = p0.distanceTo(p1) / 2 / Math.sin(angle / 2);
-        const center = polar(
-            startPoint,
-            radius,
-            angle2(p0, p1) + (Math.PI / 2 - angle / 2)
-        );
+        const center = {
+            x: startPoint.x + radius * Math.cos(angle2(p0, p1) + (Math.PI / 2 - angle / 2)),
+            y: startPoint.y + radius * Math.sin(angle2(p0, p1) + (Math.PI / 2 - angle / 2))
+        };
 
         if (segments !== undefined) {
             this.segments = segments;
@@ -182,7 +75,10 @@ class BulgeGeometry extends THREE.BufferGeometry {
         this.vertices.push(new THREE.Vector2(p0.x, p0.y));
 
         for (i = 1; i <= this.segments - 1; i++) {
-            vertex = polar(center, Math.abs(radius), startAngle + thetaAngle * i);
+            vertex = {
+                x: center.x + Math.abs(radius) * Math.cos(startAngle + thetaAngle * i),
+                y: center.y + Math.abs(radius) * Math.sin(startAngle + thetaAngle * i)
+            };
 
             positions[i * 3] = vertex.x;
             positions[i * 3 + 1] = vertex.y;
@@ -202,6 +98,17 @@ class BulgeGeometry extends THREE.BufferGeometry {
 export const dxfToSvg = (dxf, strokeWidth = 0.72) => {
     const shapes = [];
     let res = {};
+    const insUnits = dxf.header && dxf.header.insUnits;
+    let s = 1.0;
+    if (insUnits === 1) {
+        s = 25.4; // Inches to mm
+    } else if (insUnits === 5) {
+        s = 10.0; // cm to mm
+    } else if (insUnits === 6) {
+        s = 1000.0; // Meters to mm
+    } else if (insUnits === 2) {
+        s = 304.8; // Feet to mm
+    }
     for (const entities of dxf.entities) {
         if (
             dxf.tables
@@ -231,10 +138,10 @@ export const dxfToSvg = (dxf, strokeWidth = 0.72) => {
             for (i = 0; i < entities.vertices.length; i++) {
                 if (entities.vertices[i].bulge) {
                     bulge = entities.vertices[i].bulge;
-                    startPoint = entities.vertices[i];
+                    startPoint = { x: entities.vertices[i].x * s, y: entities.vertices[i].y * s };
                     endPoint = i + 1 < entities.vertices.length
-                        ? entities.vertices[i + 1]
-                        : entities.vertices[0];
+                        ? { x: entities.vertices[i + 1].x * s, y: entities.vertices[i + 1].y * s }
+                        : { x: entities.vertices[0].x * s, y: entities.vertices[0].y * s };
 
                     bulgeGeometry = new BulgeGeometry(
                         startPoint,
@@ -247,39 +154,31 @@ export const dxfToSvg = (dxf, strokeWidth = 0.72) => {
                 } else {
                     vertex = entities.vertices[i];
                     if (entities.extrusionDirection && entities.extrusionDirection.z === -1) {
-                        pathsObj.points.push([-vertex.x, vertex.y]);
+                        pathsObj.points.push([-vertex.x * s, vertex.y * s]);
                     } else {
-                        pathsObj.points.push([vertex.x, vertex.y]);
+                        pathsObj.points.push([vertex.x * s, vertex.y * s]);
                     }
                 }
             }
 
             if (entities.vertices.length > 2 && entities.shape === true) {
                 pathsObj.points.push([
-                    entities.vertices[0].x,
-                    entities.vertices[0].y
+                    entities.vertices[0].x * s,
+                    entities.vertices[0].y * s
                 ]);
             }
             pathsObj.closed = false;
             shape.paths.push(pathsObj);
         } else if (entities.type === 'SPLINE') {
-            let newControlPoints = [];
-            newControlPoints = drawBezierCurve(
-                entities.controlPoints,
-                entities.degreeOfSplineCurve,
-                entities.knotValues
-            );
-            entities.controlPoints = newControlPoints;
-
             pathsObj.points = [];
             entities.controlPoints.forEach((item) => {
-                pathsObj.points.push([item.x, item.y]);
+                pathsObj.points.push([item.x * s, item.y * s]);
             });
             pathsObj.closed = entities.closed;
             if (pathsObj.closed) {
                 pathsObj.points.push([
-                    entities.controlPoints[0].x,
-                    entities.controlPoints[0].y
+                    entities.controlPoints[0].x * s,
+                    entities.controlPoints[0].y * s
                 ]);
             }
             shape.paths.push(pathsObj);
@@ -288,25 +187,26 @@ export const dxfToSvg = (dxf, strokeWidth = 0.72) => {
                 continue;
             }
             pathsObj.closed = false;
-            pathsObj.points.push([entities.position.x, entities.position.y]);
+            pathsObj.points.push([entities.position.x * s, entities.position.y * s]);
             shape.paths.push(pathsObj);
         } else if (entities.type === 'ARC') {
-            const { radius, startAngle, endAngle, angleLength } = entities;
+            const radius = entities.radius * s;
+            const { startAngle, endAngle, angleLength } = entities;
             const totalAngle = startAngle <= endAngle ? angleLength : Math.PI * 2 + angleLength;
 
             for (let i = 0; i <= 64; i++) {
                 const angle = startAngle + (totalAngle * (i / 64));
-                const x1 = entities.center.x + radius * Math.cos(angle);
-                const y1 = entities.center.y + radius * Math.sin(angle);
+                const x1 = (entities.center.x * s) + radius * Math.cos(angle);
+                const y1 = (entities.center.y * s) + radius * Math.sin(angle);
                 pathsObj.points.push([x1, y1]);
             }
 
             pathsObj.closed = false;
             shape.paths.push(pathsObj);
         } else if (entities.type === 'CIRCLE') {
-            const { radius } = entities;
-            const centerX = entities.center.x;
-            const centerY = entities.center.y;
+            const radius = entities.radius * s;
+            const centerX = entities.center.x * s;
+            const centerY = entities.center.y * s;
             pathsObj.closed = false;
             for (let i = 0; i <= 360; i += 5) {
                 const x1 = centerX + radius * Math.cos((i * Math.PI) / 180);
@@ -318,7 +218,7 @@ export const dxfToSvg = (dxf, strokeWidth = 0.72) => {
             const xrad = Math.sqrt(
                 entities.majorAxisEndPoint.x ** 2
                 + entities.majorAxisEndPoint.y ** 2
-            );
+            ) * s;
             const yrad = xrad * entities.axisRatio;
             const rotation = Math.atan2(
                 entities.majorAxisEndPoint.y,
@@ -326,8 +226,8 @@ export const dxfToSvg = (dxf, strokeWidth = 0.72) => {
             );
 
             const curve = new THREE.EllipseCurve(
-                entities.center.x,
-                entities.center.y,
+                entities.center.x * s,
+                entities.center.y * s,
                 xrad,
                 yrad,
                 entities.startAngle,
@@ -356,6 +256,7 @@ export const dxfToSvg = (dxf, strokeWidth = 0.72) => {
 
     return res;
 };
+
 export function updateShapeBoundingBox(shape) {
     const boundingBox = {
         minX: Infinity,
@@ -363,8 +264,8 @@ export function updateShapeBoundingBox(shape) {
         minY: Infinity,
         maxY: -Infinity
     };
+
     for (const path of shape.paths) {
-        // for (const path of Object.values(shape.paths)) {
         for (const point of path.points) {
             boundingBox.minX = Math.min(boundingBox.minX, point[0]);
             boundingBox.maxX = Math.max(boundingBox.maxX, point[0]);
@@ -376,145 +277,6 @@ export function updateShapeBoundingBox(shape) {
     shape.boundingBox = boundingBox;
 }
 
-export const measureBoundary = (dxfString) => {
-    const dxf = dxfString;
-    // entities
-    let maxX = Number.MIN_SAFE_INTEGER,
-        minX = Number.MAX_SAFE_INTEGER,
-        maxY = Number.MIN_SAFE_INTEGER,
-        minY = Number.MAX_SAFE_INTEGER;
-
-    for (const entities of dxf.entities) {
-        if (entities.type === 'INSERT') {
-            addInsertContent(entities, dxf);
-        }
-    }
-    for (const entities of dxf.entities) {
-        if (entities.type === 'LINE' || entities.type === 'LWPOLYLINE') {
-            entities.vertices.forEach((point) => {
-                maxX = Math.max(point.x, maxX);
-                minX = Math.min(point.x, minX);
-                maxY = Math.max(point.y, maxY);
-                minY = Math.min(point.y, minY);
-            });
-        } else if (entities.type === 'POLYLINE') {
-            const pointsArr = [];
-            for (let i = 0; i < entities.vertices.length; i++) {
-                if (entities.vertices[i].bulge) {
-                    const bulge = entities.vertices[i].bulge;
-                    const startPoint = entities.vertices[i];
-                    const endPoint = i + 1 < entities.vertices.length
-                        ? entities.vertices[i + 1]
-                        : entities.vertices[0];
-
-                    const bulgeGeometry = new BulgeGeometry(
-                        startPoint,
-                        endPoint,
-                        bulge
-                    );
-                    bulgeGeometry.vertices.forEach((vertice) => {
-                        pointsArr.push([vertice.x, vertice.y]);
-                    });
-                } else {
-                    const vertex = entities.vertices[i];
-                    pointsArr.push([vertex.x, vertex.y]);
-                }
-            }
-            pointsArr.forEach((point) => {
-                maxX = Math.max(point[0], maxX);
-                minX = Math.min(point[0], minX);
-                maxY = Math.max(point[1], maxY);
-                minY = Math.min(point[1], minY);
-            });
-        } else if (entities.type === 'SPLINE') {
-            let points;
-            let interpolatedPoints = [];
-            let curve;
-            if (entities.fitPoints && entities.fitPoints.length > 0) {
-                points = entities.fitPoints.map((vec) => {
-                    return new THREE.Vector2(vec.x, vec.y);
-                });
-                if (entities.degreeOfSplineCurve === 2) {
-                    for (let i = 0; i + 2 < points.length; i += 2) {
-                        curve = new THREE.QuadraticBezierCurve(
-                            points[i],
-                            points[i + 1],
-                            points[i + 2]
-                        );
-                        interpolatedPoints.push(
-                            ...curve.getPoints(points.length)
-                        );
-                    }
-                } else {
-                    curve = new THREE.SplineCurve(points);
-                    interpolatedPoints = curve.getPoints(points.length * 2);
-                }
-            } else {
-                interpolatedPoints = entities.controlPoints;
-            }
-            interpolatedPoints.forEach((point) => {
-                maxX = Math.max(point.x, maxX);
-                minX = Math.min(point.x, minX);
-                maxY = Math.max(point.y, maxY);
-                minY = Math.min(point.y, minY);
-            });
-        } else if (entities.type === 'POINT') {
-            const position = entities.position;
-            if (position.x === 0 && position.y === 0) {
-                continue;
-            }
-            maxX = Math.max(position.x, maxX);
-            minX = Math.min(position.x, minX);
-            maxY = Math.max(position.y, maxY);
-            minY = Math.min(position.y, minY);
-        } else if (entities.type === 'CIRCLE') {
-            const { center, radius } = entities;
-            maxX = Math.max(center.x + radius, maxX);
-            minX = Math.min(center.x - radius, minX);
-            maxY = Math.max(center.y + radius, maxY);
-            minY = Math.min(center.y - radius, minY);
-        } else if (entities.type === 'ARC') {
-            const { center, radius, startAngle, endAngle, angleLength } = entities;
-            const totalAngle = startAngle <= endAngle ? angleLength : Math.PI * 2 + angleLength;
-
-            for (let i = 0; i <= 64; i++) {
-                const angle = startAngle + (totalAngle * (i / 64));
-                const x1 = center.x + radius * Math.cos(angle);
-                const y1 = center.y + radius * Math.sin(angle);
-                maxX = Math.max(x1, maxX);
-                minX = Math.min(x1, minX);
-                maxY = Math.max(y1, maxY);
-                minY = Math.min(y1, minY);
-            }
-        } else if (entities.type === 'ELLIPSE') {
-            const centerX = entities.center.x;
-            const centerY = entities.center.y;
-            let disX;
-            let disY;
-            if (entities.majorAxisEndPoint.x === 0) {
-                disY = Math.abs(entities.majorAxisEndPoint.y);
-                disX = disY * entities.axisRatio;
-            } else {
-                disX = Math.abs(entities.majorAxisEndPoint.x);
-                disY = disX * entities.axisRatio;
-            }
-            maxX = Math.max(centerX + disX, maxX);
-            minX = Math.min(centerX - disX, minX);
-            maxY = Math.max(centerY + disY, maxY);
-            minY = Math.min(centerY - disY, minY);
-        }
-    }
-
-    dxf.boundary = {
-        minX: minX,
-        maxX: maxX,
-        minY: minY,
-        maxY: maxY
-    };
-    dxf.width = dxf.boundary.maxX - dxf.boundary.minX;
-    dxf.height = dxf.boundary.maxY - dxf.boundary.minY;
-    return dxf;
-};
 export const updateDxfBoundingBox = (svg) => {
     const boundingBox = {
         minX: Infinity,
@@ -552,12 +314,17 @@ export const updateDxfBoundingBox = (svg) => {
 
     return svg;
 };
-export const parseDxf = async (originalPath) => {
-    const parser = new DxfParser();
-    const fileText = await readFile(originalPath);
 
-    let dxfStr = await parser.parseSync(fileText);
-    dxfStr = measureBoundary(dxfStr);
+export const parseDxf = async (originalPath) => {
+    const fileText = await readFile(originalPath);
+    const helper = new Helper(fileText);
+    const dxfStr = helper.parsed;
+
+    const shapesWrapper = dxfToSvg(dxfStr, 0.1);
+    updateDxfBoundingBox(shapesWrapper);
+
+    dxfStr.width = shapesWrapper.width;
+    dxfStr.height = shapesWrapper.height;
 
     // fs.writeFile(
     //     originalPath.replace(/(\.dxf)$/, 'laserdxf.json'),
@@ -576,6 +343,7 @@ export const parseDxf = async (originalPath) => {
         height: dxfStr.height
     };
 };
+
 export const generateSvgFromDxf = (dxf, tempPath, tempName) => {
     return new Promise((resolve, reject) => {
         const svg = dxfToSvg(dxf, 0.1);
