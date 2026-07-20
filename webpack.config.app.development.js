@@ -11,6 +11,7 @@ const nib = require('nib');
 const stylusLoader = require('stylus-loader');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const babelConfig = require('./babel.config');
+const AntdDayjsWebpackPlugin = require('antd-dayjs-webpack-plugin');
 
 const languages = require('./webpack.config.app-i18n').languages;
 const pkg = require('./package.json');
@@ -111,10 +112,9 @@ module.exports = {
                 import: ['~nib/lib/nib/index.styl']
             }
         }),
-        new webpack.ContextReplacementPlugin(
-            /moment[/\\]locale$/,
-            new RegExp(`^\\./(${without(languages, 'en').join('|')})$`)
-        ),
+        new AntdDayjsWebpackPlugin({
+            preset: 'antd'
+        }),
         // Generates a manifest.json file in your root output directory with a mapping of all source file names to their corresponding output file.
         new WebpackManifestPlugin(),
         new MiniCssExtractPlugin({

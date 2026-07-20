@@ -1,5 +1,6 @@
 import _ from 'lodash';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
@@ -16,6 +17,8 @@ import i18n from '../../../lib/i18n';
 // import Anchor from '../../components/Anchor';
 import styles from './index.styl';
 
+dayjs.extend(duration);
+
 const toFixedUnits = (units, val) => {
     val = Number(val) || 0;
     if (units === IMPERIAL_UNITS) {
@@ -28,19 +31,27 @@ const toFixedUnits = (units, val) => {
 };
 
 const formatISODateTime = (time) => {
-    return time > 0 ? moment.unix(time / 1000).format('YYYY-MM-DD HH:mm:ss') : '–';
+    return time > 0 ? dayjs.unix(time / 1000).format('YYYY-MM-DD HH:mm:ss') : '–';
 };
 
 export const formatDuration = (value, withSecond = true) => {
     if (!value || value < 0) {
         return '–';
     }
-    const d = moment.duration(value, 'ms');
-    const str = moment(d._data).format(`${withSecond ? 'H[h] mm[m] ss[s]' : 'H[h] m[m]'}`);
-    if (d.days()) {
-        return `${d.days()}d ${str}`;
+    const d = dayjs.duration(value, 'ms');
+    const days = Math.floor(d.asDays());
+    const hours = d.hours();
+    const minutes = String(d.minutes()).padStart(2, '0');
+    const seconds = String(d.seconds()).padStart(2, '0');
+
+    const timeStr = withSecond
+        ? `${hours}h ${minutes}m ${seconds}s`
+        : `${hours}h ${String(d.minutes())}m`;
+
+    if (days > 0) {
+        return `${days}d ${timeStr}`;
     } else {
-        return str;
+        return timeStr;
     }
 };
 
