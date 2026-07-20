@@ -149,13 +149,6 @@ class SocketServer extends EventEmitter {
                     try {
                         this.port.postMessage({ event, args });
                     } catch (cloneError) {
-                        args.forEach((arg, index) => {
-                            if (arg && typeof arg === 'object') {
-                                Object.keys(arg).forEach(key => {
-                                    const valType = typeof arg[key];
-                                });
-                            }
-                        });
                         // Safe fallback emulator matching old socket behavior:
                         const sanitizedArgs = JSON.parse(JSON.stringify(args));
                         this.port.postMessage({ event, args: sanitizedArgs });
