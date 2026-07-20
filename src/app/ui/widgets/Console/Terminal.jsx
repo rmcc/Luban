@@ -1,23 +1,66 @@
-import color from 'cli-color';
 // import trimEnd from 'lodash/trimEnd';
 import PerfectScrollbar from 'perfect-scrollbar';
+import 'perfect-scrollbar/css/perfect-scrollbar.css';
 import PropTypes from 'prop-types';
 import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
-import { Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
-import UniApi from '../../../lib/uni-api';
 import log from '../../../lib/log';
 import styles from './index.styl';
 
 // .widget-header-absolute widget-content-absolute
 const prompt = '> ';
 let verticalScrollbar = null;
-let term = null;
-let fitAddon = null;
+
+// Map standard ANSI foreground codes to CSS colors matching the old xterm style
+const ansiColorMap = {
+    '30': 'black',
+    '31': 'red',
+    '32': 'green',
+    '33': 'yellow',
+    '34': '#3b82f6', // bright blue
+    '35': 'magenta',
+    '36': '#06b6d4', // cyan
+    '37': 'white',
+    '90': 'gray'
+};
+
+const parseAnsiToReact = (text) => {
+    const ansiRegex = /\[([0-9;]+)m/;
+    const parts = [];
+    let currentText = text;
+    let currentStyle = {};
+    let keyCounter = 0;
+
+    while (currentText) {
+        const match = currentText.match(ansiRegex);
+        if (!match) {
+            parts.push(<span key={keyCounter++} style={{ ...currentStyle }}>{currentText}</span>);
+            break;
+        }
+
+        const index = match.index;
+        if (index > 0) {
+            parts.push(<span key={keyCounter++} style={{ ...currentStyle }}>{currentText.substring(0, index)}</span>);
+        }
+
+        const codes = match[1].split(';');
+        codes.forEach(code => {
+            if (code === '0' || code === '39') {
+                currentStyle = {};
+            } else if (ansiColorMap[code]) {
+                currentStyle = { color: ansiColorMap[code] };
+            }
+        });
+
+        currentText = currentText.substring(index + match[0].length);
+    }
+
+    return parts;
+};
 
 const TerminalWrapper = forwardRef(({ inputValue: inputValueProp, terminalHistory, onData, consoleHistory, isDefault }, ref) => {
     const [inputValue, setInputValue] = useState(inputValueProp);
     const [inputHeight, setInputHeight] = useState(20);
+    const [lines, setLines] = useState([]);
     const terminalContainer = useRef();
     const input = useRef();
     const actions = {
@@ -27,10 +70,35 @@ const TerminalWrapper = forwardRef(({ inputValue: inputValueProp, terminalHistor
         }
     };
 
+    function writeln(data, isHistory = true) {
+        // Strip out control code structural blocks but leave color tags intact
+        // eslint-disable-next-line no-control-regex
+        const controlRegex = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g;
+        const cleanData = String(data).replace(controlRegex, '');
+
+        setLines(prev => {
+            const next = [...prev, { id: Math.random().toString(36).substring(2, 9), text: cleanData }];
+            if (next.length > 1000) {
+                next.shift();
+            }
+            return next;
+        });
+        if (isHistory) {
+            terminalHistory.push(data);
+        }
+        setTimeout(() => {
+            if (terminalContainer.current) {
+                terminalContainer.current.scrollTop = terminalContainer.current.scrollHeight;
+                if (verticalScrollbar) {
+                    verticalScrollbar.update();
+                }
+            }
+        }, 10);
+    }
+
     const eventHandler = {
         onResize: () => {
-            const { rows, cols } = term;
-            log.debug(`Resizing the terminal to ${rows} rows and ${cols} cols`);
+            log.debug('Resizing the terminal plain view');
 
             if (verticalScrollbar) {
                 verticalScrollbar.update();
@@ -38,12 +106,11 @@ const TerminalWrapper = forwardRef(({ inputValue: inputValueProp, terminalHistor
         },
         onPaste: (data) => {
             if (document.activeElement === input) {
-                const lines = String(data).replace(/(\r\n|\r|\n)/g, '\n').split('\n');
-                for (let i = 0; i < lines.length; ++i) {
-                    const line = lines[i];
+                const newLines = String(data).replace(/(\r\n|\r|\n)/g, '\n').split('\n');
+                for (let i = 0; i < newLines.length; ++i) {
+                    const line = newLines[i];
                     onData(line);
-                    term.write(color.white(line));
-                    term.prompt();
+                    writeln(line);
                 }
             }
         },
@@ -53,76 +120,19 @@ const TerminalWrapper = forwardRef(({ inputValue: inputValueProp, terminalHistor
     };
 
     useEffect(() => {
-        term = new Terminal({
-            rows: 16,
-            // bar, block, underline
-            cursorStyle: 'block',
-            theme: {
-                // set cursor color the same to the background, for hiding
-                cursor: 'black'
-            },
-            cursorBlink: false,
-            scrollback: 1000,
-            tabStopWidth: 4
-        });
-        term.prompt = () => {
-            term.write('\r\n');
-        };
-        term.onResize(eventHandler.onResize);
-        term.onData(eventHandler.onPaste);
-        term.onKey(
-            (e) => {
-                const { domEvent } = e;
-                // // control + a
-                // if (domEvent.ctrlKey && domEvent.key === 'a') {
-                //     term.selectAll();
-                //     document.execCommand('copy');
-                // }
-                // control + c
-                if (domEvent.ctrlKey && domEvent.key === 'c') {
-                    UniApi.Window.copySelection(term.getSelection());
-                }
-            }
-        );
-
-        fitAddon = new FitAddon();
-        term.loadAddon(fitAddon);
         const el = terminalContainer.current;
-        term.open(el);
-        const viewport = el.getElementsByClassName('terminal')[0];
-        viewport.addEventListener('wheel', (e) => {
-            e.preventDefault();
-        });
-        term.focus(false);
+        verticalScrollbar = new PerfectScrollbar(el);
 
-        term.setOption('fontFamily', 'Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif');
-        const xtermElement = el.querySelector('.xterm');
-        xtermElement.style.paddingLeft = '3px';
-        const viewportElement = el.querySelector('.xterm-viewport');
-        verticalScrollbar = new PerfectScrollbar(viewportElement);
+        window.addEventListener('resize', eventHandler.onResize);
 
         return () => {
+            window.removeEventListener('resize', eventHandler.onResize);
             if (verticalScrollbar) {
                 verticalScrollbar.destroy();
                 verticalScrollbar = null;
             }
-            if (term) {
-                term.dispose();
-                term = null;
-            }
         };
     }, []);
-
-    function writeln(data, isHistory = true) {
-        if (term) {
-            term.write('\r');
-            term.write(data);
-            term.prompt();
-            if (isHistory) {
-                terminalHistory.push(data);
-            }
-        }
-    }
 
     function setTerminalInput(event) {
         // Enter
@@ -150,60 +160,41 @@ const TerminalWrapper = forwardRef(({ inputValue: inputValueProp, terminalHistor
     }
 
     function resize() {
-        if (!(term && term.element)) {
-            return;
-        }
-        const geometry = fitAddon && fitAddon.proposeDimensions(term);
-        if (!geometry) {
-            return;
-        }
-
-        let cols = 36;
-        if (geometry.cols && geometry.cols !== Infinity) {
-            cols = geometry.cols;
-        }
-        // xtermjs line height
-        const lineHeight = 18;
-        const minRows = 12;
-        const rowOffset = 2;
         const height = terminalContainer.current.parentElement.clientHeight < 300
             ? 300 : terminalContainer.current.parentElement.clientHeight;
-        const rows = Math.floor(height / lineHeight) - rowOffset;
-        if (rows > minRows) {
-            term.resize(cols, rows);
-        } else {
-            term.resize(cols, minRows);
-        }
-        const _inputHeight = height - (terminalContainer.current.clientHeight || rows * lineHeight) - 1;
+        const _inputHeight = height - (terminalContainer.current.clientHeight || 200) - 1;
         setInputHeight(_inputHeight);
+        if (verticalScrollbar) {
+            verticalScrollbar.update();
+        }
     }
 
     function clear(isHistory = true) {
-        if (term) {
-            term.clear();
-            if (isHistory) {
-                terminalHistory.clear();
-                terminalHistory.push('');
-            }
+        setLines([]);
+        if (isHistory) {
+            terminalHistory.clear();
+            terminalHistory.push('');
         }
     }
 
     function selectAll() {
-        if (term) {
-            term.selectAll();
+        if (window.getSelection && terminalContainer.current) {
+            const range = document.createRange();
+            range.selectNodeContents(terminalContainer.current);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
         }
     }
 
     function clearSelection() {
-        if (term) {
-            term.clearSelection();
+        if (window.getSelection) {
+            window.getSelection().removeAllRanges();
         }
     }
 
     function write(data) {
-        if (term) {
-            term.write(data);
-        }
+        writeln(data, false);
     }
 
     useImperativeHandle(ref, () => ({
@@ -220,9 +211,26 @@ const TerminalWrapper = forwardRef(({ inputValue: inputValueProp, terminalHistor
 
     return (
         <div
-            className={isDefault ? styles['terminal-content-absolute'] : styles['terminal-content']}
+            className={`${isDefault ? styles['terminal-content-absolute'] : styles['terminal-content']} dont-invert`}
         >
-            <div ref={terminalContainer} />
+            <div
+                ref={terminalContainer}
+                style={{
+                    height: '250px',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    fontFamily: 'Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif',
+                    paddingLeft: '3px',
+                    backgroundColor: '#000000',
+                    color: '#FFFFFF',
+                    whiteSpace: 'pre-wrap',
+                    userSelect: 'text'
+                }}
+            >
+                {lines.map((line) => (
+                    <div key={line.id}>{parseAnsiToReact(line.text)}</div>
+                ))}
+            </div>
             <div style={{
                 height: '1px',
                 backgroundColor: '#676869'
