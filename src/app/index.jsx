@@ -101,6 +101,9 @@ series([
     const loading = document.getElementById('loading');
     loading && loading.remove();
 
+    // Generate the window title w/ the current version in it
+    document.title = `Snapmaker Luban ${settings?.version || ''}`;
+
     // Change background color after loading complete
     const body = document.querySelector('body');
     body.style.backgroundColor = '#f8f8f8'; // sidebar background color

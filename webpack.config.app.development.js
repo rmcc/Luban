@@ -75,7 +75,7 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, 'output/src/app'),
-        filename: '[name].[hash].bundle.js',
+        filename: '[name].[fullhash].bundle.js',
         publicPath: '',
         globalObject: 'this',
         library: {

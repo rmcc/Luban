@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { HashRouter, Route, Switch } from 'react-router-dom';
+// The package doesn't have an entry point specified in package.json
+import { Canvas2dZoom } from 'canvas2d-zoom/dist/canvas2d-zoom.js';
 
 import { actions as appGlobalActions } from '../flux/app-global';
 import { actions as cncActions } from '../flux/cnc';
@@ -13,7 +15,6 @@ import { actions as printingActions } from '../flux/printing';
 import { actions as settingActions } from '../flux/setting';
 import { actions as textActions } from '../flux/text';
 import { actions as workspaceActions } from '../flux/workspace';
-import { Canvas2dZoom } from '../lib/canvas2d-zoom';
 import { PREDEFINED_SHORTCUT_ACTIONS, ShortcutHandlerPriority, ShortcutManager } from '../lib/shortcut';
 import UniApi from '../lib/uni-api';
 import { SnapmakerRayMachine } from '../machines';

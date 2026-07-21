@@ -1,23 +1,17 @@
 /* eslint callback-return: 0 */
 import bodyParser from 'body-parser';
-import compress from 'compression';
 import multiparty from 'connect-multiparty';
-import connectRestreamer from 'connect-restreamer';
-import engines from 'consolidate';
 import cookieParser from 'cookie-parser';
 import errorhandler from 'errorhandler';
 import express from 'express';
 import expressJwt from 'express-jwt';
 import session from 'express-session';
 import * as fs from 'fs-extra';
-import 'hogan.js'; // required by consolidate
 import i18next from 'i18next';
 import i18nextHttpMiddleware from 'i18next-http-middleware';
 import i18nextBackend from 'i18next-node-fs-backend';
 import jwt from 'jsonwebtoken';
 import _ from 'lodash';
-import methodOverride from 'method-override';
-import morgan from 'morgan';
 import path from 'path';
 import rangeCheck from 'range_check';
 import sessionFileStore from 'session-file-store';
@@ -32,15 +26,6 @@ import config from './services/configstore';
 
 
 const log = logger('app');
-
-const renderPage = (view = 'index', cb = _.noop) => (req, res) => {
-    // Override IE's Compatibility View Settings
-    // http://stackoverflow.com/questions/6156639/x-ua-compatible-is-set-to-ie-edge-but-it-still-doesnt-stop-compatibility-mode
-    res.set({ 'X-UA-Compatible': 'IE=edge' });
-
-    const locals = { ...cb(req, res) };
-    res.render(view, locals);
-};
 
 const verifyToken = (token) => {
     // https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback
@@ -75,18 +60,6 @@ const createApplication = () => {
     app.enable('trust proxy'); // Enables reverse proxy support, disabled by default
     app.enable('case sensitive routing'); // Enable case sensitivity, disabled by default, treating "/Foo" and "/foo" as the same
     app.disable('strict routing'); // Enable strict routing, by default "/foo" and "/foo/" are treated the same by the router
-    app.disable('x-powered-by'); // Enables the X-Powered-By: Express HTTP header, enabled by default
-
-    for (let i = 0; i < settings.view.engines.length; ++i) {
-        const extension = settings.view.engines[i].extension;
-        const template = settings.view.engines[i].template;
-        app.engine(extension, engines[template]);
-    }
-    app.set('view engine', settings.view.defaultExtension); // The default engine extension to use when omitted
-    app.set('views', [
-        path.resolve(__dirname, '../app'),
-        path.resolve(__dirname, 'views')
-    ]); // The view directory path
 
     log.debug('app.settings: %j', app.settings);
 
@@ -107,13 +80,6 @@ const createApplication = () => {
             return;
         }
 
-        next();
-    });
-
-
-    // Removes the 'X-Powered-By' header in earlier versions of Express
-    app.use((req, res, next) => {
-        res.removeHeader('X-Powered-By');
         next();
     });
 
@@ -162,23 +128,6 @@ const createApplication = () => {
     // - [busboy](https://github.com/mscdex/busboy) and [connect-busboy](https://github.com/mscdex/connect-busboy)
     // - [multiparty](https://github.com/andrewrk/node-multiparty) and [connect-multiparty](https://github.com/andrewrk/connect-multiparty)
     app.use(multiparty(settings.middleware.multiparty));
-
-    // https://github.com/dominictarr/connect-restreamer
-    // connect's bodyParser has a problem when using it with a proxy.
-    // It gobbles up all the body events, so that the proxy doesn't see anything!
-    app.use(connectRestreamer());
-
-    // https://github.com/expressjs/method-override
-    app.use(methodOverride());
-    if (settings.verbosity > 0) {
-        // https://github.com/expressjs/morgan#use-custom-token-formats
-        // Add an ID to all requests and displays it using the :id token
-        // morgan.token('id', (req) => {
-        //     return req.session.id;
-        // });
-        app.use(morgan(settings.middleware.morgan.format));
-    }
-    app.use(compress(settings.middleware.compression));
 
     Object.keys(settings.assets).forEach((name) => {
         const asset = settings.assets[name];
@@ -253,27 +202,26 @@ const createApplication = () => {
     registerApis(app);
 
     // Also see "src/app/app.js"
-    app.use((req, res) => {
+    app.use((req, res, next) => {
         if (req.method === 'OPTIONS') {
             res.sendStatus(200);
+        } else {
+            next();
         }
     });
-    // page
-    app.get(urljoin(settings.route, '/'), renderPage(DEFAULT_FILE, (req) => {
-        const webroot = settings.assets.app.routes[0] || ''; // with trailing slash
-        const lng = req.language;
-        const t = req.t;
 
-        return {
-            webroot: webroot,
-            lang: lng,
-            title: `Snapmaker Luban ${settings.version}`,
-            loading: t('loading')
-        };
-    }));
+    // page
+    app.get(urljoin(settings.route, '/'), (req, res) => {
+        const indexPath = path.resolve(__dirname, '../app', DEFAULT_FILE);
+        res.sendFile(indexPath);
+    });
 
     // Error handling
-    app.use((err, req, res) => {
+    app.use((req, res, next) => {
+        res.status(404).send({ msg: 'Not found' });
+    });
+
+    app.use((err, req, res, next) => {
         if (err) {
             log.error(err);
             res.status(500).send({ error: err.message });
@@ -281,6 +229,7 @@ const createApplication = () => {
             res.status(404).send({ msg: 'Not found' });
         }
     });
+
     return app;
 };
 

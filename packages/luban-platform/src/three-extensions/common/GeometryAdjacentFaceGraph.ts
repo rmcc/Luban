@@ -1,5 +1,4 @@
 import { BufferAttribute, BufferGeometry } from 'three';
-// import { mergeVertices } from '@snapmaker/luban-platform';
 
 
 class GeometryAdjacentFaceGraph {
@@ -23,8 +22,6 @@ class GeometryAdjacentFaceGraph {
     }
 
     private build(): void {
-        // const mergedGeometry = mergeVertices(this.geometry, 1e-4);
-
         const indices = this.geometry.index;
         const positions = this.geometry.getAttribute('position') as BufferAttribute;
         const vertexCount = indices ? indices.count : positions.count;

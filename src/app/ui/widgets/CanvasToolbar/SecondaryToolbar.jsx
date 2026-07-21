@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import SvgIcon from '../../components/SvgIcon';
 import i18n from '../../../lib/i18n';
-// import styles from './secondary-toolbar.styl';
 
 
 class SecondaryToolbar extends Component {

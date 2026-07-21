@@ -25,7 +25,6 @@ function processKey(value, options) {
     }
 
     return value;
-    // return sha1(value);
 }
 
 interface TranslateOptions {

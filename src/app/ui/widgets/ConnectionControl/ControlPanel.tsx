@@ -102,14 +102,14 @@ const ControlPanel: React.FC<ControlPanelProps> = (props) => {
 
     const dispatch = useDispatch();
 
-    const goHome = useCallback(() => {
+    const goHome = useCallback(async () => {
         if (isConnectedRay) {
             dispatch(workspaceActions.updateState({ isMoving: true }));
 
             setTimeout(() => { dispatch(workspaceActions.updateState({ isMoving: false })); }, 2000);
-            return dispatch(workspaceActions.executeGcode('$H')) as unknown as Promise<void>;
+            await dispatch(workspaceActions.executeGcode('$H'));
         } else {
-            return dispatch(workspaceActions.executeGcodeAutoHome(true));
+            await dispatch(workspaceActions.executeGcodeAutoHome(true));
         }
     }, [dispatch, workspaceActions, isConnectedRay]);
 

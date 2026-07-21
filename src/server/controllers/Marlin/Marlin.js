@@ -964,8 +964,6 @@ class Marlin extends events.EventEmitter {
 
     parser = new MarlinLineParser();
 
-    // packetManager = new PacketManager();
-
     setState(state) {
         const nextState = { ...this.state, ...state };
 

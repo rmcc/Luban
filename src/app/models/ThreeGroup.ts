@@ -1,4 +1,4 @@
-import { ConvexGeometry } from '@snapmaker/luban-platform';
+import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry';
 import { cloneDeep } from 'lodash';
 import * as THREE from 'three';
 

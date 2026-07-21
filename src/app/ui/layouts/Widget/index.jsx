@@ -9,8 +9,6 @@ import Widget from '../../components/Widget';
 import SvgIcon from '../../components/SvgIcon';
 // import Anchor from '../../components/Anchor';
 
-// import SMSortableHandle from './SMSortableHandle';
-// import SMDropdownButton from './SMDropdownButton';
 import SMMinimizeButton from './SMMinimizeButton';
 import { actions as widgetActions } from '../../../flux/widget';
 import i18n from '../../../lib/i18n';

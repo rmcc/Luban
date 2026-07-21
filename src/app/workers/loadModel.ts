@@ -1,4 +1,4 @@
-import { ConvexGeometry } from '@snapmaker/luban-platform';
+import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry';
 import { Observable } from 'rxjs';
 import { BufferGeometry, Group, Vector3 } from 'three';
 

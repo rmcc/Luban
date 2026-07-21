@@ -24,27 +24,6 @@ export default {
     // Allow Remote Access
     allowRemoteAccess: false,
 
-    // Express view engine
-    view: {
-        // Set html (w/o dot) as the default extension
-        defaultExtension: 'html',
-
-        // Format: <extension>: <template>
-        engines: [
-            { // Hogan template with .html extension
-                extension: 'html',
-                template: 'hogan'
-            },
-            { // Hogan template with .hbs extension
-                extension: 'hbs',
-                template: 'hogan'
-            },
-            { // Hogan template with .hogan extension
-                extension: 'hogan',
-                template: 'hogan'
-            }
-        ]
-    },
     // Middleware (https://github.com/senchalabs/connect)
     middleware: {
         // https://github.com/expressjs/body-parser
@@ -77,17 +56,6 @@ export default {
 
             // Limits the number of fields that will be parsed before emitting an error event. A file counts as a field in this case. Defaults to 1000.
             maxFields: 1000
-        },
-        // https://github.com/expressjs/morgan
-        'morgan': {
-            // The ':id' token is defined at app.js
-            format: ':date[iso] - \x1b[1m:method\x1b[0m \x1b[33m:url\x1b[0m \x1b[34m:status\x1b[0m :response-time ms'
-            // format: ':id \x1b[1m:method\x1b[0m \x1b[33m:url\x1b[0m \x1b[34m:status\x1b[0m :response-time ms'
-        },
-        // https://github.com/expressjs/compression
-        'compression': {
-            // response is only compressed if the byte size is at or above this threshold.
-            threshold: 512
         },
         // https://github.com/expressjs/session
         'session': {

@@ -103,6 +103,7 @@ const DEFAULT_TRANSFORMATION: ModelTransformation = {
 // isolated from Model.js which renamed to ThreeModel.js
 export default class BaseModel extends EventEmitter {
     public headType: typeof HEAD_PRINTING = HEAD_PRINTING;
+    /* eslint-disable-next-line */
     public sourceType: '3d' = '3d';
 
     public modelID: string;
