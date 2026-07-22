@@ -2,7 +2,9 @@
 
 const { Jimp } = require('jimp');
 const fs = require('fs');
-const { cv } = require('opencv-js-wasm');
+const opencvModule = require('opencv-js-wasm');
+
+let cv: any;
 
 import { SnapmakerA250Machine, SnapmakerA350Machine } from '../../../../app/machines';
 import sendMessage from '../utils/sendMessage';
@@ -25,12 +27,12 @@ const remap = async () => {
 
         dst = new cv.Mat();
         cv.remap(src, dst, map_x, map_y, cv.INTER_LINEAR);
-        const result = new Jimp({
+        const result = Jimp.fromBitmap({
             width: dst.cols,
             height: dst.rows,
             data: Buffer.from(dst.data)
         })
-        const outputFileName = `remaped_${fileName}`
+        const outputFileName = `remaped_${fileName}`;
         await result.write(`${Tmpdir}/${outputFileName}`);
         log.info(`Remap done, output file = ${outputFileName}`);
 
@@ -55,6 +57,10 @@ const remap = async () => {
 }
 
 async function onRuntimeInitialized(series) {
+    if (!cv) {
+        cv = await opencvModule();
+    }
+
     let shortIdentifier = series;
     if (series === SnapmakerA350Machine.identifier) {
         shortIdentifier = '350';

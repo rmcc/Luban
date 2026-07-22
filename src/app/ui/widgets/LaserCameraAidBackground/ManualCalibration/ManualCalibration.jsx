@@ -696,7 +696,7 @@ class ManualCalibration extends Component {
                     <div className="font-weight-bold" style={{ flex: 1, textAlign: 'left' }}>{i18n._('key-Laser/CamaeraCapture-Adjust area')}</div>
                     <div className="font-weight-bold" style={{ flex: 1, textAlign: 'left' }}>{i18n._('key-Laser/CamaeraCapture-Preview Area')}</div>
                 </div>
-                <div className="sm-flex justify-space-between ">
+                <div className="sm-flex justify-space-between dont-invert">
                     <div className={styles['calibrate-wrapper']} style={{ border: '1px solid #c8c8c8', overflow: 'hidden', boxSizing: 'border-box', background: '#F5F5F7', borderRadius: 8, marginLeft: '10px' }} ref={this.node} />
                     <div style={{ width: '500px', height: '500px', border: '1px solid #c8c8c8', overflow: 'hidden', boxSizing: 'border-box', background: '#F5F5F7', borderRadius: 8 }}>
                         <canvas2d-zoom ref={this.preview} width={500} height={500} min-zoom="1" max-zoom="8" zoom-factor="1.1" />
