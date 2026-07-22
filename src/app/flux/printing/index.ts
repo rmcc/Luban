@@ -2580,7 +2580,7 @@ export const actions = {
                     );
                     const stlFileName = `${basenameWithoutExt}.stl`;
 
-                    const mesh = item.meshObject.clone(false);
+                    const mesh = item.meshObject.clone(true);
                     const supportMesh = mesh.children[0];
                     mesh.clear();
 

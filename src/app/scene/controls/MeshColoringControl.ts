@@ -10,7 +10,7 @@ import {
     Object3D,
     Raycaster,
     Sphere,
-    SphereBufferGeometry,
+    SphereGeometry,
     Vector3
 } from 'three';
 import type { ExtendedTriangle } from 'three-mesh-bvh';
@@ -594,7 +594,7 @@ export default class MeshColoringControl extends Control {
 
         const angle = brushOptions.angle;
 
-        const radius = (brushMesh.geometry as SphereBufferGeometry).parameters.radius;
+        const radius = (brushMesh.geometry as SphereGeometry).parameters.radius;
         const brushPosition = brushMesh.position;
 
         const nearbyFaces = getFacesInSphere(targetMesh, targetFaceIndex, brushPosition, radius);

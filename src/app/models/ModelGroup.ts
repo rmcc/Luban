@@ -25,7 +25,7 @@ import {
     Shape,
     ShapeGeometry,
     Sphere,
-    SphereBufferGeometry,
+    SphereGeometry,
     Vector2,
     Vector3
 } from 'three';
@@ -2496,7 +2496,7 @@ class ModelGroup extends EventEmitter {
             position = this.brushMesh.position.clone();
             this.object.parent.remove(this.brushMesh);
         }
-        const brushGeometry = new SphereBufferGeometry(radius, 40, 40);
+        const brushGeometry = new SphereGeometry(radius, 40, 40);
         const brushMaterial = new MeshStandardMaterial({
             color: 0x333333,
             roughness: 0.75,
@@ -3188,7 +3188,7 @@ class ModelGroup extends EventEmitter {
         }
 
         const brushPosition = this.brushMesh.position;
-        const radius = (this.brushMesh.geometry as SphereBufferGeometry).parameters.radius;
+        const radius = (this.brushMesh.geometry as SphereGeometry).parameters.radius;
         const nearbyFaces = getFacesInSphere(targetMesh, targetFaceIndex, brushPosition, radius);
 
         const colorAttr = geometry.getAttribute('color');
