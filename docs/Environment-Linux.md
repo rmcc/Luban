@@ -12,11 +12,11 @@
     > sudo apt install git
     ```
 
-- Install Node.js 16. You can use [NVM (Node Version Manager)](https://github.com/nvm-sh/nvm) to install and manage multiple Node.js versions:
+- Install Node.js 24. You can use [NVM (Node Version Manager)](https://github.com/nvm-sh/nvm) to install and manage multiple Node.js versions:
 
     ```Bash
-    > nvm install 16
-    > nvm use 16
+    > nvm install 24
+    > nvm use 24
     ```
 
 - Install dependencies for Linux builds and compilation environment for third-party dependencies.
@@ -40,11 +40,11 @@
     > sudo yum install git
     ```
 
-- Install Node.js 16. You can use [NVM (Node Version Manager)](https://github.com/nvm-sh/nvm) to install and manage multiple Node.js versions:
+- Install Node.js 24. You can use [NVM (Node Version Manager)](https://github.com/nvm-sh/nvm) to install and manage multiple Node.js versions:
 
     ```Bash
-    > nvm install 16
-    > nvm use 16
+    > nvm install 24
+    > nvm use 24
     ```
 
 - Install dependencies for Linux builds and compilation environment for third-party dependencies.

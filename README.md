@@ -1,25 +1,26 @@
 Snapmaker Luban
 ===============
 
-[![Build Status](https://github.com/Snapmaker/Luban/workflows/Build%20on%20Release%20created/badge.svg)](https://github.com/Snapmaker/Luban/actions)
-
 Snapmaker Luban is an easy-to-use 3-in-1 software tailor-made for Snapmaker machines.
 You can customize the printer settings and control the machine in Luban anytime with ease.
 The software also provides G-code generation support for 3D models, laser engraving / cutting, and CNC milling.
 
 Our goal is to provide a multi-functional 3D software, while making it as accessible and customizable as possible for new users / beginners.
 
-The software is inspired by [cncjs](https://github.com/cncjs/cncjs) by cheton.
-We use [LunarSlicer](https://github.com/Snapmaker/LunarSlicer) for 3D slicing.
+**This is a customized version, not the [original authored by Snapmaker](https://github.com/Snapmaker/Luban)**
 
-![Software Screenshot](https://user-images.githubusercontent.com/3749551/219274513-0f0d1e56-2e0a-4c9b-ad8b-7b5801a00cde.jpg)
+
+The software is inspired by [cncjs](https://github.com/cncjs/cncjs) by cheton.
+[CuraEngine](https://github.com/ultimaker/curaengine) is used for 3D slicing.
+
+![Software Screenshot](https://github.com/user-attachments/assets/037f108f-fb04-40ef-90d2-234026c52a74)
 
 
 ## How to install and run
 
 ### Run released applications
 
-You can download latest releases of software under the ["**Releases**"](https://github.com/Snapmaker/Luban/releases) section.
+You can download latest releases of software under the ["**Releases**"](https://github.com/rmcc/Luban/releases) section.
 It's recommended to use a stable release version unless you want to do some modifications on the source code.
 
 For Linux distros (Debian for example), you may need to run following commands to install dependencies for Luban:
@@ -35,20 +36,7 @@ Checkout [Development](./docs/Development.md) to how to run and develop from sou
 
 ## Feedback & Contribution
 
-- To submit a bug or feature request, [file an issue](https://github.com/Snapmaker/Luban/issues/new) in github issues.
-- To contribute some code, make sure you have read and followed our guidelines for [contributing](https://github.com/Snapmaker/Luban/blob/master/CONTRIBUTING.md).
-
-## Translations
-
-We use crowdin for collaborative translations. We would greatly appreciate your assistance in improving our translations.
-
-| Language | Crowdin Link |
-| ---------| -------------|
-| Ukrainian (Українська) | [Ukrainian translations](https://crowdin.com/project/luban/uk) |
-| German (Deutsch) | [German translations](https://crowdin.com/project/luban/de) |
-| Italian (Italiano) | [Italian translations](https://crowdin.com/project/luban/it) |
-| Chinese Simplified (简体中文) | [Chinese translations](https://crowdin.com/project/luban/zh-CN) |
-
+- To contribute some code, make sure you have read and followed SM's guidelines for [contributing](https://github.com/Snapmaker/Luban/blob/master/CONTRIBUTING.md).
 
 ## License
 Snapmaker Luban is released under terms of the AGPLv3 License.
