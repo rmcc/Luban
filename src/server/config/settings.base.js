@@ -1,6 +1,8 @@
 import path from 'path';
 import pkg from '../../package.json';
 
+const os = require('os');
+
 // RCFile
 const RCFILE = '.snapmaker-luban.json';
 
@@ -48,14 +50,15 @@ export default {
             //   true: immediately start reading from the request stream and parsing
             immediate: false
         },
-        // https://github.com/andrewrk/node-multiparty/
-        'multiparty': {
-            // Limits the amount of memory a field (not a file) can allocate in bytes.
-            // If this value is exceeded, an error event is emitted. The default size is 2MB.
-            maxFieldsSize: 20 * 1024 * 1024, // 20MB
-
-            // Limits the number of fields that will be parsed before emitting an error event. A file counts as a field in this case. Defaults to 1000.
-            maxFields: 1000
+        'multer': {
+            dest: os.tmpdir(), // Equivalent to multiparty's default
+            limits: {
+                // Limits the amount of memory a field (not a file) can allocate in bytes.
+                // If this value is exceeded, an error event is emitted. The default size is 2MB.
+                fieldSize: 20 * 1024 * 1024, // 20MB
+                // Limits the number of fields that will be parsed before emitting an error event. A file counts as a field in this case. Defaults to 1000.
+                fields: 1000
+            }
         },
         // https://github.com/expressjs/session
         'session': {

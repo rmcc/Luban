@@ -1,5 +1,5 @@
 /* eslint no-unused-vars: 0 */
-import bcrypt from 'bcrypt-nodejs';
+import bcrypt from 'bcryptjs';
 import chalk from 'chalk';
 import dns from 'dns';
 import fs from 'fs';

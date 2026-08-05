@@ -24,11 +24,10 @@
     "@snapmaker/snapmaker-lunar": "file:modified-modules/snapmaker-snapmaker-lunar-1.5.0.tgz",
     "@snapmaker/snapmaker-sacp-sdk": "0.1.1",
     "@xmldom/xmldom": "^0.8.2",
-    "bcrypt-nodejs": "0.0.3",
+    "bcryptjs": "^3.0.3",
     "body-parser": "^1.20.6",
     "chalk": "2.4.2",
     "commander": "7.2.0",
-    "connect-multiparty": "2.2.0",
     "cookie-parser": "1.4.6",
     "debug": "3.1.0",
     "dxf": "^5.3.1",
@@ -39,7 +38,7 @@
     "errorhandler": "1.5.1",
     "esprima-next": "5.7.0",
     "express": "^4.21.2",
-    "express-jwt": "6.1.2",
+    "express-jwt": "^8.5.1",
     "express-session": "1.15.6",
     "fontkit": "2.0.4",
     "fs-extra": "11.1.0",
@@ -57,10 +56,11 @@
     "lodash": "^4.18.0",
     "loglevel": "1.8.1",
     "minimatch": "^3.1.5",
+    "multer": "^2.2.0",
     "multicast-dns": "7.2.5",
     "mv": "2.1.1",
     "node-fetch": "2.6.7",
-    "node-schedule": "2.1.0",
+    "node-schedule": "2.1.1",
     "node-wifi": "2.0.16",
     "opencv-js-wasm": "^5.0.0-alpha",
     "opentype.js": "0.9.0",
@@ -83,6 +83,13 @@
     "winston": "3.0.1",
     "workerpool": "6.1.5",
     "xml2js": "0.6.2"
+  },
+  "overrides": {
+    "cookie": "^0.7.0",
+    "js-yaml": "^4.3.0",
+    "json5": "^2.2.3",
+    "merge": "^2.1.1",
+    "on-headers": "^1.1.0"
   },
   "config": {
     "commitizen": {
