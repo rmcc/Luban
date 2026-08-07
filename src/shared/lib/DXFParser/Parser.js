@@ -161,13 +161,13 @@ export const dxfToSvg = (dxf, strokeWidth = 0.72) => {
                 }
             }
 
-            if (entities.vertices.length > 2 && entities.shape === true) {
+            if (entities.closed || entities.vertices.length > 2 && entities.shape === true) {
                 pathsObj.points.push([
                     entities.vertices[0].x * s,
                     entities.vertices[0].y * s
                 ]);
+                pathsObj.closed = true;
             }
-            pathsObj.closed = false;
             shape.paths.push(pathsObj);
         } else if (entities.type === 'SPLINE') {
             pathsObj.points = [];
@@ -285,6 +285,7 @@ export const updateDxfBoundingBox = (svg) => {
         maxY: -Infinity
     };
 
+    let maxStroke = 0.1;
     for (const shape of svg.shapes) {
         updateShapeBoundingBox(shape);
         if (shape.visibility) {
@@ -305,12 +306,16 @@ export const updateDxfBoundingBox = (svg) => {
                 shape.boundingBox.maxY
             );
         }
+        if (shape.visibility && shape.strokeWidth > maxStroke) {
+            maxStroke = shape.strokeWidth;
+        }
     }
 
     svg.boundingBox = boundingBox;
-    svg.width = svg.boundingBox.maxX - svg.boundingBox.minX;
-    svg.height = svg.boundingBox.maxY - svg.boundingBox.minY;
-    svg.viewBox = [boundingBox.minX, boundingBox.minY, svg.width, svg.height];
+    const margin = maxStroke * 2;
+    svg.width = (svg.boundingBox.maxX - svg.boundingBox.minX) + (margin * 2);
+    svg.height = (svg.boundingBox.maxY - svg.boundingBox.minY) + (margin * 2);
+    svg.viewBox = [boundingBox.minX - margin, boundingBox.minY - margin, svg.width, svg.height];
 
     return svg;
 };
