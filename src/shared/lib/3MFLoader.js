@@ -44,20 +44,13 @@ import { DOMParser } from '@xmldom/xmldom';
  * - Metallic Display Properties (PBR)
  */
 
-var ThreeMFLoader = function (manager) {
+class ThreeMFLoader extends Loader {
+    constructor(manager) {
+        super(manager);
+        this.availableExtensions = [];
+    }
 
-    Loader.call(this, manager);
-
-    this.availableExtensions = [];
-
-};
-
-ThreeMFLoader.prototype = Object.assign(Object.create(Loader.prototype), {
-
-    constructor: ThreeMFLoader,
-
-    load: function (url, onLoad, onProgress, onError) {
-
+    load(url, onLoad, onProgress, onError) {
         var scope = this;
         var loader = new FileLoader(scope.manager);
         loader.setPath(scope.path);
@@ -88,9 +81,9 @@ ThreeMFLoader.prototype = Object.assign(Object.create(Loader.prototype), {
 
         }, null, onError);
 
-    },
+    }
 
-    loadFromBuffer: async function (buffer, onLoad, onError) {
+    async loadFromBuffer(buffer, onLoad, onError) {
         var scope = this;
 
         try {
@@ -113,9 +106,9 @@ ThreeMFLoader.prototype = Object.assign(Object.create(Loader.prototype), {
             scope.manager.itemError('3MFLoader.loadFromBuffer');
 
         }
-    },
+    }
 
-    parse: async function (data, onProgress) {
+    async parse(data, onProgress) {
 
         var scope = this;
         var textureLoader = new TextureLoader(this.manager);
@@ -1539,14 +1532,14 @@ ThreeMFLoader.prototype = Object.assign(Object.create(Loader.prototype), {
         onProgress(0.8);
         return build(objects, data3mf);
 
-    },
+    }
 
-    addExtension: function (extension) {
+    addExtension(extension) {
 
         this.availableExtensions.push(extension);
 
     }
 
-});
+};
 
 export default ThreeMFLoader;

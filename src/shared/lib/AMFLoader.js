@@ -32,17 +32,12 @@ import { DOMParser } from '@xmldom/xmldom';
  *
  */
 
-var AMFLoader = function ( manager ) {
+class AMFLoader extends Loader {
+	constructor(manager) {
+		super(manager);
+	}
 
-	Loader.call( this, manager );
-
-};
-
-AMFLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
-
-	constructor: AMFLoader,
-
-	load: function ( url, onLoad, onProgress, onError ) {
+	load( url, onLoad, onProgress, onError ) {
 
 		var scope = this;
 
@@ -76,9 +71,9 @@ AMFLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 
 		}, null, onError );
 
-	},
+	}
 
-	loadFromBuffer: async function(text, onLoad, onError) {
+	async loadFromBuffer(text, onLoad, onError) {
 		var scope = this;
 
 		try {
@@ -101,9 +96,9 @@ AMFLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 			scope.manager.itemError( 'AMFLoader.loadFromBuffer' );
 
 		}
-	},
+	}
 
-	parse: async function ( data, onProgress ) {
+	async parse( data, onProgress ) {
 
 		async function loadDocument( data ) {
 
@@ -550,7 +545,6 @@ AMFLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
         }
         return null;
 	}
-
-} );
+};
 
 export default AMFLoader;
