@@ -216,9 +216,9 @@ class ThreeMFLoader extends Loader {
                 var modelNode = xmlData.getElementsByTagName('model')[0];
                 var extensions = {};
 
-                for (var i = 0; i < modelNode.attributes.length; i++) {
+                for (var j = 0; j < modelNode.attributes.length; j++) {
 
-                    var attr = modelNode.attributes[i];
+                    var attr = modelNode.attributes[j];
                     if (attr.name.match(/^xmlns:(.+)$/)) {
 
                         extensions[attr.value] = RegExp.$1;
@@ -1370,17 +1370,28 @@ class ThreeMFLoader extends Loader {
         }
 
         function buildComposite(compositeData, objects, modelData, textureData) {
-
+            var modelsData = data3mf.model;
             var composite = new Group();
 
             for (var j = 0; j < compositeData.length; j++) {
 
                 var component = compositeData[j];
                 var build = objects[component.objectId];
+                var currentModelData = modelData;
+
+                if (build === undefined && currentModelData['resources']['object'][component.objectId] === undefined) {
+                    var modelsKeys = Object.keys(modelsData);
+                    for (var k = 0; k < modelsKeys.length; k++) {
+                        if (modelsData[modelsKeys[k]]['resources']['object'][component.objectId] !== undefined) {
+                            currentModelData = modelsData[modelsKeys[k]];
+                            break;
+                        }
+                    }
+                }
 
                 if (build === undefined) {
 
-                    buildObject(component.objectId, objects, modelData, textureData);
+                    buildObject(component.objectId, objects, currentModelData, textureData);
                     build = objects[component.objectId];
 
                 }
@@ -1406,7 +1417,16 @@ class ThreeMFLoader extends Loader {
         }
 
         function buildObject(objectId, objects, modelData, textureData) {
-
+            if (modelData['resources']['object'][objectId] === undefined) {
+                var modelsData = data3mf.model;
+                var modelsKeys = Object.keys(modelsData);
+                for (var k = 0; k < modelsKeys.length; k++) {
+                    if (modelsData[modelsKeys[k]]['resources']['object'][objectId] !== undefined) {
+                        modelData = modelsData[modelsKeys[k]];
+                        break;
+                    }
+                }
+            }
             var objectData = modelData['resources']['object'][objectId];
 
             if (objectData['mesh']) {
@@ -1447,7 +1467,7 @@ class ThreeMFLoader extends Loader {
                     var modelRel = modelRels[i];
                     var textureKey = modelRel.target.substring(1);
 
-                    if (data3mf.texture[textureKey]) {
+                    if (data3mf.texture && data3mf.texture[textureKey]) {
 
                         textureData[modelRel.target] = data3mf.texture[textureKey];
 
