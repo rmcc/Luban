@@ -32,6 +32,8 @@ import baseActions, { ACTION_UPDATE_STATE } from './action-base';
 /* eslint-disable import/no-cycle */
 import definitionManager from '../manager/DefinitionManager';
 
+const { ipcRenderer } = window.require('electron');
+
 const INITIAL_STATE = {
     printingArrangeSettings: {
         angle: 30,
@@ -105,9 +107,14 @@ const INITIAL_STATE = {
     homingModal: false,
     // Do we use blending of objects over photo backgrounds? (laser)
     photoObjectBlending: true,
+    keepDisplayOn: true,
 
     isMultiDualExtrusion: false
 };
+
+async function setDisplaySleep(state) {
+    await ipcRenderer.invoke('display-sleep:set', state);
+}
 
 export const actions = {
     // Initialize machine, get machine configurations via API
@@ -198,6 +205,16 @@ export const actions = {
             dispatch(
                 baseActions.updateState({
                     photoObjectBlending: false
+                })
+            );
+        }
+        // main.js initially turns this on by default. Flip it off
+        // if it's set to false
+        if (machineStore.get('keepDisplayOn') === false) {
+            setDisplaySleep(false);
+            dispatch(
+                baseActions.updateState({
+                    keepDisplayOn: false
                 })
             );
         }
@@ -536,6 +553,11 @@ export const actions = {
     updatePhotoObjectBlending: (photoObjectBlending) => (dispatch) => {
         dispatch(baseActions.updateState({ photoObjectBlending: photoObjectBlending }));
         machineStore.set('photoObjectBlending', photoObjectBlending);
+    },
+    updateKeepDisplayOn: (keepDisplayOn) => (dispatch) => {
+        setDisplaySleep(keepDisplayOn);
+        dispatch(baseActions.updateState({ keepDisplayOn: keepDisplayOn }));
+        machineStore.set('keepDisplayOn', keepDisplayOn);
     },
     // endregion
 

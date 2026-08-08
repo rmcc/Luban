@@ -24,7 +24,7 @@ global.luban = {
 let serverData = null;
 let mainWindow = null;
 let loadUrl = '';
-let powerId = 0;
+let powerId = -1;
 const loadingMenu = [{
     id: 'file',
     label: '',
@@ -386,6 +386,26 @@ const startToBegin = (data) => {
     }
 };
 
+function setPreventDisplaySleep(state, force = false) {
+    if (powerId >= 0) {
+        powerSaveBlocker.stop(powerId);
+        powerId = -1;
+    }
+    if (force) {
+        // We want it stopped, period. For app-exit scenarios
+        return;
+    }
+
+    if (state) {
+        powerId = powerSaveBlocker.start('prevent-display-sleep');
+    } else {
+        // When it's set to off, we still don't want the OS to throttle
+        // the app, since it might be actively running a job
+        powerId = powerSaveBlocker.start('prevent-app-suspension');
+    }
+}
+
+
 let serverProcess;
 const showMainWindow = async () => {
     const windowOptions = getBrowserWindowOptions();
@@ -400,7 +420,10 @@ const showMainWindow = async () => {
             }
         });
     });
-    powerId = powerSaveBlocker.start('prevent-display-sleep');
+
+    // user preferences will manage this when they're initialized.
+    // defaults to on.
+    setPreventDisplaySleep(true);
 
     if (process.platform === 'win32') {
         const menu = Menu.buildFromTemplate(loadingMenu);
@@ -725,6 +748,9 @@ const showMainWindow = async () => {
         }
         return true;
     });
+    ipcMain.handle('display-sleep:set', (_, state) => {
+        return setPreventDisplaySleep(state);
+    });
 };
 
 // Allow max 4G memory usage
@@ -775,7 +801,7 @@ app.on('window-all-closed', () => {
     // after all windows have been closed.
     // if (process.platform !== 'darwin') {
     // }
-    powerSaveBlocker.stop(powerId);
+    setPreventDisplaySleep(false, true);
 
     app.quit();
 });

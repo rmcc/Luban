@@ -1075,6 +1075,7 @@
     "key-App/Settings/General-Workspace Hide the console when working": "Hide the Console during machining",
     "key-App/Settings/General-Workspace Setting": "Workspace Setting",
     "key-App/Settings/General-Use color blending for objects over photo backgrounds": "Use color blending for objects over photo backgrounds",
+    "key-App/Settings/General-Keep display on": "Keep display on",
     "key-App/Settings/MachineSettings-10W Laser": "10W Laser",
     "key-App/Settings/MachineSettings-1600mW Laser": "1600mW Laser",
     "key-App/Settings/MachineSettings-2.0 Dual Extrusion Module": "Snapmaker 2.0 Dual Extrusion Module",

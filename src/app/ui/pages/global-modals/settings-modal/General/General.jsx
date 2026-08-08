@@ -113,6 +113,7 @@ function General({ state: generalState, actions }) {
     const promptDamageModel = useSelector(state => state?.machine?.promptDamageModel, shallowEqual);
     const enable3dpLivePreview = useSelector(state => state?.machine?.enable3dpLivePreview, shallowEqual);
     const photoObjectBlending = useSelector(state => state?.machine?.photoObjectBlending, shallowEqual);
+    const keepDisplayOn = useSelector(state => state?.machine?.keepDisplayOn, shallowEqual);
     const dispatch = useDispatch();
     const updateShouldCheckForUpdate = (shouldAutoUpdate) => dispatch(machineActions.updateShouldCheckForUpdate(shouldAutoUpdate));
     const updateShouldAutoPreviewGcode = (bool) => dispatch(machineActions.updateShouldAutoPreviewGcode(bool));
@@ -120,6 +121,7 @@ function General({ state: generalState, actions }) {
     const updatePromptDamageModel = (bool) => dispatch(machineActions.updatePromptDamageModel(bool));
     const updateEnable3dpLivePreview = (bool) => dispatch(machineActions.updateEnable3dpLivePreview(bool));
     const updatePhotoObjectBlending = (bool) => dispatch(machineActions.updatePhotoObjectBlending(bool));
+    const updateKeepDisplayOn = (bool) => dispatch(machineActions.updateKeepDisplayOn(bool));
     const [theme, setTheme] = useState('light');
 
     useEffect(() => {
@@ -137,6 +139,9 @@ function General({ state: generalState, actions }) {
                 setCurrentTheme(option?.value);
                 setTheme(option?.value);
             }
+        },
+        changeDisplaySleep: (state) => {
+            updateKeepDisplayOn(!!state);
         },
         cancel: () => {
             actions.restoreSettings();
@@ -297,6 +302,13 @@ function General({ state: generalState, actions }) {
                         />
                         <span className="margin-left-4">
                             {i18n._('key-App/Settings/General-Use color blending for objects over photo backgrounds')}
+                        </span><br />
+                        <Checkbox
+                            checked={keepDisplayOn}
+                            onChange={(event) => { handlers.changeDisplaySleep(event.target.checked); }}
+                        />
+                        <span className="margin-left-4">
+                            {i18n._('key-App/Settings/General-Keep display on')}
                         </span>
                     </SubMenuitemWrapper>
                 </div>
