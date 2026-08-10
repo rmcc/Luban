@@ -3698,7 +3698,7 @@ export const actions = {
             if (selected.length === 1) {
                 dispatch(
                     actions.updateState({
-                        progress: progressStatesManager.updateProgress(STEP_STAGE.PRINTING_AUTO_ROTATING_MODELS, 0.25)
+                        progress: progressStatesManager.updateProgress(STEP_STAGE.PRINTING_AUTO_ROTATING_MODELS, 0.20)
                     })
                 );
             }
@@ -3720,12 +3720,12 @@ export const actions = {
                 revertParentArr.push(revertParent);
                 modelItem.meshObject.updateMatrixWorld();
                 geometry.computeBoundingBox();
-                const inverseNormal = modelItem.transformation.scaleX / Math.abs(modelItem.transformation.scaleX) < 0;
 
                 const modelItemInfo = {
                     matrixWorld: modelItem.meshObject.matrixWorld,
                     convexGeometry: modelItem.convexGeometry,
-                    inverseNormal
+                    inverseNormal: modelItem.meshObject.matrixWorld.determinant() < 0
+
                 };
                 selectedModelInfo.push(modelItemInfo);
                 positionAttribute.push(geometry.getAttribute('position'));
@@ -3796,6 +3796,9 @@ export const actions = {
                             break;
                         }
                         case 'ERROR': {
+                            revertParentArr.forEach((revertParentFunc) => {
+                                revertParentFunc();
+                            });
                             dispatch(
                                 actions.updateState({
                                     stage: STEP_STAGE.PRINTING_AUTO_ROTATE_FAILED,

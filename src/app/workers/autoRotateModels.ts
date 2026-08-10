@@ -29,7 +29,7 @@ const autoRotateModels = (data: AutoRotateModelsData) => {
     return new Observable((observer) => {
         try {
             const selectedModelLength = selectedModelInfo.length;
-            selectedModelInfo.forEach((modelItemInfo, index) => {
+            selectedModelInfo.forEach(async (modelItemInfo, index) => {
                 const {
                     matrixWorld: rawMatrix,
                     inverseNormal,
@@ -77,14 +77,24 @@ const autoRotateModels = (data: AutoRotateModelsData) => {
                 const z = (box3.max.z + box3.min.z) / 2;
                 const center = new Vector3(x, y, z);
                 center.applyMatrix4(matrixWorld);
-                const { planes, areas, planesPosition } = ThreeUtils.computeGeometryPlanes(
+                const { planes, areas, planesPosition } = await ThreeUtils.computeGeometryPlanes(
                     convexGeometry,
                     matrixWorld,
                     [],
                     center,
-                    inverseNormal
+                    inverseNormal,
+                    (subProgress) => {
+                        observer.next({
+                            status: 'PROGRESS',
+                            value: {
+                                // By the time the worker is called, the progress bar
+                                // is already at 20%. So start there and go up to 80
+                                progress: 0.20 + 0.60 * ((index + subProgress * 0.5) / (selectedModelLength + 1)),
+                            },
+                        });
+                    }
                 );
-                const maxArea = Math.max.apply(null, areas);
+                const maxArea = areas.reduce((max, current) => current > max ? current : max, -Infinity);
                 const bigPlanes = { planes: null, areas: [], planesPosition: [] };
                 bigPlanes.planes = planes.filter((p, idx) => {
                     // filter big planes, 0.1 can be change to improve perfomance
@@ -117,24 +127,35 @@ const autoRotateModels = (data: AutoRotateModelsData) => {
                     observer.next({
                         status: 'PROGRESS',
                         value: {
-                            progress: (index + 1) / (selectedModelLength + 1),
+                            // By the time the worker is called, the progress bar
+                            // is already at 20%. So start there and go up to 80
+                            progress: 0.20 + 0.60 * ((index + 1) / (selectedModelLength + 1)),
                         },
                     });
                     index + 1 >= selectedModelLength && observer.complete();
                     return;
                 }
                 const xyPlaneNormal = new Vector3(0, 0, -1);
-                const objPlanes = ThreeUtils.computeGeometryPlanes(
+                const objPlanes = await ThreeUtils.computeGeometryPlanes(
                     geometry,
                     matrixWorld,
                     bigPlanes.planes,
                     center,
-                    false
+                    inverseNormal,
+                    (subProgress) => {
+                        observer.next({
+                            status: 'PROGRESS',
+                            value: {
+                                // By the time the worker is called, the progress bar
+                                // is already at 20%. So start there and go up to 80
+                                progress: 0.20 + 0.60 * ((index + 0.5 + subProgress * 0.5) / (selectedModelLength + 1)),
+                            },
+                        });
+                    }
                 );
                 let targetPlane;
-                const minSupportVolume = Math.min.apply(
-                    null,
-                    objPlanes.supportVolumes
+                const minSupportVolume = objPlanes.supportVolumes.reduce(
+                    (min, current) => current < min ? current : min, Infinity
                 );
                 const rates = [];
                 if (minSupportVolume < 1) {
@@ -164,7 +185,7 @@ const autoRotateModels = (data: AutoRotateModelsData) => {
                     );
                 }
                 if (!targetPlane) {
-                    const maxRate = Math.max.apply(null, rates);
+                    const maxRate = rates.reduce((max, current) => current > max ? current : max, -Infinity);
                     const idx = rates.findIndex((r) => r === maxRate);
                     targetPlane = bigPlanes.planes[idx];
                 }

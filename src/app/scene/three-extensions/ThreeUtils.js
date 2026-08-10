@@ -267,7 +267,7 @@ const ThreeUtils = {
             return lastBbox;
         };
     }()),
-    computeGeometryPlanes(geometry, matrix, allPlanes = [], center, inverseNormal) {
+    async computeGeometryPlanes(geometry, matrix, allPlanes = [], center, inverseNormal, onProgress) {
         let baseMode = true;
         let planes = [];
         let areas = [];
@@ -297,6 +297,8 @@ const ThreeUtils = {
         const plane = new THREE.Plane();
         const tmpVector = new THREE.Vector3();
 
+        const batchSize = 9000; // Check progress and yield every 1000 triangles (9 coordinates per triangle)
+
         for (let i = 0, len = positions.length; i < len; i += 9) {
             a.fromArray(positions, i);
             b.fromArray(positions, i + 3);
@@ -312,10 +314,10 @@ const ThreeUtils = {
             // skip tiny triangles
             // if (area < 0.1) continue;
 
+            if (inverseNormal) {
+                plane.negate();
+            }
             if (baseMode) {
-                if (inverseNormal) {
-                    plane.normal.negate();
-                }
                 const idx = planes.findIndex(p => isSimilarPlanes(p, plane));
                 if (idx !== -1) {
                     areas[idx] += area;
@@ -339,6 +341,15 @@ const ThreeUtils = {
                     }
                 }
             }
+
+            if (i % batchSize === 0 && onProgress) {
+                onProgress(i / len);
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+        }
+
+        if (onProgress) {
+            onProgress(1);
         }
 
         return { planes, areas, supportVolumes, planesPosition };
