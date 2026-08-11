@@ -54,6 +54,7 @@ import { MoveDirection } from '@snapmaker/snapmaker-sacp-sdk/dist/models/Movemen
 
 import DataStorage from '../../../DataStorage';
 import { MotorPowerMode } from '../../../../app/constants';
+export { MotorPowerMode };
 
 interface Logger {
     error(msg: string): void;

@@ -1,6 +1,5 @@
 import EventEmitter from 'events';
 
-import settings from '../../config/settings';
 import logger from '../logger';
 
 const log = logger('service:socket-server');
@@ -11,10 +10,6 @@ type TMessage = {
 }
 
 class SocketServer extends EventEmitter {
-    private server = null;
-
-    private io = null;
-
     private sockets: any[] = [];
 
     public id = '';
@@ -27,10 +22,8 @@ class SocketServer extends EventEmitter {
         this.sockets = [];
         this.stop();
 
-        this.server = server;
-
-        if (typeof process.parentPort !== 'undefined' && process.parentPort) {
-            process.parentPort.on('message', (messageEvent: any) => {
+        if (typeof (process as any).parentPort !== 'undefined' && (process as any).parentPort) {
+            (process as any).parentPort.on('message', (messageEvent: any) => {
                 if (messageEvent.data && messageEvent.data.type === 'setup-socket-port') {
                     // If we lost the channel during HMR
                     if (this.port) {
@@ -76,7 +69,6 @@ class SocketServer extends EventEmitter {
             this.port = null;
         }
         this.sockets = [];
-        this.server = null;
         // this.events = [];
     }
 

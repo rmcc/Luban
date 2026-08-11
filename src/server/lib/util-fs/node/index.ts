@@ -2,6 +2,8 @@ import * as fs from 'fs-extra';
 
 import logger from '../../logger';
 
+const path = require('path');
+
 const log = logger('util-fs');
 
 interface CopyDirOptions {
@@ -18,7 +20,7 @@ export async function copyDir(srcDir: string, dstDir: string, options: CopyDirOp
         options.overwrite = true;
     }
 
-    if (typeof options.asarSafe !== 'undefined' && options.asarSafe === 'true') {
+    if (typeof options.asarSafe !== 'undefined' && String(options.asarSafe) === 'true') {
         await copyRecurse(srcDir, dstDir);
     }
 

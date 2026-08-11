@@ -44,7 +44,7 @@ interface Result {
     code: number;
     msg: string;
     text?: string;
-    data?: object;
+    data?: any;
 }
 const _getResult = (err, res: request.Response): Result => {
     if (err) {
@@ -88,7 +88,7 @@ const _getResult = (err, res: request.Response): Result => {
     };
 };
 // let timeoutHandle = null;
-const intervalHandle = null;
+// const intervalHandle = null;
 
 
 export type StateOptions = {
@@ -318,7 +318,7 @@ class SstpHttpChannel extends Channel implements
         this.heartBeatWorker = workerManager.heartBeat([{
             host: this.host,
             token: this.token
-        }], (result: object) => {
+        }], (result: any) => {
             if (result.status === 'offline') {
                 log.info(`[wifi connection offline]: msg=${result.msg}`);
                 this.clearAllInterval();

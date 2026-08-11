@@ -3,6 +3,10 @@ import EventEmitter from 'events';
 
 import logger from '../logger';
 
+interface Socket {
+    emit(event: string, ...args: any[]): void;
+}
+
 const log = logger('service:schedule-task');
 
 class ScheduledTasks extends EventEmitter {

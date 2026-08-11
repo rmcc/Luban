@@ -119,6 +119,11 @@ class SacpChannelBase extends Channel implements
     private filamentActionModule = null;
 
     private moduleInfos: { [key: string]: ModuleInfo | ModuleInfo[] } = {};
+    private getModule(key: string): ModuleInfo | undefined {
+        const value = this.getModule(key);
+        if (!value) return undefined;
+        return Array.isArray(value) ? value[0] : value;
+    }
 
     public currentWorkNozzle: number;
 
@@ -256,10 +261,9 @@ class SacpChannelBase extends Channel implements
      * Get 3DP print module info.
      *
      * TODO: standardize use of extruder in APIs
-     */
     private getPrintToolHeadModule(): ModuleInfo | null {
         for (const key of Object.keys(this.moduleInfos)) {
-            const module = this.moduleInfos[key];
+            const module = this.getModule(key);
             if (module && module instanceof ModuleInfo) {
                 if (includes(PRINTING_HEAD_MODULE_IDS, module.moduleId)) {
                     return module;
@@ -269,13 +273,14 @@ class SacpChannelBase extends Channel implements
 
         return null;
     }
+     */
 
     /**
      * Get laser module info.
      */
     private getLaserToolHeadModule(): ModuleInfo | null {
         for (const key of Object.keys(this.moduleInfos)) {
-            const module = this.moduleInfos[key];
+            const module = this.getModule(key);
             if (module && module instanceof ModuleInfo) {
                 if (includes(LASER_HEAD_MODULE_IDS, module.moduleId)) {
                     return module;
@@ -291,7 +296,7 @@ class SacpChannelBase extends Channel implements
      */
     private getCncToolHeadModule(): ModuleInfo | null {
         for (const key of Object.keys(this.moduleInfos)) {
-            const module = this.moduleInfos[key];
+            const module = this.getModule(key);
             if (module && module instanceof ModuleInfo) {
                 if (includes(CNC_HEAD_MODULE_IDS, module.moduleId)) {
                     return module;
@@ -304,7 +309,7 @@ class SacpChannelBase extends Channel implements
 
     private getEnclosureModule(): ModuleInfo | null {
         for (const key of Object.keys(this.moduleInfos)) {
-            const module = this.moduleInfos[key];
+            const module = this.getModule(key);
             if (module && module instanceof ModuleInfo) {
                 if (includes(ENCLOSURE_MODULE_IDS, module.moduleId)) {
                     return module;
@@ -317,7 +322,7 @@ class SacpChannelBase extends Channel implements
 
     private getAirPurifierModule(): ModuleInfo | null {
         for (const key of Object.keys(this.moduleInfos)) {
-            const module = this.moduleInfos[key];
+            const module = this.getModule(key);
             if (module && module instanceof ModuleInfo) {
                 if (includes(AIR_PURIFIER_MODULE_IDS, module.moduleId)) {
                     return module;
@@ -710,7 +715,7 @@ class SacpChannelBase extends Channel implements
     }
 
     public async setFilterWorkSpeed(options) {
-        const moduleInfo = this.moduleInfos && this.moduleInfos[AIR_PURIFIER];
+        const moduleInfo = this.moduleInfos && this.getModule(AIR_PURIFIER);
         this.sacpClient.setPurifierSpeed(moduleInfo.key, options.value).then(({ response }) => {
             log.info(`Update Purifier speed, ${response.result}, ${options.value}`);
         });
@@ -1348,9 +1353,9 @@ class SacpChannelBase extends Channel implements
         extruderIndex = Number(extruderIndex);
 
         const modules = this.moduleInfos && (
-            this.moduleInfos[DUAL_EXTRUDER_TOOLHEAD_FOR_SM2]
-            || this.moduleInfos[DUAL_EXTRUDER_TOOLHEAD_FOR_ARTISAN]
-            || this.moduleInfos[SINGLE_EXTRUDER_TOOLHEAD_FOR_SM2]
+            this.getModule(DUAL_EXTRUDER_TOOLHEAD_FOR_SM2)
+            || this.getModule(DUAL_EXTRUDER_TOOLHEAD_FOR_ARTISAN)
+            || this.getModule(SINGLE_EXTRUDER_TOOLHEAD_FOR_SM2)
         );
         if (!modules) {
             return null;
@@ -1460,9 +1465,9 @@ class SacpChannelBase extends Channel implements
 
     public updateBedTemperature = (zoneIndex, temperature) => {
         const heatBedModule = this.moduleInfos && (
-            this.moduleInfos[A400_HEADT_BED_FOR_SM2]
-            || this.moduleInfos[HEADT_BED_FOR_SM2]
-            || this.moduleInfos[SNAPMAKER_J1_HEATED_BED]
+            this.getModule(A400_HEADT_BED_FOR_SM2)
+            || this.getModule(HEADT_BED_FOR_SM2)
+            || this.getModule(SNAPMAKER_J1_HEATED_BED)
         ); //
         if (!heatBedModule) {
             log.error('Can not find heated bed module. Command ignored.');
@@ -1476,10 +1481,10 @@ class SacpChannelBase extends Channel implements
 
     public async updateNozzleOffset(extruderIndex, direction, distance) {
         const toolHead = this.moduleInfos
-            && (this.moduleInfos[DUAL_EXTRUDER_TOOLHEAD_FOR_SM2]
-                || this.moduleInfos[DUAL_EXTRUDER_TOOLHEAD_FOR_ARTISAN]
-                 || this.moduleInfos[SINGLE_EXTRUDER_TOOLHEAD_FOR_SM2]);
-        // || this.moduleInfos[HEADT_BED_FOR_SM2]); //
+            && (this.getModule(DUAL_EXTRUDER_TOOLHEAD_FOR_SM2)
+                || this.getModule(DUAL_EXTRUDER_TOOLHEAD_FOR_ARTISAN)
+                 || this.getModule(SINGLE_EXTRUDER_TOOLHEAD_FOR_SM2));
+        // || this.getModule(HEADT_BED_FOR_SM2)); //
         if (!toolHead) {
             log.error(`non-eixst toolHead 3dp, moduleInfos:${this.moduleInfos}`,);
             return;
@@ -1505,7 +1510,7 @@ class SacpChannelBase extends Channel implements
     // }
 
     public async updateWorkSpeed(toolhead, workSpeed, extruderIndex = 0) {
-        const headModule = this.moduleInfos && (this.moduleInfos[toolhead]); //
+        const headModule = this.moduleInfos && (this.getModule(toolhead)); //
         if (!headModule) {
             log.error(`non-eixst toolhead[${toolhead}], moduleInfos:${JSON.stringify(this.moduleInfos)}`,);
             return;
@@ -1567,7 +1572,7 @@ class SacpChannelBase extends Channel implements
     //
     public async laserSetWorkHeight(options) {
         const { toolHead, materialThickness, isRotate } = options;
-        const headModule = this.moduleInfos && (this.moduleInfos[toolHead]); //
+        const headModule = this.moduleInfos && (this.getModule(toolHead)); //
         if (!headModule) {
             log.error(`non-eixst toolhead[${toolHead}], moduleInfos:${JSON.stringify(this.moduleInfos)}`,);
             return;

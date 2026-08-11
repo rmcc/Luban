@@ -237,8 +237,8 @@ function getContext(definition, contextKey = '') {
         resolveOrValue: (input) => (input),
         extruderValue: (ignore, input) => input,
         extruderValues: (input) => [input],
-        min: ([input]) => Math.min([input]),
-        max: ([input]) => Math.max([input]),
+        min: (input) => Math.min(...input),
+        max: (input) => Math.max(...input),
         defaultExtruderPosition: () => 0,
     };
 

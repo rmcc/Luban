@@ -4,16 +4,16 @@ const t = (...args) => {
     const key = args[0];
     const options = args[1];
 
-    let text = i18next.t(key, options);
+    let text = i18next.t(key, options) as unknown as string;
     if (typeof text === 'string' && text.length === 0) {
-        text = i18next.t(key, { ...options, lng: 'en' });
+        text = i18next.t(key, { ...options, lng: 'en' }) as unknown as string;
     }
 
     return text;
 };
 
 function processKey(value, options) {
-    const { context, count } = { ...options };
+    const { context = undefined, count = undefined } = { ...options };
     const containsContext = (context !== undefined) && (context !== null);
     const containsPlural = (typeof count === 'number');
 

@@ -69,7 +69,7 @@ const createLogger = (filename: string): winston.Logger => {
                         colorize(),
                         timestamp(),
                         printf(log => `${log.timestamp} - ${log.level} ${log.message}`)
-                    ),
+                    ) as any,
                     handleExceptions: true
                 })
             ]
@@ -85,7 +85,7 @@ const createLogger = (filename: string): winston.Logger => {
                         colorize(),
                         timestamp(),
                         printf(log => `${log.timestamp} - ${log.level} ${log.message}`)
-                    ),
+                    ) as any,
                     handleExceptions: true
                 }),
                 new winston.transports.File({
@@ -93,7 +93,7 @@ const createLogger = (filename: string): winston.Logger => {
                     format: combine(
                         timestamp(),
                         printf(log => `${log.timestamp} - ${log.level} ${log.message}`)
-                    ),
+                    ) as any,
                     handleExceptions: true
                 })
             ]
