@@ -3,7 +3,7 @@ module.exports = {
         '@babel/preset-react',
         ['@babel/preset-env', {
             targets: {
-                electron: '41.0'
+                electron: '43.0'
             },
             useBuiltIns: false
         }],
@@ -16,30 +16,6 @@ module.exports = {
         // needs consensus
         // https://github.com/tc39/proposal-export-ns-from
         // '@babel/plugin-proposal-export-namespace-from',
-
-        /**
-         * Stage 0
-         */
-        // bind operator: https://github.com/tc39/proposal-bind-operator
-        '@babel/plugin-proposal-function-bind',
-
-        /**
-         * Step 1
-         */
-        // export default from: https://github.com/tc39/proposal-export-default-from
-        '@babel/plugin-proposal-export-default-from',
-        // do expressions: https://github.com/tc39/proposal-do-expressions
-        '@babel/plugin-proposal-do-expressions',
-        // pipe operator: https://github.com/tc39/proposal-pipeline-operator
-        // ['@babel/plugin-proposal-pipeline-operator', { 'proposal': 'minimal' }],
-
-        /**
-         * Stage 2
-         */
-
-        // generator function.sent: https://github.com/tc39/proposal-function.sent
-        // '@babel/plugin-proposal-function-sent',
-        '@babel/plugin-proposal-throw-expressions',
 
         /**
          * Stage 3
