@@ -8,7 +8,6 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const nib = require('nib');
-const stylusLoader = require('stylus-loader');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const babelConfig = require('./babel.config');
 const AntdDayjsWebpackPlugin = require('antd-dayjs-webpack-plugin');
@@ -104,14 +103,6 @@ module.exports = {
             debug: true
         }),
         new webpack.NoEmitOnErrorsPlugin(),
-        new stylusLoader.OptionsPlugin({
-            default: {
-                // nib - CSS3 extensions for Stylus
-                use: [nib()],
-                // no need to have a '@import "nib"' in the stylesheet
-                import: ['~nib/lib/nib/index.styl']
-            }
-        }),
         new AntdDayjsWebpackPlugin({
             preset: 'antd'
         }),
@@ -200,7 +191,15 @@ module.exports = {
                                     esModule: false,
                                 }
                             },
-                            'stylus-loader',
+                            {
+                                loader: 'stylus-loader',
+                                options: {
+                                    stylusOptions: {
+                                        use: [require('nib')()],
+                                        import: ['nib']
+                                    }
+                                }
+                            }
                         ],
                     },
                     // module
@@ -222,7 +221,15 @@ module.exports = {
                                     esModule: false,
                                 }
                             },
-                            'stylus-loader',
+                            {
+                                loader: 'stylus-loader',
+                                options: {
+                                    stylusOptions: {
+                                        use: [require('nib')()],
+                                        import: ['nib']
+                                    }
+                                }
+                            }
                         ]
                     },
                 ]
@@ -235,15 +242,17 @@ module.exports = {
             // image files
             {
                 test: /\.(png|jpg|svg)$/,
-                loader: 'url-loader',
-                options: {
-                    limit: 8192
+                type: 'asset',
+                parser: {
+                    dataUrlCondition: {
+                        maxSize: 8192
+                    }
                 }
             },
             // font files
             {
                 test: /\.(ttf|woff|woff2|eot)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-                loader: 'file-loader'
+                type: 'asset/resource'
             },
         ]
     },
