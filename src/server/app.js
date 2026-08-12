@@ -164,7 +164,7 @@ const createApplication = () => {
         });
     });
 
-    app.use('/data', express.static(DataStorage.userDataDir));
+    app.use('/files', express.static(DataStorage.tmpDir));
 
     // Setup i18n (i18next)
     i18next

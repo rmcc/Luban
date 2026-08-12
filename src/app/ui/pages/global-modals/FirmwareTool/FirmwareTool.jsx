@@ -53,7 +53,7 @@ class FirmwareTool extends PureComponent {
                     .then((res) => {
                         const packageName = res.body.packageName;
                         if (packageName) {
-                            request.get(`/data/Tmp/${packageName}`).responseType('blob').end((err, result) => {
+                            request.get(`/files/${packageName}`).responseType('blob').end((err, result) => {
                                 FileSaver.saveAs(result.body, packageName, true);
                             });
                         }

@@ -6,7 +6,7 @@ import path from 'path';
 import request from 'superagent';
 
 import pkg from '../../../package.json';
-import { DATA_PATH } from '../constants';
+import { DATA_PATH, FILE_STAGING } from '../constants';
 import Dialog from './dialog';
 import i18n from './i18n';
 import DownloadManager from './download-mananger';
@@ -246,7 +246,7 @@ const File = {
             return null;
         } else {
             request
-                .get(`/${DATA_PATH}${tmpFile}`)
+                .get(`/${DATA_PATH}${tmpFile.slice(FILE_STAGING.length)}`)
                 .responseType('blob')
                 .end((err, res) => {
                     FileSaver.saveAs(res.body, targetFile, true);
@@ -308,7 +308,7 @@ const File = {
         } else {
             if (isProfileConfig) {
                 request
-                    .get(`/${DATA_PATH}${tmpFile}`)
+                    .get(`/${DATA_PATH}${tmpFile.slice(FILE_STAGING.length)}`)
                     .end((err, res) => {
                         const json = res.body;
                         const newProfile = this.resetProfile(json);
@@ -317,7 +317,7 @@ const File = {
                     });
             } else {
                 request
-                    .get(`/${DATA_PATH}${tmpFile}`)
+                    .get(`/${DATA_PATH}${tmpFile.slice(FILE_STAGING.length)}`)
                     .responseType('blob')
                     .end((err, res) => {
                         FileSaver.saveAs(res.body, renderGcodeFileName, true);

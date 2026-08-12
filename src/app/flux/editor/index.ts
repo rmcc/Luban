@@ -3078,7 +3078,7 @@ export const actions = {
         results.forEach((data) => {
             const model = modelGroup.findModelByID(data.modelID);
             model.needRepair = false;
-            model.resource.originalFile.path = `/data/Tmp/${data.uploadName}`;
+            model.resource.originalFile.path = `/files/${data.uploadName}`;
             dispatch(actions.prepareStlVisualizer(headType, model));
         });
 

@@ -11,6 +11,7 @@ import {
     COORDINATE_MODE_TOP_LEFT,
     COORDINATE_MODE_TOP_RIGHT,
     DISPLAYED_TYPE_MODEL,
+    FILE_STAGING,
     HEAD_TYPE_ENV_NAME,
     LEFT_EXTRUDER,
     LOAD_MODEL_FROM_OUTER,
@@ -432,7 +433,7 @@ export const actions = {
     },
 
     exportFile: (targetFile, renderGcodeFileName = null) => async (dispatch) => {
-        const tmpFile = `/Tmp/${targetFile}`;
+        const tmpFile = `${FILE_STAGING}/${targetFile}`;
         await UniApi.File.exportAs(targetFile, tmpFile, renderGcodeFileName, (type, filePath = '') => {
             dispatch(appGlobalActions.updateSavedModal({
                 showSavedModal: true,
@@ -470,12 +471,12 @@ export const actions = {
         if (unSaved || !openedFile) {
             const { body: { targetFile: insideTargetFile } } = await api.env.packageEnv({ headType });
             newTargetFile = insideTargetFile;
-            tmpFile = `/Tmp/${newTargetFile}`;
+            tmpFile = `${FILE_STAGING}/${newTargetFile}`;
             dispatch(actions.updateState(headType, { targetFile: newTargetFile }));
         } else {
             const { name } = openedFile;
             newTargetFile = name;
-            tmpFile = `/Tmp/${targetFile}`;
+            tmpFile = `${FILE_STAGING}/${targetFile}`;
         }
 
         return new Promise((resolve) => {
@@ -549,7 +550,7 @@ export const actions = {
 
         const { body: { targetFile } } = await api.env.packageEnv({ headType });
         await dispatch(actions.updateState(headType, { targetFile }));
-        const tmpFile = `/Tmp/${targetFile}`;
+        const tmpFile = `${FILE_STAGING}/${targetFile}`;
         await new Promise((resolve) => {
             UniApi.File.save(openedFile.path, tmpFile, async () => {
                 resolve(true);

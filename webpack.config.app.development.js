@@ -29,7 +29,7 @@ const devServer = {
     },
     proxy: [
         {
-            context: ['/api', '/data', '/worker', '/resources'],
+            context: ['/api', '/files', '/worker', '/resources'],
             target: `http://localhost:${SERVER_PORT}`,
             agent: new (require('http').Agent)({ socketPath: devPipePath }),
             changeOrigin: true

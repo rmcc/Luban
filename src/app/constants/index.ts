@@ -843,9 +843,10 @@ Engraves the path in a horizontal, vertical, or diagonal direction.',
 };
 
 const publicPath = global.PUBLIC_PATH || '';
-export const DATA_PATH = `${DEFAULT_LUBAN_HOST}/data`;
+export const DATA_PATH = `${DEFAULT_LUBAN_HOST}/files`;
+export const FILE_STAGING = '/Tmp';
 
-export const DATA_PREFIX = `${publicPath}/data/Tmp`;
+export const DATA_PREFIX = `${publicPath}/files`;
 
 export const CNC_TOOL_SNAP_V_BIT = 'snap.v-bit';
 export const CNC_TOOL_SNAP_V_BIT_CONFIG = {
