@@ -194,22 +194,6 @@ class TextActions {
         this.setCursor(this.getIndexFromPoint(mouseX, mouseY));
     }
 
-    /**
-     *
-     * @param {Float} x
-     * @param {Float} y
-     * @param {boolean} apply
-     * @returns {void}
-     */
-    setEndSelectionFromPoint(x, y, apply) {
-        const i1 = this.textinput.selectionStart;
-        const i2 = this.getIndexFromPoint(x, y);
-
-        const start = Math.min(i1, i2);
-        const end = Math.max(i1, i2);
-        this.setSelection(start, end, !apply);
-    }
-
     // Not currently in use
     hideCursor() {
         if (this.cursor) {
@@ -267,17 +251,6 @@ class TextActions {
         this.lastY = startY;
 
         // TODO: Find way to block native selection
-    }
-
-    /**
-     * @param {Float} mouseX
-     * @param {Float} mouseY
-     * @returns {void}
-     */
-    // TODO: not used
-    mouseMove(mouseX, mouseY) {
-        // const pt = screenToPt(mouseX, mouseY);
-        this.setEndSelectionFromPoint(mouseX, mouseY);
     }
 
     /**

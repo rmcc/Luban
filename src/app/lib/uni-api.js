@@ -395,9 +395,6 @@ const Window = {
         this.window.setTitle(title);
     },
 
-    copySelection(text) {
-        navigator.clipboard.writeText(text);
-    },
     reload() {
         window.location.href = '/';
         Window.setOpenedFile('');

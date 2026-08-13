@@ -186,16 +186,6 @@ export default class CncReliefToolPathGenerator extends EventEmitter {
             });
     }
 
-    /**
-     * Calculate the max density
-     */
-    calMaxDensity(toolDiameter, transformation) {
-        const maxDensity1 = Math.floor(Math.sqrt(5000000 / transformation.width / transformation.height));
-        const lineWidth = toolDiameter * OVERLAP_RATE;
-        const maxDensity2 = 1 / lineWidth;
-        return Math.min(MAX_DENSITY, maxDensity1, maxDensity2);
-    }
-
     calc(grey, depthOffsetRatio) {
         return grey - 255 / depthOffsetRatio;
     }

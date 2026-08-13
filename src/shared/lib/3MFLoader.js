@@ -1554,12 +1554,6 @@ class ThreeMFLoader extends Loader {
 
     }
 
-    addExtension(extension) {
-
-        this.availableExtensions.push(extension);
-
-    }
-
 };
 
 export default ThreeMFLoader;

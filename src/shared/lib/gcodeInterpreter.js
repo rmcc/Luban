@@ -162,39 +162,6 @@ class Interpreter {
         this.defaultHandler = options.defaultHandler;
     }
 
-    loadFromStream(stream, callback = noop) {
-        const s = parseStream(stream, callback);
-        s.on('data', (data) => {
-            interpret(this, data);
-        });
-        return s;
-    }
-
-    loadFromFile(file, callback = noop) {
-        const s = parseFile(file, callback);
-        s.on('data', (data) => {
-            interpret(this, data);
-        });
-        return s;
-    }
-
-    loadFromFileSync(file, callback = noop) {
-        const list = parseFileSync(file);
-        for (let i = 0; i < list.length; ++i) {
-            interpret(this, list[i]);
-            callback(list[i], i);
-        }
-        return list;
-    }
-
-    loadFromString(str, callback = noop) {
-        const s = parseString(str, callback);
-        s.on('data', (data) => {
-            interpret(this, data);
-        });
-        return s;
-    }
-
     loadFromStringSync(str, callback = noop) {
         const list = str.split('\n');
         // const list = parseStringSync(str);

@@ -196,15 +196,4 @@ export class CutAngles {
             cutAngle.offset(offset);
         }
     }
-
-    removeLessThanAngle(angle) {
-        let i = 0;
-        while (i < this.cutAngles.length) {
-            if (this.cutAngles[i].angleLength() < angle) {
-                this.cutAngles.splice(i, 1);
-            } else {
-                i++;
-            }
-        }
-    }
 }

@@ -171,17 +171,6 @@ class SVGContentGroup {
         return this.svgContent.getElementById(`${id}`);
     }
 
-    insertAfter(element, index) {
-        index = Math.floor(index);
-        const childNodes = this.getChildNodes();
-        const childNodesLength = childNodes.length;
-        if (childNodesLength > 1 && index <= childNodesLength) {
-            this.group.insertBefore(element, childNodes[index - 2].nextSibling);
-        } else {
-            this.group.append(element);
-        }
-    }
-
     getSelected() {
         return this.selectedElements[0];
     }
@@ -401,24 +390,6 @@ class SVGContentGroup {
         }
     }
 
-    getSelectedElementVisible() {
-        const selectedElement = this.getSelected();
-        return selectedElement.visible;
-    }
-
-    setSelectedElementVisible(visible) {
-        const selectedElement = this.getSelected();
-        selectedElement.visible = visible;
-    }
-
-    getSelectedElementUniformScalingState() {
-        const selectedElement = this.getSelected();
-        if (selectedElement.uniformScalingState === undefined) {
-            return true;
-        }
-        return selectedElement.uniformScalingState;
-    }
-
     setSelectedElementUniformScalingState(uniformScalingState) {
         const selectedElement = this.getSelected();
         selectedElement.uniformScalingState = uniformScalingState;
@@ -481,10 +452,6 @@ class SVGContentGroup {
     getSelectedElementsBBox() {
         const allSelectedElementsBox = this.operatorPoints.getAllSelectedElementsBox();
         return getBBox(allSelectedElementsBox);
-    }
-
-    getSelectedElementsCenterPoint() {
-        return this.operatorPoints.getCenterPoint();
     }
 
     translateSelectedElementsOnMouseDown() {

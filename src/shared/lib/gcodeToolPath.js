@@ -807,16 +807,8 @@ class ToolPath {
         return this.modal;
     }
 
-    isMetricUnits() { // mm
-        return this.modal.units === 'G21';
-    }
-
     isImperialUnits() { // inches
         return this.modal.units === 'G20';
-    }
-
-    isAbsoluteDistance() {
-        return this.modal.distance === 'G90';
     }
 
     isRelativeDistance() {

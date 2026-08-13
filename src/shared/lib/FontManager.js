@@ -241,48 +241,6 @@ class FontManager {
         });
     }
 
-    downloadFont(family) {
-        // for download .woff font
-        const userAgent = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0';
-        const googleFontAPI = 'https://fonts.googleapis.com/css';
-
-        return request
-            .get(googleFontAPI, {
-                family: family,
-                subset: 'latin'
-            })
-            .set('User-Agent', userAgent)
-            .then((res) => {
-                if (res.status === 400) {
-                    throw new Error(`Font not found ${family}`);
-                }
-                const pattern = /https:\/\/[^)]+/;
-                const m = res.text.match(pattern);
-                if (!m) {
-                    throw new Error('Google Font API request not matched');
-                }
-                return m[0];
-            })
-            .then((url) => new Promise((resolve, reject) => {
-                const filePath = `${this.fontDir}/${family}.woff`;
-                request
-                    .get(url)
-                    .pipe(fs.createWriteStream(filePath), null)
-                    .on('finish', () => {
-                        resolve(path);
-                    })
-                    .on('error', (err) => {
-                        reject(err);
-                    });
-            }))
-            .then((filePath) => {
-                return this.loadLocalFont(filePath, family);
-            })
-            .catch((err) => {
-                log.error('request font failed', err);
-            });
-    }
-
     getFont(family, subfamily = null, style) {
         const localFont = this.searchLocalFont(family, style);
         if (localFont) {

@@ -12,10 +12,6 @@ class Workflow extends events.EventEmitter {
         return this.state === WORKFLOW_STATUS_IDLE;
     }
 
-    isRunning() {
-        return this.state === WORKFLOW_STATUS_RUNNING;
-    }
-
     isPaused() {
         return this.state === WORKFLOW_STATUS_PAUSED;
     }

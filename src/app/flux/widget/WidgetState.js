@@ -363,13 +363,6 @@ class WidgetState {
         return this.update(path, value);
     }
 
-    getWidgetState(widgetId, key) {
-        const path = `widgets[${widgetId}}].${key}}`;
-        const machineSeriesState = this.widgetState.seriesStates[this.series];
-        const dState = this.widgetState.defaultState;
-        return _.get(machineSeriesState, path) || _.get(dState, path);
-    }
-
     toggleWorkspaceWidgetToDefault(widgetId) {
         const defaultPath = 'workspace.default.widgets';
 
@@ -388,10 +381,6 @@ class WidgetState {
         this.series = series;
         const path = 'machine.series';
         return this.set(path, series);
-    }
-
-    getDefaultState() {
-        return merge({}, DEFAULT_STATE, SERIES_STATES[this.series]);
     }
 
     getState() {

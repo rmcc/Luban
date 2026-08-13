@@ -615,42 +615,6 @@ class SVGActionsFactory {
         }
     }
 
-    updateElementToImage(element, options) {
-        if (element.nodeName === 'image') {
-            return;
-        }
-        const model = this.getSVGModelByElement(element);
-
-        const transformList = SvgModel.getTransformList(element);
-        const scaleX = transformList.getItem(2).matrix.a;
-        const scaleY = transformList.getItem(2).matrix.d;
-        const angle = transformList.getItem(1).angle;
-
-        this.svgContentGroup.deleteElement(element);
-        const { x, y, width, height } = coordGmModelToSvg(this.size, options.transformation);
-        const newElement = this.svgContentGroup.addSVGElement({
-            element: 'image',
-            attr: {
-                id: model.modelID,
-                x: x,
-                y: y,
-                width: width,
-                height: height,
-                href: `${DATA_PREFIX}/${options.processImageName}`,
-            }
-        });
-
-        SvgModel.recalculateElementTransformList(newElement, {
-            x: 0,
-            y: 0,
-            scaleX,
-            scaleY,
-            angle
-        });
-
-        model.elem = newElement;
-    }
-
     selectAllElements(isRotate = false) {
         this.clearSelection();
         const childNodes = this.svgContentGroup.group.children;
@@ -728,15 +692,6 @@ class SVGActionsFactory {
         } else {
             return [];
         }
-    }
-
-    /**
-     * Get selected SVG models.
-     *
-     * @returns {SvgModel[]} - returns list of selected SVG models.
-     */
-    getSelectedSVGModels() {
-        return this.selectedSvgModels;
     }
 
     /**

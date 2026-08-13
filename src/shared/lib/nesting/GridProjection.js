@@ -36,19 +36,6 @@ class GridProjection {
         };
     }
 
-    isPointInPoints(x, y, points) {
-        let inside = false;
-        for (let i = 0; i < 3; i++) {
-            const p = points[i];
-            const q = points[(i + 1) % 3];
-
-            if ((p.y > y) !== (q.y > y) && x < p.x + (q.x - p.x) * (y - p.y) / (q.y - p.y)) {
-                inside = !inside;
-            }
-        }
-        return inside;
-    }
-
     setData(i, j, value) {
         if (i < 0 || j < 0) {
             return;
@@ -57,10 +44,6 @@ class GridProjection {
             this.data[i] = [];
         }
         this.data[i][j] = value;
-    }
-
-    getMax(v1, v2, v3) {
-        return Math.max(Math.max(v1, v2), v3);
     }
 
     getMin(v1, v2, v3) {

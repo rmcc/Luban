@@ -1684,14 +1684,6 @@ class SVGCanvas extends React.PureComponent<SVGCanvasProps> {
         return undefined;
     }
 
-    /*
-    recalculateAllSelectedDimensions() {
-        for (const elem of this.svgContentGroup.selectedElements) {
-            recalculateDimensions(this.svgContainer, elem);
-        }
-    }
-    */
-
     /**
      * Add elements to selection.
      *

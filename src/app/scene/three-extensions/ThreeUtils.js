@@ -21,38 +21,12 @@ const ThreeUtils = {
         return quaternion;
     },
 
-    // get matrix for rotating v2 to v1. Applying matrix to v2 can make v2 to parallels v1.
-    getRotateMatrixBetweenVector3(v1, v2) {
-        const quaternion = ThreeUtils.getQuaternionBetweenVector3(v1, v2);
-        const matrix4 = new THREE.Matrix4().makeRotationFromQuaternion(quaternion);
-        return matrix4;
-    },
-
     getMouseXY(event, domElement) {
         const rect = domElement.getBoundingClientRect();
         return new THREE.Vector2(
             ((event.clientX - rect.left) / rect.width) * 2 - 1,
             -((event.clientY - rect.top) / rect.height) * 2 + 1
         );
-    },
-
-    // get world info
-    getObjectWorldPosition(object) {
-        const result = new THREE.Vector3();
-        object.getWorldPosition(result);
-        return result;
-    },
-
-    getObjectWorldQuaternion(object) {
-        const result = new THREE.Quaternion();
-        object.getWorldQuaternion(result);
-        return result;
-    },
-
-    getObjectWorldScale(object) {
-        const result = new THREE.Vector3();
-        object.getWorldScale(result);
-        return result;
     },
 
     getEventWorldPosition(event, domElement, camera) {
@@ -74,68 +48,6 @@ const ThreeUtils = {
         return result;
     },
 
-    // set world transformation
-    setObjectWorldPosition(object, position) {
-        const parent = object.parent;
-        parent.updateMatrixWorld();
-        const matrix = new THREE.Matrix4().copy(parent.matrixWorld).invert();
-        position.applyMatrix4(matrix);
-        object.position.copy(position);
-    },
-
-    setObjectWorldScale(object, scale) {
-        const localScale = object.parent.worldToLocal(scale);
-        object.scale.copy(localScale);
-    },
-
-    setObjectWorldQuaternion(object, quaternion) {
-        object.setRotationFromQuaternion(quaternion);
-
-        const parentQuaternion = ThreeUtils.getObjectWorldQuaternion(object.parent);
-        object.applyQuaternion(parentQuaternion.invert());
-    },
-
-    scaleObjectToWorldSize(object, targetSize, pivot) {
-        const originSize2D = ThreeUtils.getGeometrySize(object.geometry, true);
-
-        const originPos = ThreeUtils.getObjectWorldPosition(object);
-        const originScale = ThreeUtils.getObjectWorldScale(object);
-
-        const scaleX = targetSize.x / originSize2D.x;
-        const scaleY = targetSize.y / originSize2D.y;
-
-        const worldScale = new THREE.Vector3(scaleX, scaleY, 1);
-        ThreeUtils.setObjectWorldScale(object, worldScale);
-
-        const deltaX = (scaleX - originScale.x) * originSize2D.x;
-        const deltaY = (scaleY - originScale.y) * originSize2D.y;
-
-        const newPos = originPos.clone();
-        const delta = new THREE.Vector3();
-        switch (pivot) {
-            case 'top_left':
-                delta.x = deltaX / 2;
-                delta.y = -deltaY / 2;
-                break;
-            case 'top_right':
-                delta.x = -deltaX / 2;
-                delta.y = -deltaY / 2;
-                break;
-            case 'bottom_left':
-                delta.x = deltaX / 2;
-                delta.y = deltaY / 2;
-                break;
-            case 'bottom_right':
-                delta.x = -deltaX / 2;
-                delta.y = deltaY / 2;
-                break;
-            default: // center
-                break;
-        }
-        newPos.add(delta);
-        ThreeUtils.setObjectWorldPosition(object, newPos);
-    },
-
     getGeometrySize(geometry, is2D) {
         geometry.computeBoundingBox();
         const box = geometry.boundingBox;
@@ -149,13 +61,6 @@ const ThreeUtils = {
         } else {
             return size;
         }
-    },
-
-    generateSupportBoxGeometry(width, height, topZ, bottomZ = 0) {
-        const depth = topZ - bottomZ;
-        const box = new THREE.BoxGeometry(width, height, depth).toNonIndexed();
-        box.translate(0, 0, depth / 2 + bottomZ);
-        return box;
     },
 
     removeObjectParent(obj) {

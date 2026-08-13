@@ -90,29 +90,6 @@ export default class CncMeshLinkageToolPathGenerator extends EventEmitter {
         return p1.x * 1000000000 + p1.y * 1000000 + p2.x * 1000 + p2.y;
     }
 
-    _testConsole(datas) {
-        for (const data of datas) {
-            this.toolPath.move0Z(data.z, 300);
-            this.toolPath.move0Y(data.y, 300);
-            this.toolPath.move0B(0, 300);
-
-            const polygons = data.polygons;
-
-            for (let j = 0; j < polygons.size(); j++) {
-                const polygon = polygons.get(j);
-                for (let i = 0; i < polygon.size(); i++) {
-                    const point = polygon.get(i);
-
-                    if (i === 0) {
-                        this.toolPath.move0XZ(point.x, point.y, 300);
-                    } else {
-                        this.toolPath.move1XZ(point.x, point.y, 300);
-                    }
-                }
-            }
-        }
-    }
-
     _generateSlicerLayerToolPath(slicerLayers, index, gcodeConfig) {
         const { jogSpeed = 300, workSpeed = 300, plungeSpeed = 300 } = gcodeConfig;
 
@@ -504,50 +481,6 @@ export default class CncMeshLinkageToolPathGenerator extends EventEmitter {
 
         calculateCurveYCollisionArea(index + 1, true);
         calculateCurveYCollisionArea(index - 1, false);
-    }
-
-    _calculateYCollisionArea(slicerLayers, index, interpolatePoints, angle, lastPoint, point) {
-        const tan = Math.tan(this.toolAngle / 2 / 180 * Math.PI);
-        const toolOffset = this.toolDiameter / 2 / tan;
-
-        const calculateYConvexCollisionArea = (tmpIndex, sort) => {
-            while (tmpIndex >= 0 && tmpIndex < slicerLayers.length) {
-                const zOffset = Math.abs(slicerLayers[index].z - slicerLayers[tmpIndex].z);
-                if (zOffset >= this.toolShaftDiameter / 2) {
-                    break;
-                }
-                const offset = Math.max(zOffset / tan - toolOffset, 0);
-
-                const polygonsPart = slicerLayers[tmpIndex].polygonsPart;
-
-                polygonsPart.forEach(polygon => {
-                    const isPointInPolygon = polygon.isPointInPolygon(lastPoint) || polygon.isPointInPolygon(point);
-                    if (!isPointInPolygon) {
-                        return;
-                    }
-                    polygon.forEachLine((p1, p2) => {
-                        p1 = Vector2.rotate(p1, -angle);
-                        p2 = Vector2.rotate(p2, -angle);
-                        for (let i = 0; i < interpolatePoints.size(); i++) {
-                            const p = interpolatePoints.get(i);
-                            if ((p1.x <= p.x && p2.x >= p.x) || (p1.x >= p.x && p2.x <= p.x)) {
-                                const y = this._calculateInterpolateY(p, p1, p2);
-                                p.y = p.y === null ? y + offset : Math.min(p.y, y + offset);
-                            }
-                        }
-                    });
-                });
-
-                if (sort) {
-                    tmpIndex++;
-                } else {
-                    tmpIndex--;
-                }
-            }
-        };
-
-        calculateYConvexCollisionArea(index + 1, true);
-        calculateYConvexCollisionArea(index - 1, false);
     }
 
     _calculateInterpolateY(p, p1, p2) {

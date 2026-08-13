@@ -67,20 +67,6 @@ class ToolPath {
         return null;
     }
 
-    setMove0F(f) {
-        const moveRate = this.setMoveRate(f);
-        if (moveRate) {
-            this.commands.push({ 'G': 0, F: moveRate });
-        }
-    }
-
-    setMove1F(f) {
-        const rapidMoveRate = this.setRapidMoveRate(f);
-        if (rapidMoveRate) {
-            this.commands.push({ 'G': 1, F: rapidMoveRate });
-        }
-    }
-
     move0X(x, f) {
         const moveRate = this.setMoveRate(f);
         const commandObj = moveRate ? { 'G': 0, X: x, F: moveRate } : { 'G': 0, X: x };
@@ -111,12 +97,6 @@ class ToolPath {
         this.setCommand(commandObj);
     }
 
-    move0XZ(x, z, f) {
-        const moveRate = this.setMoveRate(f);
-        const commandObj = moveRate ? { 'G': 0, X: x, Z: z, F: moveRate } : { 'G': 0, X: x, Z: z };
-        this.setCommand(commandObj);
-    }
-
     move0BY(b, y, f) {
         const moveRate = this.setMoveRate(this.toRotateF(b - this.state.B, 0, y - this.state.Y, 0, f));
         const commandObj = moveRate ? { 'G': 0, B: b, Y: y, F: moveRate } : { 'G': 0, B: b, Y: y };
@@ -129,12 +109,6 @@ class ToolPath {
         this.setCommand(commandObj);
     }
 
-    move0XYZ(x, y, z, f) {
-        const moveRate = this.setMoveRate(f);
-        const commandObj = moveRate ? { 'G': 0, X: x, Y: y, Z: z, F: moveRate } : { 'G': 0, X: x, Y: y, Z: z };
-        this.setCommand(commandObj);
-    }
-
     move1X(x, f) {
         const rapidMoveRate = this.setRapidMoveRate(f);
         const commandObj = rapidMoveRate ? { 'G': 1, X: x, F: rapidMoveRate } : { 'G': 1, X: x };
@@ -144,12 +118,6 @@ class ToolPath {
     move1B(b, f) {
         const rapidMoveRate = this.setRapidMoveRate(this.toRotateF(b - this.state.B, 0, 0, 0, f));
         const commandObj = rapidMoveRate ? { 'G': 1, B: b, F: rapidMoveRate } : { 'G': 1, B: b };
-        this.setCommand(commandObj);
-    }
-
-    move1Y(y, f) {
-        const rapidMoveRate = this.setRapidMoveRate(f);
-        const commandObj = rapidMoveRate ? { 'G': 1, Y: y, F: rapidMoveRate } : { 'G': 1, Y: y };
         this.setCommand(commandObj);
     }
 
@@ -178,13 +146,6 @@ class ToolPath {
         this.setCommand(commandObj);
     }
 
-
-    move1YZ(y, z, f) {
-        const rapidMoveRate = this.setRapidMoveRate(f);
-        const commandObj = rapidMoveRate ? { 'G': 1, Y: y, Z: z, F: rapidMoveRate } : { 'G': 1, Y: y, Z: z };
-        this.setCommand(commandObj);
-    }
-
     move1BZ(b, z, f) {
         const rapidMoveRate = this.setRapidMoveRate(this.toRotateF(b - this.state.B, 0, 0, z - this.state.Z, f));
         const commandObj = rapidMoveRate ? { 'G': 1, B: b, Z: z, F: rapidMoveRate } : { 'G': 1, B: b, Z: z };
@@ -209,12 +170,6 @@ class ToolPath {
         this.setCommand(commandObj);
     }
 
-    move1XYZB(x, y, z, b, f) {
-        const rapidMoveRate = this.setRapidMoveRate(this.toRotateF(b - this.state.B, x - this.state.X, y - this.state.Y, z - this.state.Z, f));
-        const commandObj = rapidMoveRate ? { 'G': 1, X: x, Y: y, Z: z, B: b, F: rapidMoveRate } : { 'G': 1, X: x, Y: y, Z: z, B: b };
-        this.setCommand(commandObj);
-    }
-
     // safeStart(x, y, stopHeight, safetyHeight) {
     //     this.commands.push({ G: 90 });
     //     this.commands.push({ G: 0, Z: stopHeight, F: 400 });
@@ -225,14 +180,6 @@ class ToolPath {
     //     }
     //     this.commands.push({ G: 0, Z: safetyHeight, F: 400 });
     // }
-
-    setN() {
-        this.commands.push({ 'N': ' ' });
-    }
-
-    setComment(comment) {
-        this.commands.push({ 'C': comment });
-    }
 
     toB(x) {
         const b = x / this.diameter / Math.PI * 360;

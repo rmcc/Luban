@@ -1,24 +1,6 @@
 import { HEAD_CNC, HEAD_LASER, HEAD_PRINTING } from '../../constants';
 
 class GcodeGenerator {
-    parseToolPathObjToGcode(toolPathObj, gcodeConfig) {
-        if (!toolPathObj || !gcodeConfig) {
-            return null;
-        }
-        const { headType } = toolPathObj;
-        if (![HEAD_PRINTING, HEAD_LASER, HEAD_CNC].includes(headType)) {
-            return null;
-        }
-
-        let gcodeStr = '';
-        if (headType === 'cnc') {
-            gcodeStr = this.parseAsCNC(toolPathObj, gcodeConfig);
-        } else if (headType === 'laser') {
-            gcodeStr = this.parseAsLaser(toolPathObj, gcodeConfig);
-        }
-        return gcodeStr;
-    }
-
     parseAsCNC(toolPathObj, gcodeConfig) {
         const { data, positionX, positionY, rotationB } = toolPathObj;
         const gcodeConfigKeys = Object.keys(gcodeConfig);
@@ -226,21 +208,6 @@ class GcodeGenerator {
             gcodeLines = result;
         }
         return gcodeLines;
-    }
-
-    processGcodeForFixedPower(gcodeStr, gcodeConfig) {
-        const { fixedPowerEnabled, fixedPower } = gcodeConfig;
-        if (fixedPowerEnabled) {
-            const powerStrength = Math.floor(fixedPower * 255 / 100);
-            const fixedPowerGcode = [
-                '; Laser: setting power',
-                `M3 P${fixedPower} S${powerStrength}`,
-                'G4 P1',
-                'M5'
-            ].join('\n');
-            gcodeStr = `${fixedPowerGcode}\n\n${gcodeStr}`;
-        }
-        return gcodeStr;
     }
 }
 

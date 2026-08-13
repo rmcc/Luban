@@ -22,25 +22,6 @@ export class ViewPathRenderer {
         });
     }
 
-    _generateSvgViewPathObj(viewPath) {
-        const { targetDepth, data, positionX, positionY } = viewPath;
-        const shapePath = new THREE.ShapePath();
-        for (let i = 0; i < data.length; i++) {
-            const path = data[i];
-            shapePath.moveTo(path[0].x, path[0].y);
-            for (let j = 1; j < path.length; j++) {
-                shapePath.lineTo(path[j].x, path[j].y);
-            }
-        }
-
-        const mesh = this._generateMesh(shapePath.toShapes(), targetDepth);
-        mesh.position.x = positionX;
-        mesh.position.y = positionY;
-        mesh.position.z = -targetDepth;
-
-        return mesh;
-    }
-
     _generateViewPathObj(viewPath) {
         const { isRotate, diameter, width, height, data } = viewPath;
 
