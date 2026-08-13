@@ -280,12 +280,10 @@ const LaserMainPage: React.FC<LaserMainPageProps> = ({ location }) => {
 
                                 @media (prefers-color-scheme: dark) {
                                     svg:has(#svg-data-background #image-background) #svg-data .high-visibility-object {
-                                        mix-blend-mode: normal;
                                         filter: none;
                                     }
 
                                     svg:has(#svg-data-background #image-background) #svg-data .high-visibility-object-inverted {
-                                        mix-blend-mode: normal;
                                         filter: invert(1);
                                     }
                                 }

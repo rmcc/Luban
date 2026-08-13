@@ -92,13 +92,6 @@ class SVGContentGroup {
 
     // construct filter used in toolPath
     initFilter() {
-        const filterText = document.createElementNS(NS.SVG, 'filter');
-        filterText.setAttribute('id', 'inSelectedToolPathText');
-        const filterElementText = document.createElementNS(NS.SVG, 'feColorMatrix');
-        filterElementText.setAttribute('type', 'matrix');
-        filterElementText.setAttribute('values', '0 0 0 0 0.01 0 0 0 0 0.25 0 0 0 0 1 0 0 0 1 0');
-        filterText.append(filterElementText);
-
         const filterSVG = document.createElementNS(NS.SVG, 'filter');
         filterSVG.setAttribute('id', 'inSelectedToolPathSVG');
         const filterElementSVG = document.createElementNS(NS.SVG, 'feColorMatrix');
@@ -113,7 +106,6 @@ class SVGContentGroup {
         filterElementImage.setAttribute('values', '0.99 0 0 0 0.01 0 0.7 0 0 0.3 0 0 0.05 0 0.95 0 0 0 1 0');
         filterImage.append(filterElementImage);
 
-        this.svgContent.append(filterText);
         this.svgContent.append(filterSVG);
         this.svgContent.append(filterImage);
     }

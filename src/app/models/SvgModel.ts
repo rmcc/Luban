@@ -486,6 +486,10 @@ class SvgModel extends BaseModel {
      *
      */
     public updateIsToolPathSelect(selected: boolean) {
+        if (this.isToolPathSelect === selected) {
+            return;
+        }
+
         this.isToolPathSelect = selected;
 
         /* Classes can apply their own filters. Remove them for selected
@@ -509,15 +513,9 @@ class SvgModel extends BaseModel {
             case 'circle':
             case 'rect':
             case 'ellipse':
-                if (selected) {
-                    this.elem.setAttribute('filter', 'url(#inSelectedToolPathSVG)');
-                } else {
-                    this.elem.setAttribute('filter', 'none');
-                }
-                break;
             case 'text':
                 if (selected) {
-                    this.elem.setAttribute('filter', 'url(#inSelectedToolPathText)');
+                    this.elem.setAttribute('filter', 'url(#inSelectedToolPathSVG)');
                 } else {
                     this.elem.setAttribute('filter', 'none');
                 }
