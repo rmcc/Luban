@@ -3,7 +3,7 @@ module.exports = {
         '@babel/preset-react',
         ['@babel/preset-env', {
             targets: {
-                electron: '43.0'
+                electron: '44.0'
             },
             useBuiltIns: false
         }],
