@@ -3,6 +3,7 @@ import childProcess from 'child_process';
 import EventEmitter from 'events';
 import fs from 'fs';
 import path from 'path';
+import readline from 'readline';
 
 import { generateRandomPathName } from '../../shared/lib/random-utils';
 import DataStorage from '../DataStorage';
@@ -47,7 +48,8 @@ function callEngine(globalConfig, modelConfigs, outputPath) {
             env: {
                 ...process.env,
                 CURA_ENGINE_SEARCH_PATH: `${path.resolve(DataStorage.configDir, HEAD_PRINTING)}`
-            }
+            },
+            cwd:  DataStorage.tmpDir
         }
     );
 }
@@ -78,9 +80,6 @@ export default class Slicer extends EventEmitter {
     // file paths of model definitions
     private modelDefinitions: string[];
 
-    // file paths of support models
-    private supportModels: string[];
-
     // file path of support models' definition
     // all support models share the same definition
     // private supportDefinition: string;
@@ -99,7 +98,6 @@ export default class Slicer extends EventEmitter {
         this.models = [];
         this.modelDefinitions = [];
 
-        this.supportModels = [];
         // this.supportDefinition = '';
 
         this.progress = 0;
@@ -117,10 +115,6 @@ export default class Slicer extends EventEmitter {
         this.modelDefinitions = definitions;
     }
 
-    public setSupportModels(models: string[]): void {
-        this.supportModels = models;
-    }
-
     public setMetadata(metadata: Metadata): void {
         this.metadata = metadata;
     }
@@ -133,17 +127,6 @@ export default class Slicer extends EventEmitter {
         for (let i = 0; i < this.models.length; i++) {
             const modelName = this.models[i];
             const modelPath = `${DataStorage.tmpDir}/${modelName}`;
-            if (!fs.existsSync(modelPath)) {
-                log.error(`Slice failed: 3D model file does not exist: ${modelPath}`);
-                this.emit('failed', `Slice failed: 3D model file does not exist: ${modelPath}`);
-                return false;
-            }
-        }
-
-        for (let i = 0; i < this.supportModels.length; i++) {
-            const modelName = this.supportModels[i];
-            const modelPath = `${DataStorage.tmpDir}/${modelName}`;
-
             if (!fs.existsSync(modelPath)) {
                 log.error(`Slice failed: 3D model file does not exist: ${modelPath}`);
                 this.emit('failed', `Slice failed: 3D model file does not exist: ${modelPath}`);
@@ -263,7 +246,7 @@ export default class Slicer extends EventEmitter {
         }
     }
 
-    private _onSliceProcessClose(sliceResult: SliceResult, code: number): void {
+    private async _onSliceProcessClose(sliceResult: SliceResult, code: number, outputFilePath) {
         log.info(`sliceResult = ${sliceResult}`);
         if (code === 0) {
             this.emit('progress', 0.95);
@@ -273,6 +256,46 @@ export default class Slicer extends EventEmitter {
             const renderGcodeFileName = `${renderName}.gcode`;
             sliceResult.renderGcodeFileName = renderGcodeFileName;
 
+            if (sliceResult.filamentLength === undefined) {
+                // This is a version of CuraEngine that stopped printing the
+                // header to stdout, so pull it from the file and parse it.
+                // Needed starting from version 5.14
+                try {
+                    const fileStream = fs.createReadStream(outputFilePath, { encoding: 'utf8' });
+                    const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
+
+                    let lineCount = 0;
+
+                    for await (const item of rl) {
+                        lineCount++;
+
+                        // Read until gcode starts, max 20 lines
+                        if (item.indexOf('Start GCode') === 0 || lineCount > 20) {
+                            rl.close();
+                            break;
+                        } else if (item.indexOf(';Filament used:') === 0) {
+                            // single extruder: ';Filament used: 0.139049m'
+                            // dual extruders: ';Filament used: 0.139049m, 0m'
+                            const filamentLengthArr = item.replace(';Filament used:', '')
+                                .split(',');
+                            const filamentLength = filamentLengthArr.map(str => Number(str.trim()
+                                        .replace('m', '')));
+                            // volume (cm^3) * density (PLA: 1.24 g/cm^3)
+                            const filamentWeight = filamentLength.map(v => Math.PI * (1.75 / 2) * (1.75 / 2) * v * 1.24);
+
+                            sliceResult.filamentLength = filamentLength;
+                            sliceResult.filamentWeight = filamentWeight;
+                        } else if (item.indexOf(';TIME:') === 0) {
+                            sliceResult.printTime = Number(item.replace(';TIME:', '')) * 1.07;
+                        }
+                    }
+
+                    fileStream.destroy();
+
+                } catch (error) {
+                    console.error(`Failed to read gcode file: ${error.message}`);
+                }
+            }
             this._postProcess(sliceResult);
         } else {
             this.emit('failed', 'Slicer failed.');
@@ -298,12 +321,6 @@ export default class Slicer extends EventEmitter {
                 configPath: path.join(DataStorage.tmpDir, this.modelDefinitions[i]),
             });
         }
-        for (let i = 0; i < this.supportModels.length; i++) {
-            modelConfigs.push({
-                modelPath: path.join(DataStorage.tmpDir, this.supportModels[i]),
-                configPath: path.join(DataStorage.configDir, PRINTING_CONFIG_SUBCATEGORY, 'support.def.json'),
-            });
-        }
 
         const outputFilename = this.metadata.originalName
             ? generateRandomPathName(`${path.parse(this.metadata.originalName).name}.gcode`)
@@ -319,7 +336,7 @@ export default class Slicer extends EventEmitter {
         process.stderr.on('data', (err) => {
             log.error(err.toString());
         });
-        process.on('close', (code) => this._onSliceProcessClose(sliceResult, code));
+        process.on('close', async (code) => await this._onSliceProcessClose(sliceResult, code, outputFilePath));
     }
 }
 

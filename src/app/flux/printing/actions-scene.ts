@@ -320,7 +320,7 @@ const setSmartFillBrushAngle = (angle: number) => {
 };
 
 // status: add | remove
-const setSupportBrushStatus = (status: 'add' | 'remove') => {
+const setSupportBrushStatus = (status: 'add' | 'remove' | 'block') => {
     return (dispatch) => {
         dispatch(
             baseActions.updateState({

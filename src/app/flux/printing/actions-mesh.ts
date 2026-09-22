@@ -41,11 +41,15 @@ interface UploadMeshOptions {
  */
 const uploadMesh = async (mesh: Mesh, fileName: string, options?: UploadMeshOptions) => {
     // From ThreeModel:
-    // BYTE_COUNT_COLOR_MASK, BYTE_COUNT_LEFT_EXTRUDER, BYTE_COUNT_RIGHT_EXTRUDER
+    // BYTE_COUNT_COLOR_MASK, BYTE_COUNT_LEFT_EXTRUDER, BYTE_COUNT_RIGHT_EXTRUDER, BYTE_COUNT_SUPPORT_MASK
     // We can't use them directly, it hangs app startup. Circular dependency?
     const MASK_COLOR = 0xff00;
     const EXTRUDER_LEFT = 0x0100;
     const EXTRUDER_RIGHT = 0x0200;
+    const MASK_SUPPORT = 0x0003;
+
+    const SUPPORT_FORCE = 1;
+    const SUPPORT_BLOCK = 2;
 
     const fileType = options?.fileType || 'stl';
     const geometry = mesh.geometry;
@@ -100,10 +104,12 @@ const uploadMesh = async (mesh: Mesh, fileName: string, options?: UploadMeshOpti
         const cellH = cellSize * invHeight;
 
         let didColors = false;
+        let didSupports = false;
         for (let faceIndex = 0; faceIndex < totalFaces; faceIndex++) {
-            // Read the Luban byteCount coloring flag
+            // Read the custom byteCount coloring flag
             const byteCount = byteCountAttr.array[faceIndex] || 0;
             const byteCountColor = (byteCount & MASK_COLOR);
+            const hasSupportFlag = (byteCount & MASK_SUPPORT);
 
             // Isolate target extruder number (0 for T0, 1 for T1)
             let extruderId = 0;
@@ -113,6 +119,15 @@ const uploadMesh = async (mesh: Mesh, fileName: string, options?: UploadMeshOpti
             } else if (byteCountColor === EXTRUDER_RIGHT) {
                 extruderId = 1;
                 didColors = true;
+            }
+
+            let supportValue = 0;
+            if (hasSupportFlag === SUPPORT_FORCE) {
+                supportValue = 1;
+                didSupports = true;
+            } else if (hasSupportFlag === SUPPORT_BLOCK) {
+                supportValue = 2;
+                didSupports = true;
             }
 
             const col = faceIndex % columns;
@@ -131,7 +146,8 @@ const uploadMesh = async (mesh: Mesh, fileName: string, options?: UploadMeshOpti
                 // Set the specific Red and Alpha bytes across the 16 pixels
                 for (let cx = 0; cx < cellSize; cx++) {
                     const idx = pixelStartIndex + (cx * 4);
-                    rawPixelBytes[idx] = extruderId; // Red Channel: Stores literal 0 or 1 byte
+                    rawPixelBytes[idx] = extruderId; // Red Channel: Stores literal 0 or 1 byte to identify extruder
+                    rawPixelBytes[idx + 1] = supportValue; // Green Channel: 1 for support, 2 for block-support
                     rawPixelBytes[idx + 3] = 255; // Alpha Channel: Fully opaque to guarantee zero compression losses from anti-aliasing
                 }
             }
@@ -165,9 +181,10 @@ const uploadMesh = async (mesh: Mesh, fileName: string, options?: UploadMeshOpti
 
         finalUploadResult = await api.uploadFile(stlFormData, HEAD_PRINTING);
 
-        // We may have painted faces JUST for supports. Don't upload texture maps
-        // unless we actually have any extruder-coloring operations, exit now
-        if (!didColors) {
+        // This should never happen, we should be covering all cases of
+        // byteCountAttr 'abuse' by supporting both supports and colors. But
+        // just in case...
+        if (!didColors && !didSupports) {
             return finalUploadResult;
         }
 
@@ -206,7 +223,8 @@ const uploadMesh = async (mesh: Mesh, fileName: string, options?: UploadMeshOpti
 
         // We have the PNG, build and inject the metadata
         const metadataObj = {
-            'extruder': Array.of(24, 31) // In an RGBA set of 32 bits, we want the last 8
+            'extruder': Array.of(24, 31), // In an RGBA set of 32 bits, we want the last 8 for R
+            'support': Array.of(16, 23), // Next 8 for G
         };
         const jsonString = JSON.stringify(metadataObj);
 

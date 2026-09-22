@@ -53,6 +53,9 @@ const EditSupportOverlay = ({ onClose }) => {
         removeSupport: () => {
             dispatch(sceneActions.setSupportBrushStatus('remove'));
         },
+        blockSupport: () => {
+            dispatch(sceneActions.setSupportBrushStatus('block'));
+        },
         onCancel: () => {
             actions.finish(false);
         },
@@ -107,6 +110,15 @@ const EditSupportOverlay = ({ onClose }) => {
                         className={classNames(styles['support-btn-switch'], 'sm-tab', 'align-c', supportBrushStatus === 'remove' ? styles.active : '')}
                         onClick={() => { actions.removeSupport(); }}
                         spanText={i18n._('key-Printing/LeftBar/EditSupport-Delete')}
+                        spanClassName={classNames(styles['action-title'])}
+                    />
+                    <SvgIcon
+                        name="SupportDelete"
+                        size={24}
+                        type={['static']}
+                        className={classNames(styles['support-btn-switch'], 'sm-tab', 'align-c', supportBrushStatus === 'block' ? styles.active : '')}
+                        onClick={() => { actions.blockSupport(); }}
+                        spanText={i18n._('key-Printing/LeftBar/EditSupport-Block')}
                         spanClassName={classNames(styles['action-title'])}
                     />
                 </div>

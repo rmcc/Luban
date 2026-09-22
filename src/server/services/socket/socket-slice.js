@@ -62,7 +62,6 @@ const handleSlice = (socket, params) => {
     slicer.setVersion(version);
     slicer.setModels(params.model);
     slicer.setModelDefinitions(params.definition);
-    slicer.setSupportModels(params.support);
     slicer.setMetadata({
         originalName,
         thumbnail,

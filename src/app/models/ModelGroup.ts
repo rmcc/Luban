@@ -135,11 +135,12 @@ const INDEXMARGIN = 0.02;
 
 const SUPPORT_AVAIL_AREA_COLOR = [0.5725490196078431, 0.32941176470588235, 0.8705882352941177];
 const SUPPORT_ADD_AREA_COLOR = [0.2980392156862745, 0, 0.5098039215686274];
+const SUPPORT_BLOCK_AREA_COLOR = [0.4392156862745098, 0, 0];
 const SUPPORT_UNAVAIL_AREA_COLOR = [0.9, 0.9, 0.9];
 
 const MESH_COLORING_DEFAULT_COLOR = [0.8, 0.8, 0.8];
 
-const AVAIL = -1, NONE = 0, FACE = 1/* , POINT = 2, LINE = 3 */;
+const AVAIL = -1, NONE = 0, FACE = 1, BLOCK = 2/* , POINT = 2, LINE = 3 */;
 export const PLANE_MAX_HEIGHT = 999;
 
 const SECTION_COLOR = '#E9F3FE';
@@ -3076,6 +3077,14 @@ class ModelGroup extends EventEmitter {
                                 SUPPORT_ADD_AREA_COLOR[2],
                             );
                             break;
+                        case BLOCK:
+                            colors.setXYZ(
+                                index,
+                                SUPPORT_BLOCK_AREA_COLOR[0],
+                                SUPPORT_BLOCK_AREA_COLOR[1],
+                                SUPPORT_BLOCK_AREA_COLOR[2],
+                            );
+                            break;
                         case AVAIL:
                             colors.setXYZ(
                                 index,
@@ -3141,7 +3150,14 @@ class ModelGroup extends EventEmitter {
 
                     const r = colorAttribute.getX(index);
                     const isSupportArea = (Math.abs(r - SUPPORT_ADD_AREA_COLOR[0]) < EPSILON);
-                    supportFaceMarks[faceIndex] = isSupportArea ? FACE : NONE;
+                    const isBlockArea = (Math.abs(r - SUPPORT_BLOCK_AREA_COLOR[0]) < EPSILON);
+                    let faceColoring = NONE;
+                    if (isSupportArea) {
+                        faceColoring = FACE;
+                    } else if (isBlockArea) {
+                        faceColoring = BLOCK;
+                    }
+                    supportFaceMarks[faceIndex] = faceColoring;
                 }
                 model.supportFaceMarks = supportFaceMarks;
             } else {
@@ -3171,7 +3187,7 @@ class ModelGroup extends EventEmitter {
         return models;
     }
 
-    public applySupportBrush(intersections: Intersection[], flag: 'add' | 'remove') {
+    public applySupportBrush(intersections: Intersection[], flag: 'add' | 'remove' | 'block') {
         this.moveBrush(intersections);
 
         const intersection = intersections.find((result) => result.object.userData.canSupport);
@@ -3200,6 +3216,9 @@ class ModelGroup extends EventEmitter {
         if (flag === 'add') {
             color = SUPPORT_ADD_AREA_COLOR;
             mark = 1;
+        } else if (flag === 'block') {
+            color = SUPPORT_BLOCK_AREA_COLOR;
+            mark = 2;
         } else if (flag === 'remove') {
             color = SUPPORT_AVAIL_AREA_COLOR;
         }
@@ -3210,6 +3229,7 @@ class ModelGroup extends EventEmitter {
                 if (
                     Math.abs(colorAttr.getX(i2) - SUPPORT_AVAIL_AREA_COLOR[0]) < EPSILON
                     || Math.abs(colorAttr.getX(i2) - SUPPORT_ADD_AREA_COLOR[0]) < EPSILON
+                    || Math.abs(colorAttr.getX(i2) - SUPPORT_BLOCK_AREA_COLOR[0]) < EPSILON
                     || Math.abs(colorAttr.getX(i2) - MESH_COLORING_DEFAULT_COLOR[0]) < EPSILON
                 ) {
                     colorAttr.setX(i2, color[0]);

@@ -31,7 +31,7 @@ export const BYTE_COUNT_LEFT_EXTRUDER = 0x0100;
 export const BYTE_COUNT_RIGHT_EXTRUDER = 0x0200;
 export const BYTE_COUNT_MAX_COLOR = BYTE_COUNT_RIGHT_EXTRUDER;
 
-export const BYTE_COUNT_SUPPORT_MASK = 0x0001;
+export const BYTE_COUNT_SUPPORT_MASK = 0x0003;
 export const BYTE_COUNT_SUPPORT_CLEAR_MASK = (0xffff & ~BYTE_COUNT_SUPPORT_MASK);
 
 class ThreeModel extends BaseModel {
