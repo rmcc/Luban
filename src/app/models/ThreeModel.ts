@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import noop from 'lodash/noop';
 import {
     DoubleSide, Geometry, Mesh, MeshBasicMaterial, MeshLambertMaterial, Object3D, ObjectLoader, Plane, Color,
-    Int16BufferAttribute,
+    Int16BufferAttribute, LessEqualDepth,
     Float32BufferAttribute,
 } from 'three';
 
@@ -759,19 +759,39 @@ class ThreeModel extends BaseModel {
     }
 
     // model support
-    public generateSupportMesh(geometry: Geometry) {
+    // since the inline support generation plots one support for each face,
+    // they need to be visually merged. Render an invisible "shell" with
+    // the original objects and a depth mask, then paint over _that_
+    // if isBlockMesh is true, paint it red, otherwise blue
+    public generateSupportMesh(geometry: Geometry, isBlockMesh = false) {
         geometry.computeVertexNormals();
         const group = this.createPlaneStencilGroup(geometry);
+
+        const depthMaskMaterial = new MeshBasicMaterial({
+            side: DoubleSide,
+            colorWrite: false,
+            depthWrite: true,
+            polygonOffset: true,
+            polygonOffsetFactor: 1,
+            polygonOffsetUnits: 1,
+            clippingPlanes: [
+                this.localPlane
+            ]
+        });
+        const depthMaskMesh = new Mesh(geometry, depthMaskMaterial);
+        depthMaskMesh.renderOrder = 1499;
+        group.add(depthMaskMesh);
 
         const material = new MeshBasicMaterial({
             side: DoubleSide,
             transparent: true,
             opacity: 0.5,
-            color: 0x6485AB,
+            color: isBlockMesh ? 0xAB6B64 : 0x6485AB,
             depthWrite: false,
+            depthFunc: LessEqualDepth,
             polygonOffset: true,
-            polygonOffsetFactor: -1,
-            polygonOffsetUnits: -5,
+            polygonOffsetFactor: 1,
+            polygonOffsetUnits: 1,
             clippingPlanes: [
                 this.localPlane
             ]

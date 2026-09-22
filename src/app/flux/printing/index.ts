@@ -5,12 +5,12 @@ import {
     PrintMode,
     resolveParameterValues,
 } from '@snapmaker/luban-platform';
-import { cloneDeep, filter, find, includes, isNil, noop } from 'lodash';
+import { cloneDeep, filter, find, includes, isNil } from 'lodash';
 import path from 'path';
 import { Transfer } from 'threads';
 import * as THREE from 'three';
 import { Box3, Vector3 } from 'three';
-import { acceleratedRaycast, computeBoundsTree, disposeBoundsTree } from 'three-mesh-bvh';
+import { acceleratedRaycast, computeBoundsTree, disposeBoundsTree, MeshBVH } from 'three-mesh-bvh';
 
 import { timestamp } from '../../../shared/lib/random-utils';
 import api from '../../api';
@@ -72,7 +72,6 @@ import scene from '../../scene/Scene';
 import ThreeUtils from '../../scene/three-extensions/ThreeUtils';
 import { machineStore } from '../../store/local-storage';
 import { pickAvailableQualityPresetModels } from '../../ui/utils/profileManager';
-import ModelLoader from '../../ui/widgets/PrintingVisualizer/ModelLoader';
 import gcodeBufferGeometryToObj3d from '../../workers/GcodeToBufferGeometry/gcodeBufferGeometryToObj3d';
 import type { RootState } from '../index.def';
 import definitionManager from '../manager/DefinitionManager';
@@ -1023,35 +1022,24 @@ export const actions = {
             });
             controller.on('generate-support:completed', args => {
                 const { supportFilePaths } = args;
-                const { progressStatesManager } = getState().printing;
-                dispatch(
-                    actions.updateState({
-                        stage: STEP_STAGE.PRINTING_GENERATE_SUPPORT_MODEL,
-                        progress: progressStatesManager.updateProgress(
-                            STEP_STAGE.PRINTING_GENERATE_SUPPORT_MODEL,
-                            1
-                        )
-                    })
-                );
-
-                dispatch(actions.loadSupports(supportFilePaths));
-            });
-            controller.on('generate-support:progress', progress => {
-                const state = getState().printing;
-                const { progressStatesManager } = state;
-                if (
-                    progress - state.progress > 0.01
-                    || progress > 1 - EPSILON
-                ) {
-                    dispatch(
-                        actions.updateState({
-                            progress: progressStatesManager.updateProgress(
-                                STEP_STAGE.PRINTING_GENERATE_SUPPORT_MODEL,
-                                progress
-                            )
-                        })
-                    );
-                }
+                const onProgress = (progress) => {
+                    const state = getState().printing;
+                    const { progressStatesManager } = state;
+                    if (
+                        progress - state.progress > 0.01
+                        || progress > 1 - EPSILON
+                    ) {
+                        dispatch(
+                            actions.updateState({
+                                progress: progressStatesManager.updateProgress(
+                                    STEP_STAGE.PRINTING_GENERATE_SUPPORT_MODEL,
+                                    progress
+                                )
+                            })
+                        );
+                    }
+                };
+                dispatch(actions.loadSupports(supportFilePaths, onProgress));
             });
             controller.on('generate-support:error', () => {
                 const state = getState().printing;
@@ -4505,60 +4493,242 @@ export const actions = {
             });
     },
 
-    loadSupports: (supportFilePaths) => {
+    loadSupports: (supportFilePaths, onProgress) => {
         return (dispatch, getState) => {
             const { modelGroup, tmpSupportFaceMarks } = getState().printing;
-            // use worker to load supports
+            // support coverage is determined inline by plotting a raycast from
+            // the painted surface down until the next surface (or the bed)
             const operations = new CompoundOperation();
-            const promises = supportFilePaths.map(async (info) => {
-                return new Promise((resolve, reject) => {
-                    const model = modelGroup.findModelByID(info.modelID);
-                    const previousFaceMarks = tmpSupportFaceMarks[info.modelID];
-                    if (model) {
-                        const operation = new AddSupportOperation3D({
-                            target: model,
-                            currentFaceMarks: model.supportFaceMarks.slice(0),
-                            currentSupport: null,
-                            previousSupport:
-                                model.meshObject.children[0]
-                                || model.tmpSupportMesh,
-                            previousFaceMarks
-                        });
-                        model.meshObject.clear();
-                        operations.push(operation);
+            supportFilePaths.forEach((info) => {
+                const model = modelGroup.findModelByID(info.modelID);
+                const previousFaceMarks = tmpSupportFaceMarks[info.modelID];
+                if (model) {
+                    const operation = new AddSupportOperation3D({
+                        target: model,
+                        currentFaceMarks: model.supportFaceMarks.slice(0),
+                        currentSupport: null,
+                        previousSupport:
+                            model.meshObject.children
+                            || model.tmpSupportMesh,
+                        previousFaceMarks
+                    });
+                    model.meshObject.clear();
+                    operations.push(operation);
 
-                        if (info.supportStlFilename) {
-                            new ModelLoader().load(
-                                `${DATA_PREFIX}/${info.supportStlFilename}`,
-                                (geometry) => {
-                                    const mesh = model.generateSupportMesh(geometry);
-                                    operation.state.currentSupport = mesh;
-                                    resolve(true);
-                                },
-                                noop,
-                                (err) => {
-                                    reject(err);
-                                }
-                            );
-                        } else {
-                            resolve(true);
+                    if (model.meshObject && model.meshObject.geometry && model.supportFaceMarks) {
+                        const geom = model.meshObject.geometry;
+                        const indices = geom.index ? geom.index.array : null;
+                        const positions = geom.attributes.position.array;
+                        const marks = model.supportFaceMarks;
+                        const progressBatchSize = 100; // Emit progress every 100 triangles
+
+                        const matrixWorld = model.meshObject.matrixWorld;
+                        const verticesSupport: number[] = [];
+                        const verticesBlock: number[] = [];
+
+                        if (!geom.boundsTree) {
+                            geom.boundsTree = new MeshBVH(geom);
                         }
-                    } else {
-                        resolve(true);
+                        const bvh = geom.boundsTree;
+
+                        // Temporary world vectors and ray for construction/intersection
+                        const w0 = new THREE.Vector3();
+                        const w1 = new THREE.Vector3();
+                        const w2 = new THREE.Vector3();
+                        const ray = new THREE.Ray();
+
+                        // Map structures to pool cell geometry properties by 2D spatial coordinate
+                        const supportGrid = new Map<string, { minX: number; maxX: number; minY: number; maxY: number;
+                            maxZ: number; minFloorZ: number; markIndex: number; cx: number; cy: number }>();
+                        const blockGrid = new Map<string, { minX: number; maxX: number; minY: number; maxY: number;
+                            maxZ: number; minFloorZ: number; markIndex: number; cx: number; cy: number }>();
+
+                        const cellSize = 0.5;
+
+                        // First Pass: Perform raycasting and pool boundaries into distinct 2D grid squares
+                        for (let i = 0; i < marks.length; i++) {
+                            if (marks[i] > 0) {
+                                const idx0 = indices ? indices[i * 3] : i * 3;
+                                const idx1 = indices ? indices[i * 3 + 1] : i * 3 + 1;
+                                const idx2 = indices ? indices[i * 3 + 2] : i * 3 + 2;
+
+                                // Local coordinates for the current overhang face
+                                const ax = positions[idx0 * 3], ay = positions[idx0 * 3 + 1], az = positions[idx0 * 3 + 2];
+                                const bx = positions[idx1 * 3], by = positions[idx1 * 3 + 1], bz = positions[idx1 * 3 + 2];
+                                const cx = positions[idx2 * 3], cy = positions[idx2 * 3 + 1], cz = positions[idx2 * 3 + 2];
+
+                                // Local center coordinates of the overhang face
+                                const fwaX = (ax + bx + cx) / 3;
+                                const fwaY = (ay + by + cy) / 3;
+                                const fwaZ = (az + bz + cz) / 3;
+
+                                let bestLocalFloorZ = -Infinity;
+                                const epsilon = 0.05;
+
+                                // Cast a downward ray using BVH acceleration
+                                ray.origin.set(fwaX, fwaY, fwaZ);
+                                ray.direction.set(0, 0, -1);
+                                const hit = bvh.raycastFirst(ray);
+
+                                if (hit && hit.point.z < (fwaZ - epsilon)) {
+                                    bestLocalFloorZ = hit.point.z;
+                                }
+
+                                // Determine the world space Z level for the column bottom
+                                let floorZ = 0;
+                                if (bestLocalFloorZ !== -Infinity) {
+                                    const localFloorVec = new THREE.Vector3(fwaX, fwaY, bestLocalFloorZ);
+                                    localFloorVec.applyMatrix4(matrixWorld);
+                                    floorZ = localFloorVec.z;
+                                }
+
+                                // Transform top local vertices into world space coordinates
+                                w0.set(ax, ay, az).applyMatrix4(matrixWorld);
+                                w1.set(bx, by, bz).applyMatrix4(matrixWorld);
+                                w2.set(cx, cy, cz).applyMatrix4(matrixWorld);
+
+                                const midX = (w0.x + w1.x + w2.x) / 3;
+                                const midY = (w0.y + w1.y + w2.y) / 3;
+                                const highZ = Math.max(w0.z, w1.z, w2.z);
+
+                                const cellKeyX = Math.floor(midX / cellSize);
+                                const cellKeyY = Math.floor(midY / cellSize);
+                                const key = `${cellKeyX},${cellKeyY}`;
+
+                                const activeGrid = marks[i] === 1 ? supportGrid : blockGrid;
+                                const existingCell = activeGrid.get(key);
+
+                                if (!existingCell) {
+                                    activeGrid.set(key, {
+                                        minX: cellKeyX * cellSize,
+                                        maxX: (cellKeyX + 1) * cellSize,
+                                        minY: cellKeyY * cellSize,
+                                        maxY: (cellKeyY + 1) * cellSize,
+                                        maxZ: highZ,
+                                        minFloorZ: floorZ,
+                                        markIndex: i,
+                                        cx: cellKeyX,
+                                        cy: cellKeyY
+                                    });
+                                } else {
+                                    if (highZ > existingCell.maxZ) {
+                                        existingCell.maxZ = highZ;
+                                    }
+                                    if (floorZ < existingCell.minFloorZ) {
+                                        existingCell.minFloorZ = floorZ;
+                                    }
+                                }
+                            }
+                        }
+                        // Second Pass: Generate unified hollow mesh structures omitting all internal side-walls.
+                        // We don't need all of that in the geometry, trying to narrow it down to only the outer perimeters
+                        // so we have less data to process in the renderer
+                        const generateVoxelMeshGeometry = (gridMap: Map<string, any>, targetVertices: number[]) => {
+                            gridMap.forEach((c) => {
+                                // Top Face - a triangle under the face to support
+                                targetVertices.push(
+                                    c.minX, c.minY, c.maxZ,
+                                    c.maxX, c.minY, c.maxZ,
+                                    c.minX, c.maxY, c.maxZ
+                                );
+                                // Top Face - Triangle 2
+                                targetVertices.push(
+                                    c.maxX, c.minY, c.maxZ,
+                                    c.maxX, c.maxY, c.maxZ,
+                                    c.minX, c.maxY, c.maxZ
+                                );
+
+                                // Bottom Face - same, but down at the nearest surface (or bed)
+                                targetVertices.push(
+                                    c.minX, c.minY, c.minFloorZ,
+                                    c.minX, c.maxY, c.minFloorZ,
+                                    c.maxX, c.minY, c.minFloorZ
+                                );
+                                // Bottom Face - Triangle 2
+                                targetVertices.push(
+                                    c.maxX, c.minY, c.minFloorZ,
+                                    c.minX, c.maxY, c.minFloorZ,
+                                    c.maxX, c.maxY, c.minFloorZ
+                                );
+
+                                // Fetch neighbor assignments to construct side walls only along outer boundaries
+                                const nMinY = gridMap.get(`${c.cx},${c.cy - 1}`);
+                                const nMaxY = gridMap.get(`${c.cx},${c.cy + 1}`);
+                                const nMinX = gridMap.get(`${c.cx - 1},${c.cy}`);
+                                const nMaxX = gridMap.get(`${c.cx + 1},${c.cy}`);
+
+                                const pushWall = (x0: number, y0: number, x1: number, y1: number, zTop: number, zBot: number) => {
+                                    targetVertices.push(
+                                        x0, y0, zTop,
+                                        x1, y1, zTop,
+                                        x0, y0, zBot,
+                                        x1, y1, zTop,
+                                        x1, y1, zBot,
+                                        x0, y0, zBot
+                                    );
+                                };
+
+                                const buildSide = (neighbor: any, x0: number, y0: number, x1: number, y1: number) => {
+                                    if (!neighbor || neighbor.maxZ < c.maxZ || neighbor.minFloorZ > c.minFloorZ) {
+                                        const topZ = neighbor ? Math.min(c.maxZ, Math.max(c.minFloorZ, neighbor.maxZ)) : c.minFloorZ;
+                                        const botZ = neighbor ? Math.max(c.minFloorZ, Math.min(c.maxZ, neighbor.minFloorZ)) : c.minFloorZ;
+
+                                        if (!neighbor) {
+                                            pushWall(x0, y0, x1, y1, c.maxZ, c.minFloorZ);
+                                        } else {
+                                            if (c.maxZ > topZ) pushWall(x0, y0, x1, y1, c.maxZ, topZ);
+                                            if (c.minFloorZ < botZ) pushWall(x0, y0, x1, y1, botZ, c.minFloorZ);
+                                        }
+                                    }
+                                };
+
+                                // Side Wall - Min Y
+                                buildSide(nMinY, c.minX, c.minY, c.maxX, c.minY);
+
+                                // Side Wall - Max Y
+                                buildSide(nMaxY, c.maxX, c.maxY, c.minX, c.maxY);
+
+                                // Side Wall - Min X
+                                buildSide(nMinX, c.minX, c.maxY, c.minX, c.minY);
+
+                                // Side Wall - Max X
+                                buildSide(nMaxX, c.maxX, c.minY, c.maxX, c.maxY);
+
+                                if (c.markIndex % progressBatchSize === 0) {
+                                    onProgress((c.markIndex / marks.length) / supportFilePaths.length);
+                                }
+                            });
+                        };
+
+                        generateVoxelMeshGeometry(supportGrid, verticesSupport);
+                        generateVoxelMeshGeometry(blockGrid, verticesBlock);
+
+                        if (verticesSupport.length > 0) {
+                            const generatedGeom = new THREE.BufferGeometry();
+                            generatedGeom.setAttribute('position', new THREE.Float32BufferAttribute(verticesSupport, 3));
+
+                            const mesh = model.generateSupportMesh(generatedGeom);
+                            operation.state.currentSupport = mesh;
+                        }
+                        if (verticesBlock.length > 0) {
+                            const generatedGeom = new THREE.BufferGeometry();
+                            generatedGeom.setAttribute('position', new THREE.Float32BufferAttribute(verticesBlock, 3));
+
+                            model.generateSupportMesh(generatedGeom, true);
+                        }
                     }
-                });
+                }
             });
-            Promise.all(promises)
-                .then(() => {
-                    dispatch(operationHistoryActions.setOperations(INITIAL_STATE.name, operations));
-                    dispatch(sceneActions.renderScene());
-                    dispatch(
-                        actions.updateState({
-                            tmpSupportFaceMarks: {}
-                        })
-                    );
+
+            onProgress(1);
+
+            dispatch(operationHistoryActions.setOperations(INITIAL_STATE.name, operations));
+            dispatch(sceneActions.renderScene());
+            dispatch(
+                actions.updateState({
+                    tmpSupportFaceMarks: {}
                 })
-                .catch(err => log.error(err));
+            );
         };
     },
 

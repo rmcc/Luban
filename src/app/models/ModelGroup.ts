@@ -30,7 +30,7 @@ import {
     Vector3
 } from 'three';
 import type { ExtendedTriangle } from 'three-mesh-bvh';
-import { CONTAINED, INTERSECTED, NOT_INTERSECTED } from 'three-mesh-bvh';
+import { CONTAINED, INTERSECTED, NOT_INTERSECTED, MeshBVH } from 'three-mesh-bvh';
 import { v4 as uuid } from 'uuid';
 
 import { polyUnion } from '../../shared/lib/clipper/cLipper-adapter';
@@ -2485,6 +2485,21 @@ class ModelGroup extends EventEmitter {
 
     public clearAllSupport(models: ThreeModel[]) {
         models.forEach((model) => {
+            // The actual geometry needs to be cleared so the uploader doesn't
+            // generate support textures from an outdated byte_count
+            const bufferGeometry = model.meshObject.geometry;
+            const byteCountAttribute = bufferGeometry.getAttribute('byte_count');
+            // transformations and rotations call into here, even if no supports
+            // exist. So make sure there's something to clear
+            if (byteCountAttribute !== undefined) {
+                const array = byteCountAttribute.array;
+                const len = array.length;
+
+                for (let i = 0; i < len; i++) {
+                    array[i] &= BYTE_COUNT_SUPPORT_CLEAR_MASK;
+                }
+                byteCountAttribute.needsUpdate = true;
+            }
             model.meshObject.clear();
             model.supportFaceMarks = [];
             model.stickToPlate();
@@ -2534,6 +2549,14 @@ class ModelGroup extends EventEmitter {
         models.forEach((model) => {
             model.meshObject.updateMatrixWorld();
             const bufferGeometry = model.meshObject.geometry;
+
+            // Force a BVH initialization to build and attach a sorted index layout
+            // otherwise if this is our very first model operation we'll by attaching supports
+            // to the wrong faceIndex values
+            if (!bufferGeometry.boundsTree) {
+                bufferGeometry.boundsTree = new MeshBVH(bufferGeometry);
+            }
+
             const clone = bufferGeometry.clone();
             clone.applyMatrix4(model.meshObject.matrixWorld.clone());
 

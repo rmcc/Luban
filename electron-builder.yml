@@ -23,7 +23,6 @@ asar:
 asarUnpack:
     - "**/*.node"
     - "**/node_modules/@snapmaker/snapmaker-lunar/engine/**/*"
-    - "**/node_modules/snapmaker-luban-engine/engine/**/*"
 
 #
 # publish options

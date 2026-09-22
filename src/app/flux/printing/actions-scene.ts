@@ -1,7 +1,6 @@
 import { find } from 'lodash';
 import { Color, Float32BufferAttribute } from 'three';
 import { v4 as uuid } from 'uuid';
-import path from 'path';
 
 import {
     HEAD_PRINTING,
@@ -9,7 +8,6 @@ import {
     LOAD_MODEL_FROM_INNER,
     MACHINE_EXTRUDER_X,
     MACHINE_EXTRUDER_Y,
-    DATA_PREFIX,
     BOTH_EXTRUDER_MAP_NUMBER,
     RIGHT_EXTRUDER
 } from '../../constants';
@@ -33,7 +31,7 @@ import sceneLogic, { PrimeTowerSettings } from '../../scene/scene.logic';
 import ThreeUtils from '../../scene/three-extensions/ThreeUtils';
 import { actions as operationHistoryActions } from '../operation-history';
 import baseActions from './actions-base';
-import { MeshHelper, LoadMeshFileOptions, MeshFileInfo, loadMeshFiles } from './actions-mesh';
+import { LoadMeshFileOptions, MeshFileInfo, loadMeshFiles } from './actions-mesh';
 import scene from '../../scene/Scene';
 import MeshColoringControl from '../../scene/controls/MeshColoringControl';
 
@@ -471,6 +469,8 @@ const applyMeshColoringBrush = (raycastResult) => {
 };
 
 const uploadModelsForSupport = (models: ThreeModel[], angle: number) => {
+    // We're not actually uploading, but the insertion of the marks into the geometry
+    // happens here.
     return async (dispatch, getState) => {
         const { qualityDefinitions, activePresetIds } = getState().printing;
         const activeQualityDefinition = find(qualityDefinitions, {
@@ -514,34 +514,23 @@ const uploadModelsForSupport = (models: ThreeModel[], angle: number) => {
                         }
                         mesh.geometry.computeVertexNormals();
                     }
-                    // Add byte_count attribute for STL binary exporter
 
-                    // replace byte count attribute
-                    const originalByteCountAttribute = mesh.geometry.getAttribute('byte_count');
-                    mesh.geometry.setAttribute('byte_count', new Float32BufferAttribute(model.supportFaceMarks.slice(0), 1));
+                    // Add byte_count attribute for texture generation. And leave it there
 
-                    const originalName = model.originalName;
-                    const uploadPath = `${DATA_PREFIX}/${originalName}`;
-                    const basenameWithoutExt = path.basename(
-                        uploadPath,
-                        path.extname(uploadPath)
-                    );
-                    const stlFileName = `${basenameWithoutExt}.stl`;
-                    const uploadResult = await MeshHelper.uploadMesh(mesh, stlFileName);
-
-                    // restore byte count attribute
-                    if (originalByteCountAttribute) {
-                        mesh.geometry.setAttribute('byte_count', originalByteCountAttribute);
+                    const byteCountAttribute = mesh.geometry.getAttribute('byte_count');
+                    if (byteCountAttribute) {
+                        const array = byteCountAttribute.array;
+                        const len = array.length;
+                        for (let i = 0; i < len; i++) {
+                            array[i] |= (model.supportFaceMarks[i] || 0);
+                        }
+                        byteCountAttribute.needsUpdate = true;
+                    } else {
+                        mesh.geometry.setAttribute('byte_count', new Float32BufferAttribute(model.supportFaceMarks.slice(0), 1));
                     }
 
                     params.data.push({
                         modelID: model.modelID,
-                        uploadName: uploadResult.body.uploadName,
-                        // specify generated support name
-                        supportStlFilename: uploadResult.body.uploadName.replace(
-                            /\.stl$/,
-                            `_support_${Date.now()}.stl`
-                        ),
                         config: {
                             support_angle: angle,
                             layer_height_0: activeQualityDefinition.settings.layer_height_0.default_value,

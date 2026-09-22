@@ -103,42 +103,13 @@ const handleSlice = (socket, params) => {
     slicer.startSlice();
 };
 
-const repairSupport = (files, size) => {
-    const promises = files.map((file) => {
-        return new Promise((resolve, reject) => {
-            const uploadName = file.supportStlFilename;
-            const extname = path.extname(uploadName);
-            const outputName = uploadName.slice(
-                0,
-                uploadName.indexOf(extname)
-            );
-
-            repairModel({
-                complete: resolve,
-                next: noop,
-                error: reject
-            }, {
-                uploadName,
-                modelID: file.modelID,
-                size,
-                outputName
-            });
-        });
-    });
-    return Promise.allSettled(promises);
-};
-
 const handleGenerateSupport = (socket, params) => {
     socket.emit('generate-support:started');
     generateSupport(
         params,
-        (progress) => {
-            progressHandle(socket, 'generate-support:progress', progress);
-        },
         async (result) => {
-            await repairSupport(result.files, params.size);
-
             socket.emit('generate-support:completed', {
+                // not really files anymore, just original model IDs
                 supportFilePaths: result.files
             });
         },

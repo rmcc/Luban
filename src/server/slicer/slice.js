@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import lubanEngine from 'snapmaker-luban-engine';
 import lunar from '@snapmaker/snapmaker-lunar';
 
 import logger from '../lib/logger';
@@ -33,64 +32,22 @@ const log = logger('service:print3d-slice');
  * @param {*} onError function
  * @returns null
  */
-export function generateSupport(modelInfo, onProgress, onSucceed, onError) {
+export function generateSupport(modelInfo, onSucceed, onError) {
+    // This used to offload generation to an external tool, but it's a dummy now
+    // and always returns success.
+    // Support generation happens inline when we try to "load" them.
+    // All we need to pass along is the modelID to do that generation
     const { data } = modelInfo;
 
-    const settingsForSupport = {
-        data: []
-    };
-    for (const d of data) {
-        settingsForSupport.data.push(convertObjectKeyNameToUnderScoreCase(d));
-        const uploadPath = `${DataStorage.tmpDir}/${d.uploadName}`;
-
-        if (!fs.existsSync(uploadPath)) {
-            log.error(`Slice Error: 3d model file does not exist -> ${uploadPath}`);
-            onError(`Slice Error: 3d model file does not exist -> ${uploadPath}`);
-            return;
-        }
-    }
-
-    const settingsFilePath = `${DataStorage.tmpDir}/${pathWithRandomSuffix('settings')}.json`;
-
-    try {
-        fs.writeFileSync(settingsFilePath, JSON.stringify(settingsForSupport));
-    } catch (e) {
-        log.error(`Fail to generate support settings: ${e}`);
-        onError(`Fail to generate support settings: ${e}`);
-        return;
-    }
-
-    lubanEngine.modelSupport(DataStorage.tmpDir, DataStorage.tmpDir, settingsFilePath)
-        .onStderr('data', (item) => {
-            if (item.length < 10) {
-                return null;
-            }
-            if (item.indexOf('Progress:') === 0 && item.indexOf('accomplished') === -1) {
-                const start = item.search('[0-9.]*%');
-                const end = item.indexOf('%');
-                const sliceProgress = Number(item.slice(start, end));
-                onProgress(sliceProgress);
-            }
-            return null;
-        })
-        .end((err, res) => {
-            if (err) {
-                log.error(`fail to generate support: ${err}`);
-                onError(err);
-            } else {
-                const files = [];
-                data.forEach(v => {
-                    files.push({
-                        supportStlFilename: fs.existsSync(`${DataStorage.tmpDir}/${v.supportStlFilename}`) ? v.supportStlFilename : null,
-                        modelID: v.modelID
-                    });
-                });
-                onSucceed({
-                    files
-                });
-                log.info(`slice progress closed with code ${res.code}`);
-            }
+    const files = [];
+    data.forEach(v => {
+        files.push({
+            modelID: v.modelID
         });
+    });
+    onSucceed({
+        files
+    });
 }
 
 export function simplifyModel(params, onProgress, onSucceed, onError) {

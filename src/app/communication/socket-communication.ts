@@ -97,7 +97,6 @@ class SocketCommunication {
         'taskCompleted:cutModel': [],
         'generate-support:started': [],
         'generate-support:completed': [],
-        'generate-support:progress': [],
         'generate-support:error': [],
         // for simplify model
         'simplify-model:started': [],

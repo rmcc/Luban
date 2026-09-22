@@ -150,18 +150,6 @@ export default {
                     UniApi.Event.emit('appbar-menu:wifi-status-test');
                 }
             }
-        },
-        {
-            label: 'key-App/Menu-Run Engine Test',
-            id: 'open-engine-test',
-            enabled: true,
-            click: (menuItem, browserWindow) => {
-                if (isElectron()) {
-                    browserWindow.webContents.send('open-engine-test');
-                } else {
-                    UniApi.Event.emit('appbar-menu:open-engine-test');
-                }
-            }
         }
     ]
 };

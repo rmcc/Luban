@@ -714,9 +714,6 @@ class AppLayout extends React.PureComponent {
             UniApi.Event.on('download-log', (event, ...args) => {
                 UniApi.Event.emit('appbar-menu:download-log', ...args);
             });
-            UniApi.Event.on('open-engine-test', (event, ...args) => {
-                UniApi.Event.emit('appbar-menu:open-engine-test', ...args);
-            });
             UniApi.Event.on('wifi-status-test', (event, ...args) => {
                 UniApi.Event.emit('appbar-menu:wifi-status-test', ...args);
             });
@@ -947,15 +944,6 @@ class AppLayout extends React.PureComponent {
             });
             UniApi.Event.on('appbar-menu:download-log', () => {
                 UniApi.File.exportAs('/Logs/server.log', '/Logs/server.log', 'server.log');
-            });
-            UniApi.Event.on('appbar-menu:open-engine-test', () => {
-                const path = window.require('path');
-                const ipc = window.require('electron').ipcRenderer;
-
-                const { app } = window.require('@electron/remote');
-                const p = path.join(app.getAppPath(), './resources/engine-test');
-
-                ipc.send('open-engine-test-path', p);
             });
             UniApi.Event.on('appbar-menu:wifi-status-test', () => {
                 this.props.wifiStatusTest();

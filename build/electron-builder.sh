@@ -32,18 +32,13 @@ if [[ " $* " =~ " --win " ]]; then
 fi
 # Copy the folder from the project root to the dist folder
 cp -r ../../modified-modules ./
-cp -r ../../patches ./
 
-# We need patch-package for package editing during install, but we don't want it shipped
 echo "Installing packages..."
-npm install patch-package --save-dev
 npm install --omit=dev
-npm prune --omit=dev
 npm dedupe
 
 # Clean these up so they don't end in the packaged file
 rm -rf modified-modules
-rm -rf patches
 
 # Jimp 1.6.1's commonJS fails to resolve the ESM file-type path. force it as a submodule
 mkdir -p node_modules/@jimp/core/node_modules && cp -r node_modules/file-type node_modules/@jimp/core/node_modules || true
