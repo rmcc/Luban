@@ -78,6 +78,8 @@ class SocketController {
                 try {
                     this.port.postMessage({ event, args });
                 } catch (cloneError) {
+                    const seen = new WeakSet();
+
                     const sanitizeObj = (obj) => {
                         if (obj === null || typeof obj !== 'object') {
                             if (typeof obj === 'function') {
@@ -85,6 +87,13 @@ class SocketController {
                             }
                             return obj;
                         }
+
+                        // Prevent circular reference loops
+                        if (seen.has(obj)) {
+                            return '[Circular]';
+                        }
+                        seen.add(obj);
+
                         if (Array.isArray(obj)) {
                             return obj.map((item) => sanitizeObj(item));
                         }
