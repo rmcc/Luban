@@ -136,7 +136,6 @@ class ToolPath {
             status: this.status,
             check: this.check,
             visible: this.visible,
-            deleteModel: this.deleteModel,
             modelMap: this.modelMap,
             modelMode: this.modelMode,
             // object: this.object,

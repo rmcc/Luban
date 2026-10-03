@@ -1042,7 +1042,7 @@ export const actions = {
                     if (item.modelMap.size === 1) {
                         dispatch(actions.deleteToolPath(headType, [item.id]));
                     } else {
-                        item.deleteModel(selectedModel.modelID);
+                        dispatch(actions.deleteModel(headType, selectedModel.modelID));
                         dispatch(actions.saveToolPath(headType, item));
                     }
                 }

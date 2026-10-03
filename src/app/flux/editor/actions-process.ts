@@ -106,6 +106,15 @@ export const processActions = {
         dispatch(baseActions.render(headType));
     },
 
+    deleteModel: (headType, modelId) => (dispatch, getState) => {
+        const { toolPathGroup } = getState()[headType];
+
+        toolPathGroup.toolPaths.forEach(toolPath => {
+            toolPath.deleteModel(modelId);
+        });
+    },
+
+
     showToolPathGroupObject: (headType) => {
         return (dispatch, getState) => {
             const { modelGroup, displayedType } = getState()[headType];
