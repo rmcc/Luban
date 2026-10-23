@@ -27,7 +27,7 @@ const settings = {
         // default namespace used if not passed to translation function
         defaultNS: 'resource',
 
-        whitelist: [
+        supportedLngs: [
             'en', // English (default)
             'de', // German
             'es', // Spanish
